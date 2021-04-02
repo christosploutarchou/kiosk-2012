@@ -1,0 +1,6 @@
+1. .NET Framework 4.5.2
+2. Oracle Client 32-bit (C:\app\XXX\product\11.2.0\client_1)
+3. Oracle 11g EE (C:\app\XXX\product\11.2.0\dbhome_1)
+4. C:\dbparams.txt
+5. C:\params.txt
+5. C:\exceptions
