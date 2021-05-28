@@ -107,6 +107,14 @@ Public Class frmLogin
         username = lstboxUsers.Text
         whois = ""
         Dim sql As String = ""
+
+        If Not username.Equals("unlock") Then
+            If Not checkIfAllowConnection() Then
+                MessageBox.Show("Έχει ξεπεραστει ο μέγιστος αριθμός σημείων", "Σφάλμα σύνεδης", MessageBoxButtons.OK, MessageBoxIcon.Stop)
+                Exit Sub
+            End If            
+        End If
+
         If Not isLoggedIn(username) Then
             Dim cmd As New OracleCommand
             Dim dr As OracleDataReader
@@ -215,36 +223,30 @@ Public Class frmLogin
         End If
     End Sub
 
-    Private Function isLoggedIn(ByVal username As String) As Boolean
-        Dim result As Boolean = False
+    Private Function checkIfAllowConnection() As Boolean
         Dim cmd As New OracleCommand("", conn)
         Dim dr As OracleDataReader
+        Dim currentSessions As Integer = 0
+        Dim maxAllowedSessions As Integer = 2 'PERIPTERO 130 = 2, XDRIVE=UNLIMITED (1000)
         Try
-            cmd = New OracleCommand(CHECK_IF_LOGGED_IN, conn)
-
-            Dim userNameparam As New OracleParameter
-            userNameparam.OracleDbType = OracleDbType.Varchar2
-            userNameparam.Value = username
-            cmd.Parameters.Add(userNameparam)
-
+            cmd = New OracleCommand("select count(*) from sessions where is_active=1", conn)
             cmd.CommandType = CommandType.Text
-
             dr = cmd.ExecuteReader()
             If dr.Read() Then
-                If CInt(dr.GetValue(0)) = 0 Then
-                    result = False
-                Else
-                    result = True
-                End If
+                currentSessions = CInt(dr(0))
             End If
             dr.Close()
         Catch ex As Exception
-            createExceptionFile(ex.Message, " " & CHECK_IF_LOGGED_IN)
+            createExceptionFile(ex.Message, "")
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Finally
             cmd.Dispose()
         End Try
-        Return result
+
+        If currentSessions >= maxAllowedSessions Then
+            Return False
+        End If
+        Return True
     End Function
 
     Private Sub lstboxUsers_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles lstboxUsers.SelectedIndexChanged

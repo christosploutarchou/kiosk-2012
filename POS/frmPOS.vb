@@ -102,6 +102,11 @@ Public Class frmPOS
     End Sub
 
     Private Sub txtBoxBarcode_TextChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles txtBoxBarcode.TextChanged
+        If Not isLoggedIn(username) Then
+            MessageBox.Show("Ο χρήστης δεν ειναι συνδεμένος", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Exit Sub
+        End If
+
         If Not isConnOpen() Then
             MessageBox.Show(CANNOT_ACCESS_DB, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
             Exit Sub
@@ -687,6 +692,10 @@ Public Class frmPOS
     End Sub
 
     Private Sub btn5percent_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btn5percent.Click
+        If Not isLoggedIn(username) Then
+            MessageBox.Show("Ο χρήστης δεν ειναι συνδεμένος", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Exit Sub
+        End If
         If txtBoxManualAmt.Text = String.Empty Or txtBoxManualAmt.Text.Length = 0 Then
             MessageBox.Show("Δεν έχετε καταχωρήσει τιμή για ΔΙΑΦΟΡΑ 5%", "Καταχώρηση Τιμής", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Exit Sub
@@ -696,6 +705,10 @@ Public Class frmPOS
     End Sub
 
     Private Sub btn19percent_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btn19percent.Click
+        If Not isLoggedIn(username) Then
+            MessageBox.Show("Ο χρήστης δεν ειναι συνδεμένος", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Exit Sub
+        End If
         If txtBoxManualAmt.Text = String.Empty Or txtBoxManualAmt.Text.Length = 0 Then
             MessageBox.Show("Δεν έχετε καταχωρήσει τιμή για ΔΙΑΦΟΡΑ 19%", "Καταχώρηση Τιμής", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Exit Sub
@@ -1378,6 +1391,11 @@ Public Class frmPOS
             Exit Sub
         End If
 
+        If Not isLoggedIn(username) Then
+            MessageBox.Show("Ο χρήστης δεν ειναι συνδεμένος", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Exit Sub
+        End If
+
         If txtBoxManualAmt.Text = String.Empty Or txtBoxManualAmt.Text.Length = 0 Then
             MessageBox.Show("Δεν έχετε καταχωρήσει ποσό για έκδωση ΠΛΗΡΩΜΗΣ", "Καταχώρηση Τιμής", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Exit Sub
@@ -1814,6 +1832,10 @@ Public Class frmPOS
                                         btnPos4.Click, btnPos5.Click, btnPos6.Click, btnPos7.Click, btnPos8.Click, btnPos9.Click, btnPos10.Click, _
                                         btnPos11.Click, btnPos12.Click, btnPos13.Click, btnPos14.Click, btnPos15.Click, btnPos16.Click, btnPos17.Click, _
                                         btnPos18.Click, btnPos19.Click, btnPos20.Click, btnPos21.Click, btnPos22.Click, btnPos23.Click
+        If Not isLoggedIn(username) Then
+            MessageBox.Show("Ο χρήστης δεν ειναι συνδεμένος", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Exit Sub
+        End If
         currentBtnPosEdit = sender.name
         Dim tmpBtnItem As BtnItem = btnItemsMap.Item(sender.name)
         If tmpBtnItem.LinkedItems = 1 Then

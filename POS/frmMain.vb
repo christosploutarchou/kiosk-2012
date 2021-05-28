@@ -18,6 +18,10 @@ Public Class frmMain
     End Sub
 
     Private Sub cmdUsers_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdUsers.Click
+        If Not isLoggedIn(username) Then
+            MessageBox.Show("Ο χρήστης δεν ειναι συνδεμένος", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Exit Sub
+        End If
         Me.Hide()
         frmNewUser.Show()
     End Sub
@@ -125,16 +129,28 @@ Public Class frmMain
     End Sub
 
     Private Sub btnCategories_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnCategories.Click
+        If Not isLoggedIn(username) Then
+            MessageBox.Show("Ο χρήστης δεν ειναι συνδεμένος", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Exit Sub
+        End If
         Me.Hide()
         frmCategories.Show()
     End Sub
 
     Private Sub cmdSuppliers_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdSuppliers.Click
+        If Not isLoggedIn(username) Then
+            MessageBox.Show("Ο χρήστης δεν ειναι συνδεμένος", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Exit Sub
+        End If
         Me.Hide()
         frmSuppliers.Show()
     End Sub
 
     Private Sub btnProducts_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnProducts.Click
+        If Not isLoggedIn(username) Then
+            MessageBox.Show("Ο χρήστης δεν ειναι συνδεμένος", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Exit Sub
+        End If
         Me.Hide()
         frmProducts.Show()
     End Sub
@@ -274,6 +290,10 @@ Public Class frmMain
     End Sub
 
     Private Sub btnUpdate_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnUpdate.Click
+        If Not isLoggedIn(username) Then
+            MessageBox.Show("Ο χρήστης δεν ειναι συνδεμένος", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Exit Sub
+        End If
         If Not IsNumeric(txtBoxInitialFiscalAmt.Text) Then
             MessageBox.Show("Το πεδίο 'Αρχικό Ποσό Ταμείου' πρέπει να είναι αριθμός", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Exit Sub
@@ -320,6 +340,10 @@ Public Class frmMain
     End Sub
 
     Private Sub btnPos_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnPos.Click
+        If Not isLoggedIn(username) Then
+            MessageBox.Show("Ο χρήστης δεν ειναι συνδεμένος", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Exit Sub
+        End If
         Me.Hide()
         frmPOS.Show()
         If dualMonitor Then
@@ -328,16 +352,28 @@ Public Class frmMain
     End Sub
 
     Private Sub btnReports_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnReports.Click
+        If Not isLoggedIn(username) Then
+            MessageBox.Show("Ο χρήστης δεν ειναι συνδεμένος", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Exit Sub
+        End If
         Me.Hide()
         frmReports.Show()
     End Sub
 
     Private Sub btnReceipts_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnReceipts.Click
+        If Not isLoggedIn(username) Then
+            MessageBox.Show("Ο χρήστης δεν ειναι συνδεμένος", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Exit Sub
+        End If
         Me.Hide()
         frmReceipts.Show()
     End Sub
 
     Private Sub lnkLabelMessages_LinkClicked(ByVal sender As System.Object, ByVal e As System.Windows.Forms.LinkLabelLinkClickedEventArgs) Handles lnkLabelMessages.LinkClicked
+        If Not isLoggedIn(username) Then
+            MessageBox.Show("Ο χρήστης δεν ειναι συνδεμένος", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Exit Sub
+        End If
         checkMessages()
     End Sub
 
@@ -480,16 +516,28 @@ Public Class frmMain
     End Sub
 
     Private Sub Button1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnInvoices.Click
+        If Not isLoggedIn(username) Then
+            MessageBox.Show("Ο χρήστης δεν ειναι συνδεμένος", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Exit Sub
+        End If
         Me.Hide()
         frmInvoices.Show()
     End Sub
 
     Private Sub btnEditPos_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnEditPos.Click
+        If Not isLoggedIn(username) Then
+            MessageBox.Show("Ο χρήστης δεν ειναι συνδεμένος", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Exit Sub
+        End If
         Me.Hide()
         frmPOSEdit.Show()
     End Sub
 
     Private Sub btnLottery_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnLottery.Click
+        If Not isLoggedIn(username) Then
+            MessageBox.Show("Ο χρήστης δεν ειναι συνδεμένος", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Exit Sub
+        End If
         Me.Hide()
         frmLottery.Show()
     End Sub

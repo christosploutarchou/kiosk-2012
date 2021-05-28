@@ -23,30 +23,30 @@ Partial Class frmMain
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
         Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(frmMain))
-        Me.lblUser = New System.Windows.Forms.Label
-        Me.txtBoxUser = New System.Windows.Forms.TextBox
-        Me.dgvMessages = New System.Windows.Forms.DataGridView
-        Me.Label1 = New System.Windows.Forms.Label
-        Me.txtBoxInitialFiscalAmt = New System.Windows.Forms.TextBox
-        Me.dgvExpiry = New System.Windows.Forms.DataGridView
-        Me.lnkLabelMessages = New System.Windows.Forms.LinkLabel
-        Me.PrintDocument1 = New System.Drawing.Printing.PrintDocument
-        Me.dgvSuppliers = New System.Windows.Forms.DataGridView
-        Me.lblVersion = New System.Windows.Forms.Label
-        Me.btnEditPos = New System.Windows.Forms.Button
-        Me.btnLottery = New System.Windows.Forms.Button
-        Me.Button2 = New System.Windows.Forms.Button
-        Me.btnInvoices = New System.Windows.Forms.Button
-        Me.btnBackup = New System.Windows.Forms.Button
-        Me.btnReceipts = New System.Windows.Forms.Button
-        Me.btnUpdate = New System.Windows.Forms.Button
-        Me.btnReports = New System.Windows.Forms.Button
-        Me.btnExit = New System.Windows.Forms.Button
-        Me.btnProducts = New System.Windows.Forms.Button
-        Me.btnCategories = New System.Windows.Forms.Button
-        Me.cmdSuppliers = New System.Windows.Forms.Button
-        Me.cmdUsers = New System.Windows.Forms.Button
-        Me.btnPos = New System.Windows.Forms.Button
+        Me.lblUser = New System.Windows.Forms.Label()
+        Me.txtBoxUser = New System.Windows.Forms.TextBox()
+        Me.dgvMessages = New System.Windows.Forms.DataGridView()
+        Me.Label1 = New System.Windows.Forms.Label()
+        Me.txtBoxInitialFiscalAmt = New System.Windows.Forms.TextBox()
+        Me.dgvExpiry = New System.Windows.Forms.DataGridView()
+        Me.lnkLabelMessages = New System.Windows.Forms.LinkLabel()
+        Me.PrintDocument1 = New System.Drawing.Printing.PrintDocument()
+        Me.dgvSuppliers = New System.Windows.Forms.DataGridView()
+        Me.lblVersion = New System.Windows.Forms.Label()
+        Me.btnEditPos = New System.Windows.Forms.Button()
+        Me.btnLottery = New System.Windows.Forms.Button()
+        Me.Button2 = New System.Windows.Forms.Button()
+        Me.btnInvoices = New System.Windows.Forms.Button()
+        Me.btnBackup = New System.Windows.Forms.Button()
+        Me.btnReceipts = New System.Windows.Forms.Button()
+        Me.btnUpdate = New System.Windows.Forms.Button()
+        Me.btnReports = New System.Windows.Forms.Button()
+        Me.btnExit = New System.Windows.Forms.Button()
+        Me.btnProducts = New System.Windows.Forms.Button()
+        Me.btnCategories = New System.Windows.Forms.Button()
+        Me.cmdSuppliers = New System.Windows.Forms.Button()
+        Me.cmdUsers = New System.Windows.Forms.Button()
+        Me.btnPos = New System.Windows.Forms.Button()
         CType(Me.dgvMessages, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.dgvExpiry, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.dgvSuppliers, System.ComponentModel.ISupportInitialize).BeginInit()

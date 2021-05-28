@@ -420,9 +420,42 @@ Module connectionModule
         End Try
     End Sub
 
+    Public Function isLoggedIn(ByVal username As String) As Boolean
+        Dim result As Boolean = False
+        Dim cmd As New OracleCommand("", conn)
+        Dim dr As OracleDataReader
+        Try
+            cmd = New OracleCommand(CHECK_IF_LOGGED_IN, conn)
+
+            Dim userNameparam As New OracleParameter
+            userNameparam.OracleDbType = OracleDbType.Varchar2
+            userNameparam.Value = username
+            cmd.Parameters.Add(userNameparam)
+
+            cmd.CommandType = CommandType.Text
+
+            dr = cmd.ExecuteReader()
+            If dr.Read() Then
+                If CInt(dr.GetValue(0)) = 0 Then
+                    result = False
+                Else
+                    result = True
+                End If
+            End If
+            dr.Close()
+        Catch ex As Exception
+            createExceptionFile(ex.Message, " " & CHECK_IF_LOGGED_IN)
+            MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
+        Finally
+            cmd.Dispose()
+        End Try
+        Return result
+    End Function
+
+
     Public Sub logoutUserUUID(ByVal uuid As String)
         Dim connectionRetries As Integer = 0
-        While conn.State = ConnectionState.Closed And connectionRetries < 200
+        While conn.State = ConnectionState.Closed And connectionRetries < 10
             openConn()
             connectionRetries += 1
         End While
