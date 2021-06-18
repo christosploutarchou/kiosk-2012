@@ -22,20 +22,20 @@ Partial Class frmDual
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
-        Me.dgvReceiptDual = New System.Windows.Forms.DataGridView
-        Me.txtBoxTotalDual = New System.Windows.Forms.TextBox
-        Me.lblTotal = New System.Windows.Forms.Label
-        Me.txtBoxDualDisc = New System.Windows.Forms.TextBox
-        Me.Label2 = New System.Windows.Forms.Label
-        Me.txtBoxDualFinal = New System.Windows.Forms.TextBox
-        Me.Label3 = New System.Windows.Forms.Label
-        Me.Panel1 = New System.Windows.Forms.Panel
-        Me.serno = New System.Windows.Forms.DataGridViewTextBoxColumn
-        Me.description = New System.Windows.Forms.DataGridViewTextBoxColumn
-        Me.quantity = New System.Windows.Forms.DataGridViewTextBoxColumn
-        Me.unitprice = New System.Windows.Forms.DataGridViewTextBoxColumn
-        Me.amount = New System.Windows.Forms.DataGridViewTextBoxColumn
-        Me.vat = New System.Windows.Forms.DataGridViewTextBoxColumn
+        Me.dgvReceiptDual = New System.Windows.Forms.DataGridView()
+        Me.serno = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.description = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.quantity = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.unitprice = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.amount = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.vat = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.txtBoxTotalDual = New System.Windows.Forms.TextBox()
+        Me.lblTotal = New System.Windows.Forms.Label()
+        Me.txtBoxDualDisc = New System.Windows.Forms.TextBox()
+        Me.Label2 = New System.Windows.Forms.Label()
+        Me.txtBoxDualFinal = New System.Windows.Forms.TextBox()
+        Me.Label3 = New System.Windows.Forms.Label()
+        Me.Panel1 = New System.Windows.Forms.Panel()
         CType(Me.dgvReceiptDual, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.Panel1.SuspendLayout()
         Me.SuspendLayout()
@@ -52,6 +52,47 @@ Partial Class frmDual
         Me.dgvReceiptDual.ReadOnly = True
         Me.dgvReceiptDual.Size = New System.Drawing.Size(723, 263)
         Me.dgvReceiptDual.TabIndex = 31
+        '
+        'serno
+        '
+        Me.serno.HeaderText = "Σειρά"
+        Me.serno.Name = "serno"
+        Me.serno.ReadOnly = True
+        Me.serno.Width = 50
+        '
+        'description
+        '
+        Me.description.HeaderText = "Περιγραφή"
+        Me.description.Name = "description"
+        Me.description.ReadOnly = True
+        Me.description.Width = 290
+        '
+        'quantity
+        '
+        Me.quantity.HeaderText = "Ποσ."
+        Me.quantity.Name = "quantity"
+        Me.quantity.ReadOnly = True
+        Me.quantity.Width = 60
+        '
+        'unitprice
+        '
+        Me.unitprice.HeaderText = "Τιμή Μονάδας (€)"
+        Me.unitprice.Name = "unitprice"
+        Me.unitprice.ReadOnly = True
+        Me.unitprice.Width = 90
+        '
+        'amount
+        '
+        Me.amount.HeaderText = "Ποσό (€)"
+        Me.amount.Name = "amount"
+        Me.amount.ReadOnly = True
+        '
+        'vat
+        '
+        Me.vat.HeaderText = "Φ.Π.Α"
+        Me.vat.Name = "vat"
+        Me.vat.ReadOnly = True
+        Me.vat.Width = 90
         '
         'txtBoxTotalDual
         '
@@ -121,7 +162,6 @@ Partial Class frmDual
         '
         'Panel1
         '
-        Me.Panel1.BackgroundImage = Global.POS.My.Resources.Resources.IMG_2691
         Me.Panel1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center
         Me.Panel1.Controls.Add(Me.lblTotal)
         Me.Panel1.Controls.Add(Me.txtBoxDualFinal)
@@ -133,47 +173,6 @@ Partial Class frmDual
         Me.Panel1.Name = "Panel1"
         Me.Panel1.Size = New System.Drawing.Size(712, 195)
         Me.Panel1.TabIndex = 85
-        '
-        'serno
-        '
-        Me.serno.HeaderText = "Σειρά"
-        Me.serno.Name = "serno"
-        Me.serno.ReadOnly = True
-        Me.serno.Width = 50
-        '
-        'description
-        '
-        Me.description.HeaderText = "Περιγραφή"
-        Me.description.Name = "description"
-        Me.description.ReadOnly = True
-        Me.description.Width = 290
-        '
-        'quantity
-        '
-        Me.quantity.HeaderText = "Ποσ."
-        Me.quantity.Name = "quantity"
-        Me.quantity.ReadOnly = True
-        Me.quantity.Width = 60
-        '
-        'unitprice
-        '
-        Me.unitprice.HeaderText = "Τιμή Μονάδας (€)"
-        Me.unitprice.Name = "unitprice"
-        Me.unitprice.ReadOnly = True
-        Me.unitprice.Width = 90
-        '
-        'amount
-        '
-        Me.amount.HeaderText = "Ποσό (€)"
-        Me.amount.Name = "amount"
-        Me.amount.ReadOnly = True
-        '
-        'vat
-        '
-        Me.vat.HeaderText = "Φ.Π.Α"
-        Me.vat.Name = "vat"
-        Me.vat.ReadOnly = True
-        Me.vat.Width = 90
         '
         'frmDual
         '

@@ -312,7 +312,8 @@ Public Class frmPOS
                               "nvl(p.offer,-1), nvl(p.offer_type,-1), nvl(p.offer_x,0), nvl(p.offer_y,0), nvl(p.offer_disc,0), nvl(p.offer_at,0), " & _
                               "nvl(p.offerfromdate, sysdate) offerfromdate , nvl(p.offertodate, sysdate) offertodate " & _
                               "from BTN_POS" + i.ToString + "_DET d " & _
-                              "inner join PRODUCTS p on p.serno = d.PRODUCT_SERNO"
+                              "inner join PRODUCTS p on p.serno = d.PRODUCT_SERNO " & _
+                              "order by nvl(seqno, -1)"
                         cmd = New OracleCommand(sql, conn)
                         dr = cmd.ExecuteReader
                         Dim tmpBtnItemDetails As BtnItemDetails

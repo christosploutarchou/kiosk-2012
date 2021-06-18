@@ -66,8 +66,8 @@ Public Class frmPosButtonModal
             cmd.ExecuteReader()
 
             For i = 0 To dgvLinkedProducts.Rows.Count - 1
-                sql = "insert into BTN_POS" + tableIndex + "_DET (product_serno, DISPLAY_DESC) " & _
-                      "values (" & dgvLinkedProducts.Rows(i).Cells("productSerno").Value & ", " & _
+                sql = "insert into BTN_POS" + tableIndex + "_DET (seqno, product_serno, DISPLAY_DESC) " & _
+                      "values (" & i & ", " & dgvLinkedProducts.Rows(i).Cells("productSerno").Value & ", " & _
                       "'" & dgvLinkedProducts.Rows(i).Cells("posDescription").Value & "')"
                 cmd = New OracleCommand(sql, conn)
                 cmd.CommandType = CommandType.Text
@@ -195,7 +195,8 @@ Public Class frmPosButtonModal
 
                 sql = "select product_serno, description, display_desc  " & _
                       "from BTN_POS" + tableIndex + "_DET b " & _
-                      "inner join products p on p.serno = b.product_serno"
+                      "inner join products p on p.serno = b.product_serno " & _
+                      "order by nvl(seqno, -1)"
                 cmd = New OracleCommand(sql, conn)
                 cmd.CommandType = CommandType.Text
                 dr = cmd.ExecuteReader()
