@@ -89,12 +89,12 @@ Module connectionModule
     End Function
 
 
-    Public Sub openConn()
+    Public Function openConn() As Boolean
         Dim dbHostName As String
         dbHostName = getDbHostName()
         If dbHostName = "" Then
             MessageBox.Show(DB_NOT_ACCESSIBLE, ERROR_MSG, MessageBoxButtons.OK, MessageBoxIcon.Error)
-            Exit Sub
+            Exit Function
         End If
         oradb = "Data Source=(DESCRIPTION=" _
            + "(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST=" + dbHostName + ")(PORT=1521)))" _
@@ -106,11 +106,26 @@ Module connectionModule
             getParams()
             getMinBarcodeLength()
             getStartDate()
+            Return True
         Catch ex As Exception
             createExceptionFile(ex.Message, "")
-            MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            If ex.Message.Substring(0, 9).Equals("ORA-12541") Then
+                If dbHostName.Equals("localhost") Then
+                    MessageBox.Show("Σφάλμα με την βάση δεδομένων. Πατήστε OK και περιμένετε 45 δευτερόλεπτα", APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
+                    Shell("lsnrctl start", AppWinStyle.NormalFocus, True)
+                    Threading.Thread.Sleep(45000)
+                    openConn()
+                    Return True
+                Else
+                    MessageBox.Show("Σφάλμα με την βάση δεδομένων", APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
+                    Return False
+                End If                
+            Else
+                MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            End If
+            Return False
         End Try
-    End Sub
+    End Function
 
     Public Sub closeConn()
         conn.Close()

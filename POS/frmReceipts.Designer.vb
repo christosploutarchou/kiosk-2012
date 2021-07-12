@@ -22,57 +22,58 @@ Partial Class frmReceipts
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
-        Me.PrintDocument1 = New System.Drawing.Printing.PrintDocument
-        Me.tabCtrlReceipts = New System.Windows.Forms.TabControl
-        Me.TabPage1 = New System.Windows.Forms.TabPage
-        Me.vatO = New System.Windows.Forms.Label
-        Me.txtBoxTotal0 = New System.Windows.Forms.TextBox
-        Me.btnPrint = New System.Windows.Forms.Button
-        Me.lstBoxSerno = New System.Windows.Forms.ListBox
-        Me.lstBoxReceipts = New System.Windows.Forms.ListBox
-        Me.txtBoxTotal5 = New System.Windows.Forms.TextBox
-        Me.Label8 = New System.Windows.Forms.Label
-        Me.txtBoxTotal19 = New System.Windows.Forms.TextBox
-        Me.Label7 = New System.Windows.Forms.Label
-        Me.txtBoxReturnAmt = New System.Windows.Forms.TextBox
-        Me.Label6 = New System.Windows.Forms.Label
-        Me.txtBoxPayment = New System.Windows.Forms.TextBox
-        Me.Label5 = New System.Windows.Forms.Label
-        Me.txtBoxTotalWithDiscount = New System.Windows.Forms.TextBox
-        Me.Label4 = New System.Windows.Forms.Label
-        Me.txtBoxTotalDiscount = New System.Windows.Forms.TextBox
-        Me.Label3 = New System.Windows.Forms.Label
-        Me.txtBoxCreatedOn = New System.Windows.Forms.TextBox
-        Me.Label2 = New System.Windows.Forms.Label
-        Me.txtBoxTotalAmt = New System.Windows.Forms.TextBox
-        Me.lblTotalAmt = New System.Windows.Forms.Label
-        Me.txtBoxCashier = New System.Windows.Forms.TextBox
-        Me.Label1 = New System.Windows.Forms.Label
-        Me.txtBoxDescription = New System.Windows.Forms.TextBox
-        Me.lblProducts = New System.Windows.Forms.Label
-        Me.txtBoxPaymentType = New System.Windows.Forms.TextBox
-        Me.lblPaymentType = New System.Windows.Forms.Label
-        Me.txtBoxReceiptNum = New System.Windows.Forms.TextBox
-        Me.lblReceiptNum = New System.Windows.Forms.Label
-        Me.grBoxSearch = New System.Windows.Forms.GroupBox
-        Me.chkBoxCash = New System.Windows.Forms.CheckBox
-        Me.chkBoxVISA = New System.Windows.Forms.CheckBox
-        Me.lblTotalRecAmt = New System.Windows.Forms.Label
-        Me.lblUser = New System.Windows.Forms.Label
-        Me.cmbUsers = New System.Windows.Forms.ComboBox
-        Me.lblTotalReceipts = New System.Windows.Forms.Label
-        Me.chkBoxWithRet = New System.Windows.Forms.CheckBox
-        Me.chkBoxWithDisc = New System.Windows.Forms.CheckBox
-        Me.txtBoxToTimeM = New System.Windows.Forms.TextBox
-        Me.txtBoxFromTimeM = New System.Windows.Forms.TextBox
-        Me.txtBoxToTimeH = New System.Windows.Forms.TextBox
-        Me.txtBoxFromTimeH = New System.Windows.Forms.TextBox
-        Me.Label9 = New System.Windows.Forms.Label
-        Me.btnExit = New System.Windows.Forms.Button
-        Me.btnSearch = New System.Windows.Forms.Button
-        Me.lblToDate = New System.Windows.Forms.Label
-        Me.dtpFrom = New System.Windows.Forms.DateTimePicker
-        Me.dtpTo = New System.Windows.Forms.DateTimePicker
+        Me.PrintDocument1 = New System.Drawing.Printing.PrintDocument()
+        Me.tabCtrlReceipts = New System.Windows.Forms.TabControl()
+        Me.TabPage1 = New System.Windows.Forms.TabPage()
+        Me.vatO = New System.Windows.Forms.Label()
+        Me.txtBoxTotal0 = New System.Windows.Forms.TextBox()
+        Me.btnPrint = New System.Windows.Forms.Button()
+        Me.lstBoxSerno = New System.Windows.Forms.ListBox()
+        Me.lstBoxReceipts = New System.Windows.Forms.ListBox()
+        Me.txtBoxTotal5 = New System.Windows.Forms.TextBox()
+        Me.Label8 = New System.Windows.Forms.Label()
+        Me.txtBoxTotal19 = New System.Windows.Forms.TextBox()
+        Me.Label7 = New System.Windows.Forms.Label()
+        Me.txtBoxReturnAmt = New System.Windows.Forms.TextBox()
+        Me.Label6 = New System.Windows.Forms.Label()
+        Me.txtBoxPayment = New System.Windows.Forms.TextBox()
+        Me.Label5 = New System.Windows.Forms.Label()
+        Me.txtBoxTotalWithDiscount = New System.Windows.Forms.TextBox()
+        Me.Label4 = New System.Windows.Forms.Label()
+        Me.txtBoxTotalDiscount = New System.Windows.Forms.TextBox()
+        Me.Label3 = New System.Windows.Forms.Label()
+        Me.txtBoxCreatedOn = New System.Windows.Forms.TextBox()
+        Me.Label2 = New System.Windows.Forms.Label()
+        Me.txtBoxTotalAmt = New System.Windows.Forms.TextBox()
+        Me.lblTotalAmt = New System.Windows.Forms.Label()
+        Me.txtBoxCashier = New System.Windows.Forms.TextBox()
+        Me.Label1 = New System.Windows.Forms.Label()
+        Me.txtBoxDescription = New System.Windows.Forms.TextBox()
+        Me.lblProducts = New System.Windows.Forms.Label()
+        Me.txtBoxPaymentType = New System.Windows.Forms.TextBox()
+        Me.lblPaymentType = New System.Windows.Forms.Label()
+        Me.txtBoxReceiptNum = New System.Windows.Forms.TextBox()
+        Me.lblReceiptNum = New System.Windows.Forms.Label()
+        Me.grBoxSearch = New System.Windows.Forms.GroupBox()
+        Me.chkBoxCash = New System.Windows.Forms.CheckBox()
+        Me.chkBoxVISA = New System.Windows.Forms.CheckBox()
+        Me.lblTotalRecAmt = New System.Windows.Forms.Label()
+        Me.lblUser = New System.Windows.Forms.Label()
+        Me.cmbUsers = New System.Windows.Forms.ComboBox()
+        Me.lblTotalReceipts = New System.Windows.Forms.Label()
+        Me.chkBoxWithRet = New System.Windows.Forms.CheckBox()
+        Me.chkBoxWithDisc = New System.Windows.Forms.CheckBox()
+        Me.txtBoxToTimeM = New System.Windows.Forms.TextBox()
+        Me.txtBoxFromTimeM = New System.Windows.Forms.TextBox()
+        Me.txtBoxToTimeH = New System.Windows.Forms.TextBox()
+        Me.txtBoxFromTimeH = New System.Windows.Forms.TextBox()
+        Me.Label9 = New System.Windows.Forms.Label()
+        Me.btnExit = New System.Windows.Forms.Button()
+        Me.btnSearch = New System.Windows.Forms.Button()
+        Me.lblToDate = New System.Windows.Forms.Label()
+        Me.dtpFrom = New System.Windows.Forms.DateTimePicker()
+        Me.dtpTo = New System.Windows.Forms.DateTimePicker()
+        Me.chkBoxDeletedUsers = New System.Windows.Forms.CheckBox()
         Me.tabCtrlReceipts.SuspendLayout()
         Me.TabPage1.SuspendLayout()
         Me.grBoxSearch.SuspendLayout()
@@ -441,6 +442,7 @@ Partial Class frmReceipts
         '
         'grBoxSearch
         '
+        Me.grBoxSearch.Controls.Add(Me.chkBoxDeletedUsers)
         Me.grBoxSearch.Controls.Add(Me.chkBoxCash)
         Me.grBoxSearch.Controls.Add(Me.chkBoxVISA)
         Me.grBoxSearch.Controls.Add(Me.lblTotalRecAmt)
@@ -493,17 +495,17 @@ Partial Class frmReceipts
         '
         Me.lblTotalRecAmt.AutoSize = True
         Me.lblTotalRecAmt.Font = New System.Drawing.Font("Segoe UI", 14.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.lblTotalRecAmt.Location = New System.Drawing.Point(728, 99)
+        Me.lblTotalRecAmt.Location = New System.Drawing.Point(730, 99)
         Me.lblTotalRecAmt.Name = "lblTotalRecAmt"
-        Me.lblTotalRecAmt.Size = New System.Drawing.Size(197, 25)
+        Me.lblTotalRecAmt.Size = New System.Drawing.Size(115, 25)
         Me.lblTotalRecAmt.TabIndex = 49
-        Me.lblTotalRecAmt.Text = "Συνολικό Ποσό (€) :  0"
+        Me.lblTotalRecAmt.Text = "Ποσό (€) :  0"
         '
         'lblUser
         '
         Me.lblUser.AutoSize = True
         Me.lblUser.Font = New System.Drawing.Font("Segoe UI", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.lblUser.Location = New System.Drawing.Point(433, 122)
+        Me.lblUser.Location = New System.Drawing.Point(412, 122)
         Me.lblUser.Name = "lblUser"
         Me.lblUser.Size = New System.Drawing.Size(70, 21)
         Me.lblUser.TabIndex = 48
@@ -516,20 +518,20 @@ Partial Class frmReceipts
         Me.cmbUsers.Font = New System.Drawing.Font("Segoe UI", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.cmbUsers.FormattingEnabled = True
         Me.cmbUsers.IntegralHeight = False
-        Me.cmbUsers.Location = New System.Drawing.Point(509, 127)
+        Me.cmbUsers.Location = New System.Drawing.Point(488, 127)
         Me.cmbUsers.Name = "cmbUsers"
-        Me.cmbUsers.Size = New System.Drawing.Size(207, 29)
+        Me.cmbUsers.Size = New System.Drawing.Size(114, 29)
         Me.cmbUsers.TabIndex = 47
         '
         'lblTotalReceipts
         '
         Me.lblTotalReceipts.AutoSize = True
         Me.lblTotalReceipts.Font = New System.Drawing.Font("Segoe UI", 14.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.lblTotalReceipts.Location = New System.Drawing.Point(728, 126)
+        Me.lblTotalReceipts.Location = New System.Drawing.Point(730, 126)
         Me.lblTotalReceipts.Name = "lblTotalReceipts"
-        Me.lblTotalReceipts.Size = New System.Drawing.Size(198, 25)
+        Me.lblTotalReceipts.Size = New System.Drawing.Size(120, 25)
         Me.lblTotalReceipts.TabIndex = 46
-        Me.lblTotalReceipts.Text = "Σύνολο Αποδείξεων: 0"
+        Me.lblTotalReceipts.Text = "Αποδείξεις: 0"
         '
         'chkBoxWithRet
         '
@@ -653,6 +655,17 @@ Partial Class frmReceipts
         Me.dtpTo.Size = New System.Drawing.Size(352, 33)
         Me.dtpTo.TabIndex = 2
         '
+        'chkBoxDeletedUsers
+        '
+        Me.chkBoxDeletedUsers.AutoSize = True
+        Me.chkBoxDeletedUsers.Font = New System.Drawing.Font("Segoe UI", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.chkBoxDeletedUsers.Location = New System.Drawing.Point(608, 126)
+        Me.chkBoxDeletedUsers.Name = "chkBoxDeletedUsers"
+        Me.chkBoxDeletedUsers.Size = New System.Drawing.Size(126, 25)
+        Me.chkBoxDeletedUsers.TabIndex = 53
+        Me.chkBoxDeletedUsers.Text = "Διαγραμμενοι"
+        Me.chkBoxDeletedUsers.UseVisualStyleBackColor = True
+        '
         'frmReceipts
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -726,4 +739,5 @@ Partial Class frmReceipts
     Friend WithEvents lblToDate As System.Windows.Forms.Label
     Friend WithEvents dtpFrom As System.Windows.Forms.DateTimePicker
     Friend WithEvents dtpTo As System.Windows.Forms.DateTimePicker
+    Friend WithEvents chkBoxDeletedUsers As System.Windows.Forms.CheckBox
 End Class

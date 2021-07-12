@@ -8,12 +8,17 @@ Imports System.Data.OleDb
 Public Class frmLogin
 
     Private Sub frmLogin_Disposed(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Disposed
-        logoutUser(username)
-        closeConn()
+        If (openConn()) Then
+            logoutUser(username)
+            closeConn()
+        End If
     End Sub
 
     Private Sub frmLogin_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
-        openConn()
+        If (Not openConn()) Then
+            Me.Dispose()
+        End If
+
         If computerName = "-1" Then
             Me.Dispose()
         End If

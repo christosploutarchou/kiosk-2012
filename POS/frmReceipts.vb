@@ -135,8 +135,8 @@ Public Class frmReceipts
                 totalAmt += CDbl(dr(2))
             End While
 
-            lblTotalReceipts.Text = "Σύνολο Αποδείξεων:  " & counter
-            lblTotalRecAmt.Text = "Συνολικό Ποσό (€):  " & totalAmt.ToString("N2")
+            lblTotalReceipts.Text = "Αποδείξεις:  " & counter
+            lblTotalRecAmt.Text = "Ποσό (€):  " & totalAmt.ToString("N2")
 
         Catch ex As Exception
             createExceptionFile(ex.Message, " " & sql)
@@ -307,7 +307,13 @@ Public Class frmReceipts
         Dim sql As String = ""
         Try
             sql = "select uuid, username " & _
-                  "from users order by username asc"
+                  "from users "
+
+            If Not chkBoxDeletedUsers.Checked Then
+                sql += " where deleted = 0"
+            End If
+
+            sql += " order by username asc"
 
             cmd = New OracleCommand(sql, conn)
             cmd.CommandType = CommandType.Text
@@ -406,4 +412,8 @@ Public Class frmReceipts
     '        cmd.Dispose()
     '    End Try
     'End Sub
+
+    Private Sub chkBoxDeletedUsers_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkBoxDeletedUsers.CheckedChanged
+        fillUsers()
+    End Sub
 End Class

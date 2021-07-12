@@ -155,7 +155,7 @@ Partial Class frmMain
         Me.lblVersion.Name = "lblVersion"
         Me.lblVersion.Size = New System.Drawing.Size(61, 17)
         Me.lblVersion.TabIndex = 24
-        Me.lblVersion.Text = "v.180621"
+        Me.lblVersion.Text = "v.120721"
         '
         'btnEditPos
         '
