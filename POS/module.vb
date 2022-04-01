@@ -159,7 +159,7 @@ Module connectionModule
                 divideFactor0 = params(1).Replace(",", ".")
                 divideFactor5 = params(2).Replace(",", ".")
                 divideFactor19 = params(3).Replace(",", ".")
-                If params(4).Equals("2") Then
+                If params(4).Equals("1") Then
                     dualMonitor = True
                 End If
             Catch ex As Exception

@@ -173,13 +173,14 @@ Public Class frmLogin
                     If CInt(dr.GetValue(2)) = 1 Then
                         isUnlock = True
                         frmUnlockUser.Show()
-                    ElseIf Not isAdmin And Not canEditProducts And Not canEditProductsFull Then
+                        'ElseIf Not isAdmin And Not canEditProducts And Not canEditProductsFull Then
+                    Else
                         frmPOS.Show()
                         If dualMonitor Then
                             frmDual.Show()
                         End If
-                    Else
-                        frmMain.Show()
+                        'Else
+                        'frmMain.Show()
                     End If
                 Else
                     MessageBox.Show(INVALID_LOGIN, ERROR_MSG, MessageBoxButtons.OK, MessageBoxIcon.Error)
@@ -232,7 +233,7 @@ Public Class frmLogin
         Dim cmd As New OracleCommand("", conn)
         Dim dr As OracleDataReader
         Dim currentSessions As Integer = 0
-        Dim maxAllowedSessions As Integer = 2 'PERIPTERO 130 = 2, XDRIVE=UNLIMITED (1000)
+        Dim maxAllowedSessions As Integer = 1000 'PERIPTERO 130 = 2, XDRIVE=UNLIMITED (1000)
         Try
             cmd = New OracleCommand("select count(*) from sessions where is_active=1", conn)
             cmd.CommandType = CommandType.Text

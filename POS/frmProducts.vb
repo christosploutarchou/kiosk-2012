@@ -124,6 +124,7 @@ Public Class frmProducts
     Private Sub cmdBoxVatType_TextChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles cmdBoxVatType.TextChanged
         vatTypeId = vatTypeUUIDs(cmdBoxVatType.SelectedIndex)
         txtBoxVAT.Text = vatTypeVat(cmdBoxVatType.SelectedIndex)
+        calculateAmounts()
     End Sub
 
     Private Sub cmbSupplier_TextChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles cmbSupplier.TextChanged
@@ -153,6 +154,8 @@ Public Class frmProducts
         txtBoxNotes.Clear()
         dtpAlert.Value = Today
         dtpExpiry.Value = Today
+        dtpOfferFrom.Value = Today
+        dtpOfferTo.Value = Today
         txtBoxStockQuantity.Clear()
         chkBoxAlertExpiry.Checked = False
         txtBoxProfit.Clear()
@@ -697,6 +700,7 @@ Public Class frmProducts
                     cmdBoxVatType.SelectedIndex = vatTypeUUIDs.IndexOf(vatTypeId)
                 End If
             End If
+            calculateWithVat()
             txtBoxDescription.Focus()
         Catch ex As Exception
             createExceptionFile(ex.Message, sql)
@@ -711,6 +715,10 @@ Public Class frmProducts
     End Sub
 
     Private Sub btnCalculateWithoutVAT_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnCalculateWithoutVAT.Click
+        calculateAmounts()        
+    End Sub
+
+    Private Sub calculateAmounts()
         Try
             Dim vat As Integer = CInt(txtBoxVAT.Text)
             Dim amtWithVAT As Double = 0
@@ -729,7 +737,7 @@ Public Class frmProducts
         End Try
     End Sub
 
-    Private Sub btnCalculateWithVAT_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnCalculateWithVAT.Click
+    Private Sub calculateWithVat()
         Try
             Dim vat As Integer = CInt(txtBoxVAT.Text)
             Dim amtWithNoVAT As Double = 0
@@ -744,7 +752,11 @@ Public Class frmProducts
         End Try
     End Sub
 
-    Private Sub txtBoxSellAmt_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles txtBoxSellAmt.TextChanged
+    Private Sub btnCalculateWithVAT_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnCalculateWithVAT.Click
+        calculateWithVat()
+    End Sub
+
+    Private Sub calculateProfitPercent()
         Try
             Dim sellAmt = CDbl(txtBoxSellAmt.Text.Replace(",", "."))
             Dim buyAmt = CDbl(txtBoxBuyAmtNoVAT.Text.Replace(",", "."))
@@ -763,6 +775,10 @@ Public Class frmProducts
         Catch ex As Exception
             Exit Sub
         End Try
+    End Sub
+
+    Private Sub txtBoxSellAmt_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles txtBoxSellAmt.TextChanged
+        calculateProfitPercent()
     End Sub
 
     Private Sub lnkLblAddStock_LinkClicked(ByVal sender As System.Object, ByVal e As System.Windows.Forms.LinkLabelLinkClickedEventArgs) Handles lnkLblAddStock.LinkClicked
@@ -914,4 +930,9 @@ Public Class frmProducts
         Finally
         End Try
     End Function
+
+    Private Sub txtBoxBuyAmtNoVAT_TextChanged(sender As Object, e As EventArgs) Handles txtBoxBuyAmtNoVAT.TextChanged
+        calculateAmounts()
+        calculateProfitPercent()
+    End Sub
 End Class

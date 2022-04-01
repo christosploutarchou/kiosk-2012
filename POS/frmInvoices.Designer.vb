@@ -22,45 +22,50 @@ Partial Class frmInvoices
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
-        Me.txtBoxTotalAmt = New System.Windows.Forms.TextBox
-        Me.txtInvNumber = New System.Windows.Forms.TextBox
-        Me.lblInvDate = New System.Windows.Forms.Label
-        Me.lblPhone1 = New System.Windows.Forms.Label
-        Me.Label1 = New System.Windows.Forms.Label
-        Me.GroupBox1 = New System.Windows.Forms.GroupBox
-        Me.rdbExisting = New System.Windows.Forms.RadioButton
-        Me.rdbNewInvoice = New System.Windows.Forms.RadioButton
-        Me.lstBoxInvNumber = New System.Windows.Forms.ListBox
-        Me.lblContactName = New System.Windows.Forms.Label
-        Me.btnExit = New System.Windows.Forms.Button
-        Me.btnSave = New System.Windows.Forms.Button
-        Me.btnClear = New System.Windows.Forms.Button
-        Me.txtBoxBarcode = New System.Windows.Forms.TextBox
-        Me.Label2 = New System.Windows.Forms.Label
-        Me.DateTimePicker1 = New System.Windows.Forms.DateTimePicker
-        Me.cmbSuppliers = New System.Windows.Forms.ComboBox
-        Me.dgvProductsAndQnt = New System.Windows.Forms.DataGridView
-        Me.productSerno = New System.Windows.Forms.DataGridViewTextBoxColumn
-        Me.serno = New System.Windows.Forms.DataGridViewTextBoxColumn
-        Me.description = New System.Windows.Forms.DataGridViewTextBoxColumn
-        Me.buyAmt = New System.Windows.Forms.DataGridViewTextBoxColumn
-        Me.invPrDiscount = New System.Windows.Forms.DataGridViewTextBoxColumn
-        Me.sellamt = New System.Windows.Forms.DataGridViewTextBoxColumn
-        Me.currentQnt = New System.Windows.Forms.DataGridViewTextBoxColumn
-        Me.newQnt = New System.Windows.Forms.DataGridViewTextBoxColumn
-        Me.vat = New System.Windows.Forms.DataGridViewTextBoxColumn
-        Me.txtBoxInvDateRO = New System.Windows.Forms.TextBox
-        Me.txtBoxSNameRO = New System.Windows.Forms.TextBox
-        Me.chkBoxTmpSave = New System.Windows.Forms.CheckBox
-        Me.btnOverrideExisting = New System.Windows.Forms.Button
-        Me.PrintDocument1 = New System.Drawing.Printing.PrintDocument
-        Me.Label3 = New System.Windows.Forms.Label
-        Me.txtBoxExtraDiscount = New System.Windows.Forms.TextBox
-        Me.btnSearch = New System.Windows.Forms.Button
-        Me.grbBoxInvType = New System.Windows.Forms.GroupBox
-        Me.rdbClosedInvoices = New System.Windows.Forms.RadioButton
-        Me.rdbOpenInvoices = New System.Windows.Forms.RadioButton
-        Me.rdbAllInvoices = New System.Windows.Forms.RadioButton
+        Me.txtBoxTotalAmt = New System.Windows.Forms.TextBox()
+        Me.txtInvNumber = New System.Windows.Forms.TextBox()
+        Me.lblInvDate = New System.Windows.Forms.Label()
+        Me.lblPhone1 = New System.Windows.Forms.Label()
+        Me.Label1 = New System.Windows.Forms.Label()
+        Me.GroupBox1 = New System.Windows.Forms.GroupBox()
+        Me.rdbExisting = New System.Windows.Forms.RadioButton()
+        Me.rdbNewInvoice = New System.Windows.Forms.RadioButton()
+        Me.lstBoxInvNumber = New System.Windows.Forms.ListBox()
+        Me.lblContactName = New System.Windows.Forms.Label()
+        Me.btnExit = New System.Windows.Forms.Button()
+        Me.btnSave = New System.Windows.Forms.Button()
+        Me.btnClear = New System.Windows.Forms.Button()
+        Me.txtBoxBarcode = New System.Windows.Forms.TextBox()
+        Me.Label2 = New System.Windows.Forms.Label()
+        Me.DateTimePicker1 = New System.Windows.Forms.DateTimePicker()
+        Me.cmbSuppliers = New System.Windows.Forms.ComboBox()
+        Me.dgvProductsAndQnt = New System.Windows.Forms.DataGridView()
+        Me.productSerno = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.serno = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.description = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.buyAmt = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.invPrDiscount = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.sellamt = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.profit = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.currentQnt = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.newQnt = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.vat = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.txtBoxInvDateRO = New System.Windows.Forms.TextBox()
+        Me.txtBoxSNameRO = New System.Windows.Forms.TextBox()
+        Me.chkBoxTmpSave = New System.Windows.Forms.CheckBox()
+        Me.btnOverrideExisting = New System.Windows.Forms.Button()
+        Me.PrintDocument1 = New System.Drawing.Printing.PrintDocument()
+        Me.Label3 = New System.Windows.Forms.Label()
+        Me.txtBoxExtraDiscount = New System.Windows.Forms.TextBox()
+        Me.btnSearch = New System.Windows.Forms.Button()
+        Me.grbBoxInvType = New System.Windows.Forms.GroupBox()
+        Me.dtpDate = New System.Windows.Forms.DateTimePicker()
+        Me.chkBoxDate = New System.Windows.Forms.CheckBox()
+        Me.cmbBoxSupFilter = New System.Windows.Forms.ComboBox()
+        Me.Label4 = New System.Windows.Forms.Label()
+        Me.rdbClosedInvoices = New System.Windows.Forms.RadioButton()
+        Me.rdbOpenInvoices = New System.Windows.Forms.RadioButton()
+        Me.rdbAllInvoices = New System.Windows.Forms.RadioButton()
         Me.GroupBox1.SuspendLayout()
         CType(Me.dgvProductsAndQnt, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.grbBoxInvType.SuspendLayout()
@@ -69,7 +74,7 @@ Partial Class frmInvoices
         'txtBoxTotalAmt
         '
         Me.txtBoxTotalAmt.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.txtBoxTotalAmt.Location = New System.Drawing.Point(308, 204)
+        Me.txtBoxTotalAmt.Location = New System.Drawing.Point(308, 235)
         Me.txtBoxTotalAmt.Name = "txtBoxTotalAmt"
         Me.txtBoxTotalAmt.Size = New System.Drawing.Size(172, 39)
         Me.txtBoxTotalAmt.TabIndex = 3
@@ -77,7 +82,7 @@ Partial Class frmInvoices
         'txtInvNumber
         '
         Me.txtInvNumber.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.txtInvNumber.Location = New System.Drawing.Point(308, 112)
+        Me.txtInvNumber.Location = New System.Drawing.Point(308, 143)
         Me.txtInvNumber.Name = "txtInvNumber"
         Me.txtInvNumber.Size = New System.Drawing.Size(322, 39)
         Me.txtInvNumber.TabIndex = 1
@@ -86,7 +91,7 @@ Partial Class frmInvoices
         '
         Me.lblInvDate.AutoSize = True
         Me.lblInvDate.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.lblInvDate.Location = New System.Drawing.Point(12, 250)
+        Me.lblInvDate.Location = New System.Drawing.Point(12, 281)
         Me.lblInvDate.Name = "lblInvDate"
         Me.lblInvDate.Size = New System.Drawing.Size(147, 32)
         Me.lblInvDate.TabIndex = 22
@@ -96,7 +101,7 @@ Partial Class frmInvoices
         '
         Me.lblPhone1.AutoSize = True
         Me.lblPhone1.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.lblPhone1.Location = New System.Drawing.Point(12, 204)
+        Me.lblPhone1.Location = New System.Drawing.Point(12, 235)
         Me.lblPhone1.Name = "lblPhone1"
         Me.lblPhone1.Size = New System.Drawing.Size(153, 32)
         Me.lblPhone1.TabIndex = 21
@@ -106,7 +111,7 @@ Partial Class frmInvoices
         '
         Me.Label1.AutoSize = True
         Me.Label1.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label1.Location = New System.Drawing.Point(12, 112)
+        Me.Label1.Location = New System.Drawing.Point(12, 143)
         Me.Label1.Name = "Label1"
         Me.Label1.Size = New System.Drawing.Size(228, 32)
         Me.Label1.TabIndex = 20
@@ -119,7 +124,7 @@ Partial Class frmInvoices
         Me.GroupBox1.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.GroupBox1.Location = New System.Drawing.Point(12, 11)
         Me.GroupBox1.Name = "GroupBox1"
-        Me.GroupBox1.Size = New System.Drawing.Size(531, 88)
+        Me.GroupBox1.Size = New System.Drawing.Size(263, 126)
         Me.GroupBox1.TabIndex = 19
         Me.GroupBox1.TabStop = False
         Me.GroupBox1.Text = "Επιλογή"
@@ -127,12 +132,12 @@ Partial Class frmInvoices
         'rdbExisting
         '
         Me.rdbExisting.AutoSize = True
-        Me.rdbExisting.Location = New System.Drawing.Point(231, 39)
+        Me.rdbExisting.Location = New System.Drawing.Point(88, 38)
         Me.rdbExisting.Name = "rdbExisting"
-        Me.rdbExisting.Size = New System.Drawing.Size(280, 36)
+        Me.rdbExisting.Size = New System.Drawing.Size(163, 36)
         Me.rdbExisting.TabIndex = 14
         Me.rdbExisting.TabStop = True
-        Me.rdbExisting.Text = "Προβολή Υφιστάμενου"
+        Me.rdbExisting.Text = "Υφιστάμενα"
         Me.rdbExisting.UseVisualStyleBackColor = True
         '
         'rdbNewInvoice
@@ -140,10 +145,10 @@ Partial Class frmInvoices
         Me.rdbNewInvoice.AutoSize = True
         Me.rdbNewInvoice.Location = New System.Drawing.Point(6, 39)
         Me.rdbNewInvoice.Name = "rdbNewInvoice"
-        Me.rdbNewInvoice.Size = New System.Drawing.Size(219, 36)
+        Me.rdbNewInvoice.Size = New System.Drawing.Size(76, 36)
         Me.rdbNewInvoice.TabIndex = 13
         Me.rdbNewInvoice.TabStop = True
-        Me.rdbNewInvoice.Text = "Δημιουργία Νέου"
+        Me.rdbNewInvoice.Text = "Νέο"
         Me.rdbNewInvoice.UseVisualStyleBackColor = True
         '
         'lstBoxInvNumber
@@ -153,16 +158,16 @@ Partial Class frmInvoices
         Me.lstBoxInvNumber.FormattingEnabled = True
         Me.lstBoxInvNumber.HorizontalScrollbar = True
         Me.lstBoxInvNumber.ItemHeight = 32
-        Me.lstBoxInvNumber.Location = New System.Drawing.Point(658, 117)
+        Me.lstBoxInvNumber.Location = New System.Drawing.Point(658, 181)
         Me.lstBoxInvNumber.Name = "lstBoxInvNumber"
-        Me.lstBoxInvNumber.Size = New System.Drawing.Size(346, 516)
+        Me.lstBoxInvNumber.Size = New System.Drawing.Size(346, 452)
         Me.lstBoxInvNumber.TabIndex = 14
         '
         'lblContactName
         '
         Me.lblContactName.AutoSize = True
         Me.lblContactName.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.lblContactName.Location = New System.Drawing.Point(12, 158)
+        Me.lblContactName.Location = New System.Drawing.Point(12, 189)
         Me.lblContactName.Name = "lblContactName"
         Me.lblContactName.Size = New System.Drawing.Size(163, 32)
         Me.lblContactName.TabIndex = 37
@@ -215,7 +220,7 @@ Partial Class frmInvoices
         'txtBoxBarcode
         '
         Me.txtBoxBarcode.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.txtBoxBarcode.Location = New System.Drawing.Point(308, 295)
+        Me.txtBoxBarcode.Location = New System.Drawing.Point(308, 326)
         Me.txtBoxBarcode.Name = "txtBoxBarcode"
         Me.txtBoxBarcode.Size = New System.Drawing.Size(279, 39)
         Me.txtBoxBarcode.TabIndex = 5
@@ -224,7 +229,7 @@ Partial Class frmInvoices
         '
         Me.Label2.AutoSize = True
         Me.Label2.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label2.Location = New System.Drawing.Point(12, 295)
+        Me.Label2.Location = New System.Drawing.Point(12, 326)
         Me.Label2.Name = "Label2"
         Me.Label2.Size = New System.Drawing.Size(101, 32)
         Me.Label2.TabIndex = 62
@@ -233,7 +238,7 @@ Partial Class frmInvoices
         'DateTimePicker1
         '
         Me.DateTimePicker1.Font = New System.Drawing.Font("Microsoft Sans Serif", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(161, Byte))
-        Me.DateTimePicker1.Location = New System.Drawing.Point(308, 250)
+        Me.DateTimePicker1.Location = New System.Drawing.Point(308, 281)
         Me.DateTimePicker1.Name = "DateTimePicker1"
         Me.DateTimePicker1.Size = New System.Drawing.Size(322, 35)
         Me.DateTimePicker1.TabIndex = 4
@@ -245,7 +250,7 @@ Partial Class frmInvoices
         Me.cmbSuppliers.Font = New System.Drawing.Font("Segoe UI", 14.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.cmbSuppliers.FormattingEnabled = True
         Me.cmbSuppliers.IntegralHeight = False
-        Me.cmbSuppliers.Location = New System.Drawing.Point(308, 165)
+        Me.cmbSuppliers.Location = New System.Drawing.Point(308, 196)
         Me.cmbSuppliers.Name = "cmbSuppliers"
         Me.cmbSuppliers.Size = New System.Drawing.Size(322, 33)
         Me.cmbSuppliers.TabIndex = 2
@@ -255,12 +260,12 @@ Partial Class frmInvoices
         Me.dgvProductsAndQnt.AllowUserToAddRows = False
         Me.dgvProductsAndQnt.BackgroundColor = System.Drawing.SystemColors.Window
         Me.dgvProductsAndQnt.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        Me.dgvProductsAndQnt.Columns.AddRange(New System.Windows.Forms.DataGridViewColumn() {Me.productSerno, Me.serno, Me.description, Me.buyAmt, Me.invPrDiscount, Me.sellamt, Me.currentQnt, Me.newQnt, Me.vat})
+        Me.dgvProductsAndQnt.Columns.AddRange(New System.Windows.Forms.DataGridViewColumn() {Me.productSerno, Me.serno, Me.description, Me.buyAmt, Me.invPrDiscount, Me.sellamt, Me.profit, Me.currentQnt, Me.newQnt, Me.vat})
         Me.dgvProductsAndQnt.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnF2
         Me.dgvProductsAndQnt.GridColor = System.Drawing.SystemColors.Desktop
-        Me.dgvProductsAndQnt.Location = New System.Drawing.Point(18, 388)
+        Me.dgvProductsAndQnt.Location = New System.Drawing.Point(18, 423)
         Me.dgvProductsAndQnt.Name = "dgvProductsAndQnt"
-        Me.dgvProductsAndQnt.Size = New System.Drawing.Size(612, 245)
+        Me.dgvProductsAndQnt.Size = New System.Drawing.Size(612, 210)
         Me.dgvProductsAndQnt.TabIndex = 63
         '
         'productSerno
@@ -300,6 +305,13 @@ Partial Class frmInvoices
         Me.sellamt.Name = "sellamt"
         Me.sellamt.Width = 70
         '
+        'profit
+        '
+        Me.profit.HeaderText = "%Κέρδος"
+        Me.profit.Name = "profit"
+        Me.profit.ReadOnly = True
+        Me.profit.Width = 60
+        '
         'currentQnt
         '
         Me.currentQnt.HeaderText = "Υφ. Ποσ."
@@ -321,7 +333,7 @@ Partial Class frmInvoices
         'txtBoxInvDateRO
         '
         Me.txtBoxInvDateRO.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.txtBoxInvDateRO.Location = New System.Drawing.Point(308, 250)
+        Me.txtBoxInvDateRO.Location = New System.Drawing.Point(308, 281)
         Me.txtBoxInvDateRO.Name = "txtBoxInvDateRO"
         Me.txtBoxInvDateRO.ReadOnly = True
         Me.txtBoxInvDateRO.Size = New System.Drawing.Size(322, 39)
@@ -331,7 +343,7 @@ Partial Class frmInvoices
         'txtBoxSNameRO
         '
         Me.txtBoxSNameRO.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.txtBoxSNameRO.Location = New System.Drawing.Point(308, 159)
+        Me.txtBoxSNameRO.Location = New System.Drawing.Point(308, 193)
         Me.txtBoxSNameRO.Name = "txtBoxSNameRO"
         Me.txtBoxSNameRO.ReadOnly = True
         Me.txtBoxSNameRO.Size = New System.Drawing.Size(322, 39)
@@ -342,7 +354,7 @@ Partial Class frmInvoices
         '
         Me.chkBoxTmpSave.AutoSize = True
         Me.chkBoxTmpSave.Font = New System.Drawing.Font("Segoe UI", 18.0!)
-        Me.chkBoxTmpSave.Location = New System.Drawing.Point(18, 348)
+        Me.chkBoxTmpSave.Location = New System.Drawing.Point(18, 379)
         Me.chkBoxTmpSave.Name = "chkBoxTmpSave"
         Me.chkBoxTmpSave.Size = New System.Drawing.Size(303, 36)
         Me.chkBoxTmpSave.TabIndex = 66
@@ -371,7 +383,7 @@ Partial Class frmInvoices
         '
         Me.Label3.AutoSize = True
         Me.Label3.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label3.Location = New System.Drawing.Point(158, 204)
+        Me.Label3.Location = New System.Drawing.Point(158, 235)
         Me.Label3.Name = "Label3"
         Me.Label3.Size = New System.Drawing.Size(148, 32)
         Me.Label3.TabIndex = 68
@@ -380,7 +392,7 @@ Partial Class frmInvoices
         'txtBoxExtraDiscount
         '
         Me.txtBoxExtraDiscount.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.txtBoxExtraDiscount.Location = New System.Drawing.Point(486, 205)
+        Me.txtBoxExtraDiscount.Location = New System.Drawing.Point(486, 236)
         Me.txtBoxExtraDiscount.Name = "txtBoxExtraDiscount"
         Me.txtBoxExtraDiscount.Size = New System.Drawing.Size(144, 39)
         Me.txtBoxExtraDiscount.TabIndex = 69
@@ -392,7 +404,7 @@ Partial Class frmInvoices
         Me.btnSearch.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
         Me.btnSearch.FlatStyle = System.Windows.Forms.FlatStyle.Popup
         Me.btnSearch.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.btnSearch.Location = New System.Drawing.Point(593, 295)
+        Me.btnSearch.Location = New System.Drawing.Point(593, 326)
         Me.btnSearch.Name = "btnSearch"
         Me.btnSearch.Size = New System.Drawing.Size(37, 39)
         Me.btnSearch.TabIndex = 6
@@ -400,17 +412,60 @@ Partial Class frmInvoices
         '
         'grbBoxInvType
         '
+        Me.grbBoxInvType.Controls.Add(Me.dtpDate)
+        Me.grbBoxInvType.Controls.Add(Me.chkBoxDate)
+        Me.grbBoxInvType.Controls.Add(Me.cmbBoxSupFilter)
+        Me.grbBoxInvType.Controls.Add(Me.Label4)
         Me.grbBoxInvType.Controls.Add(Me.rdbClosedInvoices)
         Me.grbBoxInvType.Controls.Add(Me.rdbOpenInvoices)
         Me.grbBoxInvType.Controls.Add(Me.rdbAllInvoices)
         Me.grbBoxInvType.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.grbBoxInvType.Location = New System.Drawing.Point(549, 11)
+        Me.grbBoxInvType.Location = New System.Drawing.Point(281, 11)
         Me.grbBoxInvType.Name = "grbBoxInvType"
-        Me.grbBoxInvType.Size = New System.Drawing.Size(455, 88)
+        Me.grbBoxInvType.Size = New System.Drawing.Size(723, 126)
         Me.grbBoxInvType.TabIndex = 20
         Me.grbBoxInvType.TabStop = False
         Me.grbBoxInvType.Text = "Είδος Τιμολογίου"
         Me.grbBoxInvType.Visible = False
+        '
+        'dtpDate
+        '
+        Me.dtpDate.Location = New System.Drawing.Point(178, 81)
+        Me.dtpDate.Name = "dtpDate"
+        Me.dtpDate.Size = New System.Drawing.Size(248, 39)
+        Me.dtpDate.TabIndex = 72
+        '
+        'chkBoxDate
+        '
+        Me.chkBoxDate.AutoSize = True
+        Me.chkBoxDate.Location = New System.Drawing.Point(6, 81)
+        Me.chkBoxDate.Name = "chkBoxDate"
+        Me.chkBoxDate.Size = New System.Drawing.Size(166, 36)
+        Me.chkBoxDate.TabIndex = 71
+        Me.chkBoxDate.Text = "Ημερομηνία"
+        Me.chkBoxDate.UseVisualStyleBackColor = True
+        '
+        'cmbBoxSupFilter
+        '
+        Me.cmbBoxSupFilter.DropDownHeight = 150
+        Me.cmbBoxSupFilter.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
+        Me.cmbBoxSupFilter.Font = New System.Drawing.Font("Segoe UI", 14.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.cmbBoxSupFilter.FormattingEnabled = True
+        Me.cmbBoxSupFilter.IntegralHeight = False
+        Me.cmbBoxSupFilter.Location = New System.Drawing.Point(508, 44)
+        Me.cmbBoxSupFilter.Name = "cmbBoxSupFilter"
+        Me.cmbBoxSupFilter.Size = New System.Drawing.Size(209, 33)
+        Me.cmbBoxSupFilter.TabIndex = 70
+        '
+        'Label4
+        '
+        Me.Label4.AutoSize = True
+        Me.Label4.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.Label4.Location = New System.Drawing.Point(341, 40)
+        Me.Label4.Name = "Label4"
+        Me.Label4.Size = New System.Drawing.Size(163, 32)
+        Me.Label4.TabIndex = 70
+        Me.Label4.Text = "Προμηθευτής"
         '
         'rdbClosedInvoices
         '
@@ -513,15 +568,6 @@ Partial Class frmInvoices
     Friend WithEvents chkBoxTmpSave As System.Windows.Forms.CheckBox
     Friend WithEvents btnOverrideExisting As System.Windows.Forms.Button
     Friend WithEvents PrintDocument1 As System.Drawing.Printing.PrintDocument
-    Friend WithEvents productSerno As System.Windows.Forms.DataGridViewTextBoxColumn
-    Friend WithEvents serno As System.Windows.Forms.DataGridViewTextBoxColumn
-    Friend WithEvents description As System.Windows.Forms.DataGridViewTextBoxColumn
-    Friend WithEvents buyAmt As System.Windows.Forms.DataGridViewTextBoxColumn
-    Friend WithEvents invPrDiscount As System.Windows.Forms.DataGridViewTextBoxColumn
-    Friend WithEvents sellamt As System.Windows.Forms.DataGridViewTextBoxColumn
-    Friend WithEvents currentQnt As System.Windows.Forms.DataGridViewTextBoxColumn
-    Friend WithEvents newQnt As System.Windows.Forms.DataGridViewTextBoxColumn
-    Friend WithEvents vat As System.Windows.Forms.DataGridViewTextBoxColumn
     Friend WithEvents Label3 As System.Windows.Forms.Label
     Friend WithEvents txtBoxExtraDiscount As System.Windows.Forms.TextBox
     Friend WithEvents btnSearch As System.Windows.Forms.Button
@@ -529,4 +575,18 @@ Partial Class frmInvoices
     Friend WithEvents rdbClosedInvoices As System.Windows.Forms.RadioButton
     Friend WithEvents rdbOpenInvoices As System.Windows.Forms.RadioButton
     Friend WithEvents rdbAllInvoices As System.Windows.Forms.RadioButton
+    Friend WithEvents cmbBoxSupFilter As System.Windows.Forms.ComboBox
+    Friend WithEvents Label4 As System.Windows.Forms.Label
+    Friend WithEvents dtpDate As System.Windows.Forms.DateTimePicker
+    Friend WithEvents chkBoxDate As System.Windows.Forms.CheckBox
+    Friend WithEvents productSerno As System.Windows.Forms.DataGridViewTextBoxColumn
+    Friend WithEvents serno As System.Windows.Forms.DataGridViewTextBoxColumn
+    Friend WithEvents description As System.Windows.Forms.DataGridViewTextBoxColumn
+    Friend WithEvents buyAmt As System.Windows.Forms.DataGridViewTextBoxColumn
+    Friend WithEvents invPrDiscount As System.Windows.Forms.DataGridViewTextBoxColumn
+    Friend WithEvents sellamt As System.Windows.Forms.DataGridViewTextBoxColumn
+    Friend WithEvents profit As System.Windows.Forms.DataGridViewTextBoxColumn
+    Friend WithEvents currentQnt As System.Windows.Forms.DataGridViewTextBoxColumn
+    Friend WithEvents newQnt As System.Windows.Forms.DataGridViewTextBoxColumn
+    Friend WithEvents vat As System.Windows.Forms.DataGridViewTextBoxColumn
 End Class

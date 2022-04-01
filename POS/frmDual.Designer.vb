@@ -162,6 +162,7 @@ Partial Class frmDual
         '
         'Panel1
         '
+        Me.Panel1.BackgroundImage = Global.POS.My.Resources.Resources.IMG_2691
         Me.Panel1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center
         Me.Panel1.Controls.Add(Me.lblTotal)
         Me.Panel1.Controls.Add(Me.txtBoxDualFinal)

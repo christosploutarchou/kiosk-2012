@@ -1931,5 +1931,4 @@ Public Class frmReports
             GC.Collect()
         End Try
     End Sub
-
 End Class
