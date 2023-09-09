@@ -98,8 +98,6 @@ Public Class frmUnlockUser
                 e.Graphics.DrawString("Από: " & CStr(dr(0)), reportFont, Brushes.Black, 0, xmargin)
                 xmargin += 20
                 e.Graphics.DrawString("Έως: " & CStr(dr(1)), reportFont, Brushes.Black, 0, xmargin)
-                'xmargin += 20
-                'e.Graphics.DrawString("Αρ. Αποδείξεων: " & CStr(dr(2)), reportFont, Brushes.Black, 0, xmargin)
 
                 Dim totalVat5 As Double = CDbl(dr(3))
                 Dim totalVat19 As Double = CDbl(dr(4))
@@ -110,38 +108,16 @@ Public Class frmUnlockUser
                 Dim amountLaxeia As Double = CDbl(dr(10))
                 Dim initialAmountLaxeia As Double = CDbl(dr(11))
                 Dim amountVisa As Double = CDbl(dr(12))
+                Dim totalVat3 As Double = CDbl(dr(13))
 
-                Dim totalReceivedAmt As Double = totalVat0 + totalVat5 + totalVat19
+                Dim totalReceivedAmt As Double = totalVat0 + totalVat3 + totalVat5 + totalVat19
                 Dim totalAmountToDeliver = (totalReceivedAmt + initial) - payments - amountVisa
 
                 xmargin += 20
-                'e.Graphics.DrawString("Φ.Π.Α. 0%: " & totalVat0.ToString("N2"), reportFont, Brushes.Black, 0, xmargin)
-                'xmargin += 20
-                'e.Graphics.DrawString("Φ.Π.Α. 5%: " & totalVat5.ToString("N2"), reportFont, Brushes.Black, 0, xmargin)
-                'xmargin += 20
-                'e.Graphics.DrawString("Φ.Π.Α. 19%: " & totalVat19.ToString("N2"), reportFont, Brushes.Black, 0, xmargin)
-                'xmargin += 20
-                'e.Graphics.DrawString("Πληρωμές: " & payments.ToString("N2"), reportFont, Brushes.Black, 0, xmargin)
-                'xmargin += 20
                 e.Graphics.DrawString("Αρχικό Ποσό: " & initial.ToString("N2"), reportFont, Brushes.Black, 0, xmargin)
                 xmargin += 20
-                'e.Graphics.DrawString("Ποσό Είσπραξης: " & totalReceivedAmt.ToString("N2"), reportFont, Brushes.Black, 0, xmargin)
-                'xmargin += 20
-                'e.Graphics.DrawString("Ποσό VISA: " & amountVisa.ToString("N2"), reportFont, Brushes.Black, 0, xmargin)
-                'xmargin += 20
-                'e.Graphics.DrawString("Τελικό Ποσό Ταμείου για Παράδωση: " & totalAmountToDeliver.ToString("N2"), reportFont, Brushes.Black, 0, xmargin)
                 xmargin += 20
                 e.Graphics.DrawString("Ποσο λαχείων για Παράδωση: " & (initialAmountLaxeia - amountLaxeia).ToString("N2"), reportFont, Brushes.Black, 0, xmargin)
-
-                'Dim reportFontUnderline As Font = New Drawing.Font(REPORT_FONT, 9, FontStyle.Underline)
-                'xmargin += 20
-                'e.Graphics.DrawString("Αναλυτική Κατάσταση: ", reportFontUnderline, Brushes.Black, 0, xmargin)
-                'Dim salesDescription = ""
-                'If Not dr.IsDBNull(8) Then
-                'salesDescription = CStr(dr(8))
-                'End If
-                'xmargin += 20
-                'e.Graphics.DrawString(salesDescription, reportFont, Brushes.Black, 0, xmargin)
             End If
             dr.Close()
         Catch ex As Exception

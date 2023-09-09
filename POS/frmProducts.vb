@@ -816,6 +816,8 @@ Public Class frmProducts
             lblOfferTo.Visible = True
             dtpOfferFrom.Visible = True
             dtpOfferTo.Visible = True
+            dtpOfferFrom.Value = Today
+            dtpOfferTo.Value = Today
         Else
             txtBoxOfferDisc.Visible = False
             lblOfferDisc.Visible = False

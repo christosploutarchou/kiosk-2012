@@ -22,11 +22,12 @@ Partial Class frmPaymentInfo
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
-        Me.btnSelect = New System.Windows.Forms.Button
-        Me.grbVAT = New System.Windows.Forms.GroupBox
-        Me.rdb19Percent = New System.Windows.Forms.RadioButton
-        Me.rdb5Percent = New System.Windows.Forms.RadioButton
-        Me.rdb0Percent = New System.Windows.Forms.RadioButton
+        Me.btnSelect = New System.Windows.Forms.Button()
+        Me.grbVAT = New System.Windows.Forms.GroupBox()
+        Me.rdb19Percent = New System.Windows.Forms.RadioButton()
+        Me.rdb5Percent = New System.Windows.Forms.RadioButton()
+        Me.rdb0Percent = New System.Windows.Forms.RadioButton()
+        Me.rdb3Percent = New System.Windows.Forms.RadioButton()
         Me.grbVAT.SuspendLayout()
         Me.SuspendLayout()
         '
@@ -43,6 +44,7 @@ Partial Class frmPaymentInfo
         '
         'grbVAT
         '
+        Me.grbVAT.Controls.Add(Me.rdb3Percent)
         Me.grbVAT.Controls.Add(Me.rdb19Percent)
         Me.grbVAT.Controls.Add(Me.rdb5Percent)
         Me.grbVAT.Controls.Add(Me.rdb0Percent)
@@ -57,7 +59,7 @@ Partial Class frmPaymentInfo
         'rdb19Percent
         '
         Me.rdb19Percent.AutoSize = True
-        Me.rdb19Percent.Location = New System.Drawing.Point(325, 72)
+        Me.rdb19Percent.Location = New System.Drawing.Point(181, 140)
         Me.rdb19Percent.Name = "rdb19Percent"
         Me.rdb19Percent.Size = New System.Drawing.Size(72, 27)
         Me.rdb19Percent.TabIndex = 2
@@ -68,7 +70,7 @@ Partial Class frmPaymentInfo
         'rdb5Percent
         '
         Me.rdb5Percent.AutoSize = True
-        Me.rdb5Percent.Location = New System.Drawing.Point(184, 72)
+        Me.rdb5Percent.Location = New System.Drawing.Point(35, 140)
         Me.rdb5Percent.Name = "rdb5Percent"
         Me.rdb5Percent.Size = New System.Drawing.Size(60, 27)
         Me.rdb5Percent.TabIndex = 1
@@ -86,6 +88,17 @@ Partial Class frmPaymentInfo
         Me.rdb0Percent.TabStop = True
         Me.rdb0Percent.Text = "0%"
         Me.rdb0Percent.UseVisualStyleBackColor = True
+        '
+        'rdb3Percent
+        '
+        Me.rdb3Percent.AutoSize = True
+        Me.rdb3Percent.Location = New System.Drawing.Point(181, 72)
+        Me.rdb3Percent.Name = "rdb3Percent"
+        Me.rdb3Percent.Size = New System.Drawing.Size(60, 27)
+        Me.rdb3Percent.TabIndex = 3
+        Me.rdb3Percent.TabStop = True
+        Me.rdb3Percent.Text = "3%"
+        Me.rdb3Percent.UseVisualStyleBackColor = True
         '
         'frmPaymentInfo
         '
@@ -113,4 +126,5 @@ Partial Class frmPaymentInfo
     Friend WithEvents rdb19Percent As System.Windows.Forms.RadioButton
     Friend WithEvents rdb5Percent As System.Windows.Forms.RadioButton
     Friend WithEvents rdb0Percent As System.Windows.Forms.RadioButton
+    Friend WithEvents rdb3Percent As System.Windows.Forms.RadioButton
 End Class

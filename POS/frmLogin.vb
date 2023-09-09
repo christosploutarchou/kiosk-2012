@@ -109,6 +109,8 @@ Public Class frmLogin
             Exit Sub
         End If
 
+        getVat3PercentColumns()
+
         username = lstboxUsers.Text
         whois = ""
         Dim sql As String = ""

@@ -397,7 +397,7 @@ Public Class frmMain
         Dim sql As String = ""
         Try
             sql = "select from_date, to_date, total_receipts, total5percent, total19percent, payments, " & _
-                  "initial_amt, final_amt, description, total0percent, amount_laxeia, initialAmtLaxeia, amountVisa, NVL(finalAmtLaxeia,0) " & _
+                  "initial_amt, final_amt, description, total0percent, amount_laxeia, initialAmtLaxeia, amountVisa, NVL(finalAmtLaxeia,0), total3percent " & _
                   "from x_report " & _
                   "where user_id = '" & whois & "' and created_on = (select max(created_on) from x_report)"
 
@@ -425,13 +425,16 @@ Public Class frmMain
                 Dim initialAmountLaxeia As Double = CDbl(dr(11))
                 Dim amountVisa As Double = CDbl(dr(12))
                 Dim finalAmtLaxeia As Double = CDbl(dr(13))
+                Dim totalVat3 As Double = CDbl(dr(14))
 
-                Dim totalReceivedAmt As Double = totalVat0 + totalVat5 + totalVat19
+                Dim totalReceivedAmt As Double = totalVat0 + totalVat3 + totalVat5 + totalVat19
                 Dim totalAmountToDeliver = (totalReceivedAmt + initial) - payments - amountVisa
 
                 If isAdmin Then
                     xMargin += 20
                     e.Graphics.DrawString("Φ.Π.Α. 0%: " & totalVat0.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
+                    xMargin += 20
+                    e.Graphics.DrawString("Φ.Π.Α. 3%: " & totalVat3.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
                     xMargin += 20
                     e.Graphics.DrawString("Φ.Π.Α. 5%: " & totalVat5.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
                     xMargin += 20
@@ -455,15 +458,9 @@ Public Class frmMain
                 xMargin += 20
                 e.Graphics.DrawString("Ποσο λαχείων για Παράδοση: " & (finalAmtLaxeia).ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
 
-                'If isAdmin Then
-                'xMargin += 30
-                'Dim reportFontUnderline As Font = New Drawing.Font(REPORT_FONT, 9, FontStyle.Underline)
-                'e.Graphics.DrawString("Αναλυτική Κατάσταση: ", reportFontUnderline, Brushes.Black, 0, xMargin)
-                'xMargin += 10
                 If Not dr.IsDBNull(8) Then
                     e.Graphics.DrawString(dr(8), reportFont, Brushes.Black, 0, xMargin)
                 End If
-                'End If
             End If
             dr.Close()
         Catch ex As Exception

@@ -163,7 +163,7 @@ Public Class frmReceipts
 
             sql = "select r.serno, r.created_on, r.payment_type, u.username, r.total_amt, r.total_discount, r.total_amt_with_disc, " & _
                   "r.payment_amt, r.return_amt, r.total_vat19, r.total_vat5, p.description, rd.quantity, NVL(p.sell_amt,0) as sell_amt, " & _
-                  "NVL(rd.amount,0) as sell_amt1, rd.amount rdamount, rd.vat rdvat, r.total_vat0 " & _
+                  "NVL(rd.amount,0) as sell_amt1, rd.amount rdamount, rd.vat rdvat, r.total_vat0, NVL(r.total_vat3,0), " & _
                   "from receipts r " & _
                   "inner join users u on u.uuid = r.created_by " & _
                   "inner join receipts_det rd on r.serno = rd.receipt_serno " & _
@@ -182,6 +182,7 @@ Public Class frmReceipts
             Dim totalVAT19 As Double = 0
             Dim totalVAT5 As Double = 0
             Dim totalVAT0 As Double = 0
+            Dim totalVAT3 As Double = 0
             Dim vat As Integer = 0
 
             Dim salesDescription As String = ""
@@ -212,6 +213,7 @@ Public Class frmReceipts
                 totalVAT19 = CDbl(dr("total_vat19"))
                 totalVAT5 = CDbl(dr("total_vat5"))
                 totalVAT0 = CDbl(dr("total_vat0"))
+                totalVAT3 = CDbl(dr("total_vat3"))
             End While
             dr.Close()
 
@@ -234,6 +236,7 @@ Public Class frmReceipts
             txtBoxTotal19.Text = totalVAT19.ToString("N2")
             txtBoxTotal5.Text = totalVAT5.ToString("N2")
             txtBoxTotal0.Text = totalVAT0.ToString("N2")
+            txtBoxTotal3.Text = totalVAT3.ToString("N2")
         Catch ex As Exception
             createExceptionFile(ex.Message, " " & sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)

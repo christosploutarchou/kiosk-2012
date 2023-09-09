@@ -22,51 +22,53 @@ Partial Class frmReceiptsPOS
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
-        Me.PrintDocument1 = New System.Drawing.Printing.PrintDocument
-        Me.tabCtrlReceipts = New System.Windows.Forms.TabControl
-        Me.TabPage1 = New System.Windows.Forms.TabPage
-        Me.vatO = New System.Windows.Forms.Label
-        Me.txtBoxTotal0 = New System.Windows.Forms.TextBox
-        Me.btnPrint = New System.Windows.Forms.Button
-        Me.lstBoxSerno = New System.Windows.Forms.ListBox
-        Me.lstBoxReceipts = New System.Windows.Forms.ListBox
-        Me.txtBoxTotal5 = New System.Windows.Forms.TextBox
-        Me.Label8 = New System.Windows.Forms.Label
-        Me.txtBoxTotal19 = New System.Windows.Forms.TextBox
-        Me.Label7 = New System.Windows.Forms.Label
-        Me.txtBoxReturnAmt = New System.Windows.Forms.TextBox
-        Me.Label6 = New System.Windows.Forms.Label
-        Me.txtBoxPayment = New System.Windows.Forms.TextBox
-        Me.Label5 = New System.Windows.Forms.Label
-        Me.txtBoxTotalWithDiscount = New System.Windows.Forms.TextBox
-        Me.Label4 = New System.Windows.Forms.Label
-        Me.txtBoxTotalDiscount = New System.Windows.Forms.TextBox
-        Me.Label3 = New System.Windows.Forms.Label
-        Me.txtBoxCreatedOn = New System.Windows.Forms.TextBox
-        Me.Label2 = New System.Windows.Forms.Label
-        Me.txtBoxTotalAmt = New System.Windows.Forms.TextBox
-        Me.lblTotalAmt = New System.Windows.Forms.Label
-        Me.txtBoxCashier = New System.Windows.Forms.TextBox
-        Me.Label1 = New System.Windows.Forms.Label
-        Me.txtBoxDescription = New System.Windows.Forms.TextBox
-        Me.lblProducts = New System.Windows.Forms.Label
-        Me.txtBoxPaymentType = New System.Windows.Forms.TextBox
-        Me.lblPaymentType = New System.Windows.Forms.Label
-        Me.txtBoxReceiptNum = New System.Windows.Forms.TextBox
-        Me.lblReceiptNum = New System.Windows.Forms.Label
-        Me.grBoxSearch = New System.Windows.Forms.GroupBox
-        Me.txtBoxUser = New System.Windows.Forms.TextBox
-        Me.txtBoxDateTo = New System.Windows.Forms.TextBox
-        Me.txtBoxDateFrom = New System.Windows.Forms.TextBox
-        Me.chkBoxCash = New System.Windows.Forms.CheckBox
-        Me.chkBoxVISA = New System.Windows.Forms.CheckBox
-        Me.lblUser = New System.Windows.Forms.Label
-        Me.chkBoxWithRet = New System.Windows.Forms.CheckBox
-        Me.chkBoxWithDisc = New System.Windows.Forms.CheckBox
-        Me.Label9 = New System.Windows.Forms.Label
-        Me.btnExit = New System.Windows.Forms.Button
-        Me.btnSearch = New System.Windows.Forms.Button
-        Me.lblToDate = New System.Windows.Forms.Label
+        Me.PrintDocument1 = New System.Drawing.Printing.PrintDocument()
+        Me.tabCtrlReceipts = New System.Windows.Forms.TabControl()
+        Me.TabPage1 = New System.Windows.Forms.TabPage()
+        Me.vatO = New System.Windows.Forms.Label()
+        Me.txtBoxTotal0 = New System.Windows.Forms.TextBox()
+        Me.btnPrint = New System.Windows.Forms.Button()
+        Me.lstBoxSerno = New System.Windows.Forms.ListBox()
+        Me.lstBoxReceipts = New System.Windows.Forms.ListBox()
+        Me.txtBoxTotal5 = New System.Windows.Forms.TextBox()
+        Me.Label8 = New System.Windows.Forms.Label()
+        Me.txtBoxTotal19 = New System.Windows.Forms.TextBox()
+        Me.Label7 = New System.Windows.Forms.Label()
+        Me.txtBoxReturnAmt = New System.Windows.Forms.TextBox()
+        Me.Label6 = New System.Windows.Forms.Label()
+        Me.txtBoxPayment = New System.Windows.Forms.TextBox()
+        Me.Label5 = New System.Windows.Forms.Label()
+        Me.txtBoxTotalWithDiscount = New System.Windows.Forms.TextBox()
+        Me.Label4 = New System.Windows.Forms.Label()
+        Me.txtBoxTotalDiscount = New System.Windows.Forms.TextBox()
+        Me.Label3 = New System.Windows.Forms.Label()
+        Me.txtBoxCreatedOn = New System.Windows.Forms.TextBox()
+        Me.Label2 = New System.Windows.Forms.Label()
+        Me.txtBoxTotalAmt = New System.Windows.Forms.TextBox()
+        Me.lblTotalAmt = New System.Windows.Forms.Label()
+        Me.txtBoxCashier = New System.Windows.Forms.TextBox()
+        Me.Label1 = New System.Windows.Forms.Label()
+        Me.txtBoxDescription = New System.Windows.Forms.TextBox()
+        Me.lblProducts = New System.Windows.Forms.Label()
+        Me.txtBoxPaymentType = New System.Windows.Forms.TextBox()
+        Me.lblPaymentType = New System.Windows.Forms.Label()
+        Me.txtBoxReceiptNum = New System.Windows.Forms.TextBox()
+        Me.lblReceiptNum = New System.Windows.Forms.Label()
+        Me.grBoxSearch = New System.Windows.Forms.GroupBox()
+        Me.txtBoxUser = New System.Windows.Forms.TextBox()
+        Me.txtBoxDateTo = New System.Windows.Forms.TextBox()
+        Me.txtBoxDateFrom = New System.Windows.Forms.TextBox()
+        Me.chkBoxCash = New System.Windows.Forms.CheckBox()
+        Me.chkBoxVISA = New System.Windows.Forms.CheckBox()
+        Me.lblUser = New System.Windows.Forms.Label()
+        Me.chkBoxWithRet = New System.Windows.Forms.CheckBox()
+        Me.chkBoxWithDisc = New System.Windows.Forms.CheckBox()
+        Me.Label9 = New System.Windows.Forms.Label()
+        Me.btnExit = New System.Windows.Forms.Button()
+        Me.btnSearch = New System.Windows.Forms.Button()
+        Me.lblToDate = New System.Windows.Forms.Label()
+        Me.txtBoxTotal3 = New System.Windows.Forms.TextBox()
+        Me.Label10 = New System.Windows.Forms.Label()
         Me.tabCtrlReceipts.SuspendLayout()
         Me.TabPage1.SuspendLayout()
         Me.grBoxSearch.SuspendLayout()
@@ -86,6 +88,8 @@ Partial Class frmReceiptsPOS
         '
         'TabPage1
         '
+        Me.TabPage1.Controls.Add(Me.txtBoxTotal3)
+        Me.TabPage1.Controls.Add(Me.Label10)
         Me.TabPage1.Controls.Add(Me.vatO)
         Me.TabPage1.Controls.Add(Me.txtBoxTotal0)
         Me.TabPage1.Controls.Add(Me.btnPrint)
@@ -581,6 +585,27 @@ Partial Class frmReceiptsPOS
         Me.lblToDate.TabIndex = 40
         Me.lblToDate.Text = "Μέχρι"
         '
+        'txtBoxTotal3
+        '
+        Me.txtBoxTotal3.Font = New System.Drawing.Font("Segoe UI", 15.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.txtBoxTotal3.Location = New System.Drawing.Point(474, 633)
+        Me.txtBoxTotal3.MaxLength = 180
+        Me.txtBoxTotal3.Name = "txtBoxTotal3"
+        Me.txtBoxTotal3.ReadOnly = True
+        Me.txtBoxTotal3.Size = New System.Drawing.Size(104, 35)
+        Me.txtBoxTotal3.TabIndex = 131
+        '
+        'Label10
+        '
+        Me.Label10.AutoSize = True
+        Me.Label10.Font = New System.Drawing.Font("Segoe UI", 15.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.Label10.ForeColor = System.Drawing.SystemColors.ControlText
+        Me.Label10.Location = New System.Drawing.Point(325, 633)
+        Me.Label10.Name = "Label10"
+        Me.Label10.Size = New System.Drawing.Size(107, 30)
+        Me.Label10.TabIndex = 130
+        Me.Label10.Text = "Φ.Π.Α. 3%"
+        '
         'frmReceiptsPOS
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -648,4 +673,6 @@ Partial Class frmReceiptsPOS
     Friend WithEvents txtBoxDateFrom As System.Windows.Forms.TextBox
     Friend WithEvents txtBoxDateTo As System.Windows.Forms.TextBox
     Friend WithEvents txtBoxUser As System.Windows.Forms.TextBox
+    Friend WithEvents txtBoxTotal3 As System.Windows.Forms.TextBox
+    Friend WithEvents Label10 As System.Windows.Forms.Label
 End Class

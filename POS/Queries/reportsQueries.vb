@@ -1,7 +1,7 @@
 ﻿Module reportsQueries
     'Reports Screen
     Public Q_PRODUCTS_PER_SUPPLIER As String = "select serno, s_name, concat(phone_1,NVL(phone_2,'')) phone, description, " & _
-                                             "NVL(buy_amt,0), NVL(sell_amt,0), " & _
+                                             "NVL(BUY_AMT_NO_VAT,0), NVL(sell_amt,0), " & _
                                              "(select barcode from barcodes where barcodes.PRODUCT_SERNO = serno and rownum < 2) barcode, " & _
                                              "to_number(avail_quantity,'99999'), " & _
                                              "to_number(stock_quantity,'99999') " & _

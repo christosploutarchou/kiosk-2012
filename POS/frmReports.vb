@@ -422,7 +422,7 @@ Public Class frmReports
                 Dim dateFrom As String = CStr(dtpFrom.Value.Day) & "-" & findMonth(CStr(dtpFrom.Value.Month)) & "-" & CStr(dtpFrom.Value.Year).Substring(2, 2)
                 Dim dateTo As String = CStr(dtpTo.Value.Day) & "-" & findMonth(CStr(dtpTo.Value.Month)) & "-" & CStr(dtpTo.Value.Year).Substring(2, 2)
 
-                sql = "select NVL(sum(total_vat5),0), NVL(sum(total_vat19),0), NVL(sum(total_vat0),0) from receipts " & _
+                sql = "select NVL(sum(total_vat5),0), NVL(sum(total_vat19),0), NVL(sum(total_vat0),0), NVL(sum(total_vat3),0) from receipts " & _
                       "where created_on BETWEEN " & _
                       "to_timestamp('" & dateFrom & " 00:00:00', 'DD-MON-YY HH24:MI:SS') AND " & _
                       "to_timestamp('" & dateTo & " 23:59:59', 'DD-MON-YY HH24:MI:SS')"
@@ -432,11 +432,13 @@ Public Class frmReports
                 Dim totalVat0 As Double = 0
                 Dim totalVat5 As Double = 0
                 Dim totalVat19 As Double = 0
+                Dim totalVat3 As Double = 0
 
                 If dr.Read() Then
                     totalVat5 = CStr(CDbl(dr(0)).ToString("#,##0.00")) * (divideFactor5 / 100)
                     totalVat19 = CStr(CDbl(dr(1)).ToString("#,##0.00")) * (divideFactor19 / 100)
                     totalVat0 = CStr(CDbl(dr(2)).ToString("#,##0.00")) * (divideFactor0 / 100)
+                    totalVat3 = CStr(CDbl(dr(3)).ToString("#,##0.00")) * (divideFactor3 / 100)
                 End If
                 dr.Close()
                 dgvReports.ColumnCount = 6
@@ -456,10 +458,13 @@ Public Class frmReports
                 dgvReports.Columns(4).Name = "Ολικό Ποσό 19%"
                 dgvReports.Columns(4).Width = 100
 
-                dgvReports.Columns(5).Name = "Συνολικό Ποσό"
-                dgvReports.Columns(5).Width = 149
+                dgvReports.Columns(5).Name = "Ολικό Ποσό 3%"
+                dgvReports.Columns(5).Width = 100
 
-                Dim row As String() = New String() {dtpFrom.Text, dtpTo.Text, totalVat0.ToString("N2"), totalVat5.ToString("N2"), totalVat19.ToString("N2"), (totalVat0 + totalVat5 + totalVat19).ToString("N2")}
+                dgvReports.Columns(6).Name = "Συνολικό Ποσό"
+                dgvReports.Columns(6).Width = 149
+
+                Dim row As String() = New String() {dtpFrom.Text, dtpTo.Text, totalVat0.ToString("N2"), totalVat5.ToString("N2"), totalVat19.ToString("N2"), totalVat3.ToString("N2"), totalVat19.ToString("N2"), (totalVat0 + totalVat5 + totalVat19 + totalVat3).ToString("N2")}
                 dgvReports.Rows.Add(row)
                 btnPrint.Visible = True
                 'btnExportToExcel.Visible = True
@@ -472,7 +477,7 @@ Public Class frmReports
 
                 sql = "select from_date, to_date, u.username, total_receipts, total5percent, " & _
                       "       total19percent, initial_amt, payments, final_amt, NVL(description,''), total0percent, " & _
-                      "       amount_laxeia, initialAmtLaxeia, amountvisa, finalamtlaxeia " & _
+                      "       amount_laxeia, initialAmtLaxeia, amountvisa, finalamtlaxeia, total3percent " & _
                       "from x_report x " & _
                       "inner join users u on x.user_id = u.uuid " & _
                       "where (total_receipts > 0 or payments > 0) and created_on BETWEEN " & _
@@ -541,7 +546,12 @@ Public Class frmReports
                     Dim total19percent As Double = CDbl(dr(5)) * (divideFactor19 / 100)
                     Dim initial_amt As Double = CDbl(dr(6))
                     Dim payments As Double = CDbl(dr(7))
-                    Dim final_amt As Double = (total0percent + total5percent + total19percent)
+                    Dim total3percent As Double = 0
+                    If Not IsDBNull(dr(15)) Then
+                        total3percent = CDbl(dr(15)) * (divideFactor3 / 100)
+                    End If
+
+                    Dim final_amt As Double = (total0percent + total3percent + total5percent + total19percent)
                     Dim amountLaxeia As Double = CDbl(dr(11))
 
                     Dim initialAmountLaxeia As Double = 0
@@ -564,9 +574,9 @@ Public Class frmReports
                         finalAmtLaxeia = CDbl(dr(14))
                     End If
 
-                    Dim totalAmountDeliver As Double = (total0percent + total5percent + total19percent + initial_amt) - payments - visaAmount
+                    Dim totalAmountDeliver As Double = (total0percent + total3percent + total5percent + total19percent + initial_amt) - payments - visaAmount
 
-                    Dim row As String() = New String() {CStr(dr(0)), CStr(dr(1)), CStr(dr(2)), CInt(dr(3)), total0percent.ToString("N2"), total5percent.ToString("N2"), total19percent.ToString("N2"), final_amt.ToString("N2"), initial_amt.ToString("N2"), payments.ToString("N2"), visaAmount.ToString("N2"), totalAmountDeliver.ToString("N2"), finalAmtLaxeia.ToString("N2")} ', salesDescription}
+                    Dim row As String() = New String() {CStr(dr(0)), CStr(dr(1)), CStr(dr(2)), CInt(dr(3)), total0percent.ToString("N2"), total5percent.ToString("N2"), total19percent.ToString("N2"), final_amt.ToString("N2"), initial_amt.ToString("N2"), payments.ToString("N2"), visaAmount.ToString("N2"), totalAmountDeliver.ToString("N2"), finalAmtLaxeia.ToString("N2"), total3percent.ToString("N2")}
                     dgvReports.Rows.Add(row)
                 End While
                 dr.Close()
@@ -615,7 +625,7 @@ Public Class frmReports
                         Exit Sub
                     End If
 
-                    dgvReports.ColumnCount = 8
+                    dgvReports.ColumnCount = 9
 
                     dgvReports.Columns(0).Name = "Z"
                     dgvReports.Columns(0).Width = 50
@@ -632,25 +642,29 @@ Public Class frmReports
                     dgvReports.Columns(4).Name = "Ολικό Ποσό 0%"
                     dgvReports.Columns(4).Width = 90
 
-                    dgvReports.Columns(5).Name = "Ολικό Ποσό 5%"
+                    dgvReports.Columns(5).Name = "Ολικό Ποσό 3%"
                     dgvReports.Columns(5).Width = 90
 
-                    dgvReports.Columns(6).Name = "Ολικό Ποσό 19%"
+                    dgvReports.Columns(6).Name = "Ολικό Ποσό 5%"
                     dgvReports.Columns(6).Width = 90
 
-                    dgvReports.Columns(7).Name = "Συνολικό Ποσό"
-                    dgvReports.Columns(7).Width = 100
+                    dgvReports.Columns(7).Name = "Ολικό Ποσό 19%"
+                    dgvReports.Columns(7).Width = 90
+
+                    dgvReports.Columns(8).Name = "Συνολικό Ποσό"
+                    dgvReports.Columns(8).Width = 100
 
                     Dim totalReceipts As Integer = 0
                     Dim totalVat0 As Double = 0
                     Dim totalVat5 As Double = 0
                     Dim totalVat19 As Double = 0
                     Dim totalAll As Double = 0
+                    Dim totalVat3 As Double = 0
                     Dim zseq As Integer = -1
                     Dim zDate As String
 
                     Dim tmpDate As String = CStr(tmpFrom.Day) & "-" & findMonth(CStr(tmpFrom.Month)) & "-" & CStr(tmpFrom.Year)
-                    sql = "select z_seq, z_date, total_receipts, total_amount0, total_amount5, total_amount19, total_amount from z_report " & _
+                    sql = "select z_seq, z_date, total_receipts, total_amount0, total_amount5, total_amount19, total_amount, nvl(total_amount3,0) from z_report " & _
                           "where z_date='" & tmpDate & "'"
                     cmd = New OracleCommand(sql, conn)
                     dr = cmd.ExecuteReader()
@@ -662,17 +676,17 @@ Public Class frmReports
                         totalVat5 = CStr(CDbl(dr(4)).ToString("#,##0.00"))
                         totalVat19 = CStr(CDbl(dr(5)).ToString("#,##0.00"))
                         totalAll = CStr(CDbl(dr(6)).ToString("#,##0.00"))
+                        totalVat3 = CStr(CDbl(dr(7)).ToString("#,##0.00"))
 
-                        Dim row As String() = New String() {zseq, zDate, zDate, totalReceipts, totalVat0.ToString("N2"), totalVat5.ToString("N2"), _
+                        Dim row As String() = New String() {zseq, zDate, zDate, totalReceipts, totalVat0.ToString("N2"), totalVat3.ToString("N2"), totalVat5.ToString("N2"), _
                                 totalVat19.ToString("N2"), totalAll.ToString("N2")}
                         dgvReports.Rows.Add(row)
 
                     Else
-                        sql = "select NVL(sum(total_vat5),0), NVL(sum(total_vat19),0), NVL(sum(total_vat0),0), count(*) from receipts " & _
+                        sql = "select NVL(sum(total_vat5),0), NVL(sum(total_vat19),0), NVL(sum(total_vat0),0), NVL(sum(total_vat3),0), count(*) from receipts " & _
                           "where created_on BETWEEN " & _
                           "to_timestamp('" & dateFrom & " 00:00:00', 'DD-MON-YY HH24:MI:SS') AND " & _
                           "to_timestamp('" & dateFrom & " 23:59:59', 'DD-MON-YY HH24:MI:SS')"
-                        '"to_timestamp('" & dateTo & " 23:59:59', 'DD-MON-YY HH24:MI:SS')"
 
                         cmd = New OracleCommand(sql, conn)
                         dr = cmd.ExecuteReader()
@@ -681,7 +695,8 @@ Public Class frmReports
                             totalVat5 = CStr(CDbl(dr(0)).ToString("#,##0.00")) * (divideFactor5 / 100)
                             totalVat19 = CStr(CDbl(dr(1)).ToString("#,##0.00")) * (divideFactor19 / 100)
                             totalVat0 = CStr(CDbl(dr(2)).ToString("#,##0.00")) * (divideFactor0 / 100)
-                            totalReceipts = CInt(dr(3))
+                            totalVat3 = CStr(CDbl(dr(3)).ToString("#,##0.00")) * (divideFactor3 / 100)
+                            totalReceipts = CInt(dr(4))
                         End If
 
                         zseq = getZseq(tmpFrom)
@@ -694,22 +709,21 @@ Public Class frmReports
                         Dim row As String() = New String() {zseq, tmpFrom.Day & "-" & tmpFrom.Month & "-" & tmpFrom.Year, _
                                                         tmpFrom.Day & "-" & tmpFrom.Month & "-" & tmpFrom.Year, _
                                                         totalReceipts, totalVat0.ToString("N2"), totalVat5.ToString("N2"), _
-                                                        totalVat19.ToString("N2"), (totalVat0 + totalVat5 + totalVat19).ToString("N2")}
+                                                        totalVat19.ToString("N2"), totalVat3.ToString("N2"), (totalVat0 + totalVat3 + totalVat5 + totalVat19).ToString("N2")}
                         dgvReports.Rows.Add(row)
 
                         sql = "update z_report set total_receipts = " & totalReceipts & ", " & _
                               "                    total_amount0 = " & totalVat0 & ", " & _
+                              "                    total_amount3 = " & totalVat3 & ", " & _
                               "                    total_amount5 = " & totalVat5 & ", " & _
                               "                    total_amount19 = " & totalVat19 & ", " & _
-                              "                    total_amount = " & (totalVat0 + totalVat5 + totalVat19) & " " & _
+                              "                    total_amount = " & (totalVat0 + totalVat3 + totalVat5 + totalVat19) & " " & _
                               "where z_seq = " & zseq & ""
                         cmd = New OracleCommand(sql, conn)
                         cmd.ExecuteReader()
                     End If
 
-                    'Dim row As String() = New String() {zseq, dtpFrom.Text, dtpTo.Text, dr(3), totalVat0.ToString("N2"), totalVat5.ToString("N2"), totalVat19.ToString("N2"), (totalVat0 + totalVat5 + totalVat19).ToString("N2")}
                     btnPrint.Visible = True
-                    'btnExportToExcel.Visible = True
                     dr.Close()
 
                     tmpFrom = tmpFrom.AddDays(1)
@@ -838,10 +852,12 @@ Public Class frmReports
                 Dim totalVATamount As Double = 0
 
                 Dim totalVat0 As Double = 0
+                Dim totalVat3 As Double = 0
                 Dim totalVat5 As Double = 0
                 Dim totalVat19 As Double = 0
 
                 Dim totalPaymentsVat0 As Double = 0
+                Dim totalPaymentsVat3 As Double = 0
                 Dim totalPaymentsVat5 As Double = 0
                 Dim totalPaymentsVat19 As Double = 0
 
@@ -884,6 +900,9 @@ Public Class frmReports
                     If CInt(dr(5)) = 0 Then
                         totalVat0 += CDbl(dr(4))
                         totalPaymentsVat0 += amount
+                    ElseIf CInt(dr(5)) = 3 Then
+                        totalVat3 += CDbl(dr(4))
+                        totalPaymentsVat3 += amount
                     ElseIf CInt(dr(5)) = 5 Then
                         totalVat5 += CDbl(dr(4))
                         totalPaymentsVat5 += amount
@@ -899,6 +918,7 @@ Public Class frmReports
                 txtBoxTotalHoursOrPayments.Text = "€" & TruncateDecimal(totalAmount + totalVATamount, 3).ToString
                 lblAmountVAT.Text = "Φ.Π.Α για Επιστροφή: €" + TruncateDecimal(totalVATamount, 3).ToString + vbNewLine + _
                 "Πληρωμές (με Φ.Π.Α) 0% : " + TruncateDecimal(totalPaymentsVat0 + totalVat0, 3).ToString + " , Φ.Π.Α. 0%: " + TruncateDecimal(totalVat0, 3).ToString + vbNewLine + _
+                "Πληρωμές (με Φ.Π.Α) 3% : " + TruncateDecimal(totalPaymentsVat3 + totalVat3, 3).ToString + " , Φ.Π.Α. 3%: " + TruncateDecimal(totalVat3, 3).ToString + vbNewLine + _
                 "Πληρωμές (με Φ.Π.Α) 5% : " + TruncateDecimal(totalPaymentsVat5 + totalVat5, 3).ToString + " , Φ.Π.Α. 5%: " + TruncateDecimal(totalVat5, 3).ToString + vbNewLine + _
                 "Πληρωμές (με Φ.Π.Α) 19%: " + TruncateDecimal(totalPaymentsVat19 + totalVat19, 3).ToString + ", Φ.Π.Α. 19%: " + TruncateDecimal(totalVat19, 3).ToString
                 btnPrint.Visible = True
@@ -1267,6 +1287,8 @@ Public Class frmReports
                 xMargin += 20
                 e.Graphics.DrawString("Ποσό 0%: " & dgvReports.Rows(i).Cells("Ολικό Ποσό 0%").Value, reportFont, Brushes.Black, 0, xMargin)
                 xMargin += 20
+                e.Graphics.DrawString("Ποσό 3%: " & dgvReports.Rows(i).Cells("Ολικό Ποσό 3%").Value, reportFont, Brushes.Black, 0, xMargin)
+                xMargin += 20
                 e.Graphics.DrawString("Ποσό 5%: " & dgvReports.Rows(i).Cells("Ολικό Ποσό 5%").Value, reportFont, Brushes.Black, 0, xMargin)
                 xMargin += 20
                 e.Graphics.DrawString("Ποσό 19%: " & dgvReports.Rows(i).Cells("Ολικό Ποσό 19%").Value, reportFont, Brushes.Black, 0, xMargin)
@@ -1609,7 +1631,7 @@ Public Class frmReports
 
                 sql = "select (select s_name || ' ' || concat(phone_1,NVL(phone_2,'')) from suppliers " & _
                       "where uuid = '" & supplierUUIDs(cmbSupplier.SelectedIndex) & "'), " & _
-                      "p.description ,sum(quantity), NVL(buy_amt,0) buy_amt, NVL(sell_amt,0) sell_amt, " & _
+                      "p.description ,sum(quantity), NVL(buy_amt_no_vat,0) buy_amt, NVL(sell_amt,0) sell_amt, " & _
                       "(select barcode from barcodes where barcodes.PRODUCT_SERNO = rd.PRODUCT_SERNO and rownum < 2), " & _
                       "to_number(avail_quantity,'99999'), " & _
                       "to_number(stock_quantity,'99999') " & _
@@ -1619,7 +1641,7 @@ Public Class frmReports
                       "and created_on BETWEEN " & _
                       "to_timestamp('" & dateFrom & " 00:00:00', 'DD-MON-YY HH24:MI:SS') AND " & _
                       "to_timestamp('" & dateTo & " 23:59:59', 'DD-MON-YY HH24:MI:SS')" & _
-                      "group by rd.product_serno, p.description, buy_amt, sell_amt, " & _
+                      "group by rd.product_serno, p.description, buy_amt_no_vat, sell_amt, " & _
                       "to_number(avail_quantity,'99999'), to_number(stock_quantity,'99999') " & _
                       "order by to_number(avail_quantity,'99999') "
                 cmd = New OracleCommand(sql, conn)
@@ -1656,7 +1678,7 @@ Public Class frmReports
                 dgvReports.Columns(3).Width = 180
             End If
 
-            dgvReports.Columns(4).Name = "Τιμή Αγοράς"
+            dgvReports.Columns(4).Name = "Τιμή Αγοράς χωρίς ΦΠΑ"
             dgvReports.Columns(4).Width = 90
             dgvReports.Columns(5).Name = "Τιμή Πώλησης"
             dgvReports.Columns(5).Width = 90
@@ -1673,13 +1695,17 @@ Public Class frmReports
                 Dim row As String()
                 Dim buyAmt As String = "N/A"
                 If isAdmin Then
-                    buyAmt = dr(3)
+                    If chkBoxSalesPerSupplier.Checked Then
+                        buyAmt = dr(3)
+                    Else
+                        buyAmt = dr(4)
+                    End If
                 End If
 
                 If chkBoxSalesPerSupplier.Checked Then
                     totalSalesAmt += (CInt(dr(2)) * CDbl(dr(4)))
                     row = New String() {counter, dr(0), dr(1), dr(2), buyAmt, dr(4), dr(5), CInt(dr(6)), CInt(dr(7))}
-                Else                    
+                Else
                     row = New String() {counter, dr(1), dr(2), dr(3), buyAmt, dr(5), dr(6), CInt(dr(7)), CInt(dr(8))}
                 End If
                 dgvReports.Rows.Add(row)
@@ -1930,5 +1956,9 @@ Public Class frmReports
         Finally
             GC.Collect()
         End Try
+    End Sub
+
+    Private Sub cmbCategories_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cmbCategories.SelectedIndexChanged
+
     End Sub
 End Class

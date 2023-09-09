@@ -7,6 +7,7 @@ Public Class frmPOS
     Dim totalAmt0 As New Double
     Dim totalAmt5 As New Double
     Dim totalAmt19 As New Double
+    Dim totalAmt3 As New Double
     Dim totalItems As New Double
     Dim totalDiscount As New Double
     Dim totalWithDiscount As New Double
@@ -146,12 +147,14 @@ Public Class frmPOS
 
                     Dim tmpVat = CDbl(dr(2)) * returnProduct * CInt(txtBoxQuantity.Text)
 
-                    If CInt(dr(3)) = 19 Then
-                        totalAmt19 += tmpVat
+                    If CInt(dr(3)) = 0 Then
+                        totalAmt0 += tmpVat
+                    ElseIf CInt(dr(3)) = 3 Then
+                        totalAmt3 += tmpVat
                     ElseIf CInt(dr(3)) = 5 Then
                         totalAmt5 += tmpVat
-                    ElseIf CInt(dr(3)) = 0 Then
-                        totalAmt0 += tmpVat
+                    ElseIf CInt(dr(3)) = 19 Then
+                        totalAmt19 += tmpVat
                     End If
                     fillProductsAndQuantity(CStr(dr(0)))
 
@@ -377,6 +380,7 @@ Public Class frmPOS
         returnAmount = 0.0
 
         totalAmt0 = 0.0
+        totalAmt3 = 0.0
         totalAmt5 = 0.0
         totalAmt19 = 0.0
         totalItems = 0
@@ -468,12 +472,14 @@ Public Class frmPOS
         tmpAmt = Math.Round(unitPrice * CInt(txtBoxQuantity.Text), 2)
 
         tmpAmt *= returnProduct
-        If vat = 19 Then
-            totalAmt19 += tmpAmt
+        If vat = 0 Then
+            totalAmt0 += tmpAmt
+        ElseIf vat = 3 Then
+            totalAmt3 += tmpAmt
         ElseIf vat = 5 Then
             totalAmt5 += tmpAmt
-        ElseIf vat = 0 Then
-            totalAmt0 += tmpAmt
+        ElseIf vat = 19 Then
+            totalAmt19 += tmpAmt
         End If
 
         totalItems = dgvReceipt.Rows.Count + 1
@@ -662,10 +668,14 @@ Public Class frmPOS
     Private Sub recalculateAmounts()
         If dgvReceipt.Rows.Count > 0 Then
             totalItems = 1
-            totalAmt = 0
-            totalAmt19 = 0
-            totalAmt5 = 0
+            ' 04/08 - Changes to support VAT 3%
+            ' Supported VAT types = 0, 3, 5, 19
+            '
             totalAmt0 = 0
+            totalAmt3 = 0
+            totalAmt5 = 0
+            totalAmt19 = 0
+            totalAmt = 0
             totalWithDiscount = 0
 
             For i = 0 To dgvReceipt.Rows.Count - 1
@@ -674,12 +684,14 @@ Public Class frmPOS
                 totalAmt += dgvReceipt.Rows(i).Cells("amount").Value
                 Dim tmpAmt As Double = 0
                 tmpAmt = dgvReceipt.Rows(i).Cells("amount").Value
-                If dgvReceipt.Rows(i).Cells("vat").Value = 19 Then
-                    totalAmt19 += tmpAmt
+                If dgvReceipt.Rows(i).Cells("vat").Value = 0 Then
+                    totalAmt0 += tmpAmt
+                ElseIf dgvReceipt.Rows(i).Cells("vat").Value = 3 Then
+                    totalAmt3 += tmpAmt
                 ElseIf dgvReceipt.Rows(i).Cells("vat").Value = 5 Then
                     totalAmt5 += tmpAmt
-                ElseIf dgvReceipt.Rows(i).Cells("vat").Value = 0 Then
-                    totalAmt0 += tmpAmt
+                ElseIf dgvReceipt.Rows(i).Cells("vat").Value = 19 Then
+                    totalAmt19 += tmpAmt
                 End If
             Next
             totalWithDiscount = totalAmt - totalDiscount
@@ -890,11 +902,15 @@ Public Class frmPOS
                     If totalAmt5 > 0 Then
                         totalAmt5 -= diff
                     End If
+
+                    If totalAmt3 > 0 Then
+                        totalAmt3 -= diff
+                    End If
                 End If
             End If
 
             sql = "insert into receipts (serno, payment_type, total_discount, total_vat19, total_vat5, total_vat0, return_amt, total_amt_with_disc, " & _
-                  "                      total_amt, payment_amt, created_on, created_by) " & _
+                  "                      total_amt, payment_amt, created_on, total_vat3, created_by) " & _
                   "values               (" & receiptSerno & "," & _
                   "                     '" & paymentMethod & "'," & _
                   "                      " & totalDiscount & "," & _
@@ -906,6 +922,7 @@ Public Class frmPOS
                   "                      " & totalAmt & ", " & _
                   "                      " & payment & ", " & _
                   "                  (select systimestamp from dual), " & _
+                  "                      " & totalAmt3 & "," & _
                   "                     '" & whois & "' ) "
             cmd = New OracleCommand(sql, conn)
             cmd.ExecuteReader()
@@ -1024,6 +1041,7 @@ Public Class frmPOS
                 totalAmt19 = tmpTrxn.totalAmt19
                 totalAmt5 = tmpTrxn.totalAmt5
                 totalAmt0 = tmpTrxn.totalAmt0
+                totalAmt3 = tmpTrxn.totalAmt3
                 totalItems = tmpTrxn.totalItems
                 totalAmt = tmpTrxn.dTotalAmt
                 totalWithDiscount = tmpTrxn.dTotalWithDiscount
@@ -1101,97 +1119,6 @@ Public Class frmPOS
         e.Graphics.DrawString(SINGE_DASHED_LINE, reportFont, Brushes.Black, 0, 95)
         e.Graphics.DrawString("Date: " & DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss"), reportFont, Brushes.Black, 0, 110)
 
-        'If printType = "K" Then
-        '    'KRONOS
-        '    Dim cmd As New OracleCommand("", conn)
-        '    Dim dr As OracleDataReader
-        '    Dim sql As String = ""
-        '    Try
-        '        Dim xMargin As Integer = 120
-        '        e.Graphics.DrawString(SINGE_DASHED_LINE, reportFont, Brushes.Black, 0, xMargin)
-        '        xMargin += 15
-        '        e.Graphics.DrawString("**********ΕΠΙΣΤΡΟΦΕΣ ΚΡΟΝΟΥ**********", reportFont, Brushes.Black, 0, xMargin)
-        '        xMargin += 15
-        '        e.Graphics.DrawString(SINGE_DASHED_LINE, reportFont, Brushes.Black, 0, xMargin)
-
-        '        Dim currentYear As String = DateTime.Now.Year.ToString
-        '        Dim currentMonth As String = DateTime.Now.Month.ToString
-        '        If currentMonth.Length < 2 Then
-        '            currentMonth = "0" + currentMonth
-        '        End If
-
-        '        Dim currentDay As String = DateTime.Now.Day.ToString
-        '        If currentDay.Length < 2 Then
-        '            currentDay = "0" + currentDay
-        '        End If
-        '        Dim todaysDate As String = currentYear + currentMonth + currentDay
-
-        '        todaysDate = InputBox("Εισαγωγή ημερομηνίας (π.χ 20150725)", "Εισαγωγή ημερομηνίας (YYYYMMDD)", "")
-        '        sql = "select trim(barcode), trim(item_code), trim(issue_number), trim(delivery_date) " & _
-        '              "from kronos_products where trim(vat) like '%M%' and trim(return_date) = '" & todaysDate & "' and is_deleted = 0"
-        '        cmd = New OracleCommand(sql, conn)
-        '        dr = cmd.ExecuteReader()
-
-        '        tmpkronosItems.Clear()
-        '        While dr.Read
-        '            Dim objKronosItem As KronosItem
-        '            objKronosItem.barcode = CStr(dr(0))
-        '            objKronosItem.itemCode = CStr(dr(1))
-        '            objKronosItem.issueNumber = CStr(dr(2))
-        '            objKronosItem.deliveryDate = CStr(dr(3))
-        '            tmpkronosItems.Add(objKronosItem)
-        '        End While
-
-        '        sql = "select trim(barcode), trim(item_code), trim(item_name), trim(issue_number), trim(delivery_date), trim(price), trim(quantity_sent)," & _
-        '              "(select count(*) from receipts_det " & _
-        '              "where(K_BARCODE = barcode and K_ITEM_CODE = trim(item_code) and " & _
-        '              "K_ISSUE_NUMBER= trim(issue_number) and K_DELIVERY_DATE = trim(delivery_date))) " & _
-        '              "from(kronos_products) " & _
-        '              "where trim(return_date) = '" & todaysDate & "' " & _
-        '              "and is_deleted = 0"
-
-        '        cmd = New OracleCommand(sql, conn)
-        '        dr = cmd.ExecuteReader()
-
-        '        Dim counter As Integer = 1
-        '        While dr.Read
-
-        '            Dim barcode As String = CStr(dr(0))
-        '            Dim item_code As String = CStr(dr(1))
-        '            Dim item_name As String = CStr(dr(2))
-        '            Dim issue_number As String = CStr(dr(3))
-        '            Dim delivery_date As String = CStr(dr(4))
-        '            Dim price As Double = CDbl(dr(5))
-        '            Dim qty_rec As Integer = CInt(dr(6))
-        '            Dim qty_sold As Integer = CInt(dr(7))
-
-        '            Dim index As Integer = 0
-        '            For Each tmpKronosItem In tmpkronosItems
-        '                If tmpKronosItem.barcode.Equals(barcode) And tmpKronosItem.itemCode.Equals(item_code) And tmpKronosItem.issueNumber.Equals(issue_number) And tmpKronosItem.deliveryDate.Equals(delivery_date) Then
-        '                    qty_sold /= 2
-        '                    Exit For
-        '                End If
-        '                index += 1
-        '            Next
-
-        '            xMargin += 12
-        '            e.Graphics.DrawString(counter & ". Itm Code: " & item_code & " " & "- Itm Name: " & item_name, reportFontTiny, Brushes.Black, 0, xMargin)
-        '            xMargin += 12
-        '            e.Graphics.DrawString("Iss. Num.: " & issue_number & " " & "- Del. Date: " & delivery_date & " " & "Prc €: " & price, reportFontTiny, Brushes.Black, 0, xMargin)
-        '            xMargin += 12
-        '            e.Graphics.DrawString("Qty. Rec.: " & qty_rec & " " & "- Qty. Sld.: " & qty_sold & " " & "- Qty. To Be Ret.: " & (qty_rec - qty_sold), reportFontTiny, Brushes.Black, 0, xMargin)
-        '            xMargin += 12
-        '            e.Graphics.DrawString(SINGE_DASHED_LINE, reportFontTiny, Brushes.Black, 0, xMargin)
-        '            counter += 1
-        '        End While
-        '    Catch ex As Exception
-        '        createExceptionFile(ex.Message, " " & sql)
-        '        MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        '    Finally
-        '        cmd.Dispose()
-        '        tmpkronosItems.Clear()
-        '    End Try
-
         If printType = "R" Then
             If paymentMethod = "C" Then
                 paymentMethod = "Cash"
@@ -1226,6 +1153,8 @@ Public Class frmPOS
                     tmpVAT = " 5"
                 ElseIf tmpVAT = "0" Then
                     tmpVAT = " 0"
+                ElseIf tmpVAT = "3" Then
+                    tmpVAT = " 3"
                 End If
 
                 tmpUnitPrice = amountFormat(tmpUnitPrice)
@@ -1270,6 +1199,9 @@ Public Class frmPOS
             e.Graphics.DrawString("VAT 00%: " & totalAmt0.ToString("N2") & vbTab & vbTab & "0.00", reportFont, Brushes.Black, 0, xMargin)
 
             xMargin += 15
+            e.Graphics.DrawString("VAT 03%: " & totalAmt3.ToString("N2") & vbTab & vbTab & "0.00", reportFont, Brushes.Black, 0, xMargin)
+
+            xMargin += 15
             e.Graphics.DrawString("VAT 05%: " & totalAmt5.ToString("N2") & vbTab & vbTab & (totalAmt5 - (totalAmt5 / 1.05)).ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
             xMargin += 12
             e.Graphics.DrawString("VAT 19%: " & totalAmt19.ToString("N2") & vbTab & vbTab & (totalAmt19 - (totalAmt19 / 1.19)).ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
@@ -1302,7 +1234,7 @@ Public Class frmPOS
             Dim sql As String = ""
             Try
                 sql = "select from_date, to_date, total_receipts, total5percent, total19percent, payments, " & _
-                      "initial_amt, final_amt, description, total0percent, amount_laxeia, initialAmtLaxeia, amountvisa " & _
+                      "initial_amt, final_amt, description, total0percent, amount_laxeia, initialAmtLaxeia, amountvisa, total3percent  " & _
                       "from x_report " & _
                       "where user_id = '" & whois & "' and created_on = (select max(created_on) from x_report)"
 
@@ -1314,53 +1246,16 @@ Public Class frmPOS
                     e.Graphics.DrawString("Από: " & CStr(dr(0)), reportFont, Brushes.Black, 0, xMargin)
                     xMargin += 20
                     e.Graphics.DrawString("Έως: " & CStr(dr(1)), reportFont, Brushes.Black, 0, xMargin)
-                    'xMargin += 20
-                    'e.Graphics.DrawString("Αρ. Αποδείξεων: " & CStr(dr(2)), reportFont, Brushes.Black, 0, xMargin)
-
-                    'Dim totalVat5 As Double = CDbl(dr(3))
-                    'Dim totalVat19 As Double = CDbl(dr(4))
-                    'Dim payments As Double = CDbl(dr(5))
                     Dim initial As Double = CDbl(dr(6))
-                    'Dim final As Double = CDbl(dr(7))
-                    'Dim totalVat0 As Double = CDbl(dr(9))
                     Dim amountLaxeia As Double = CDbl(dr(10))
                     Dim initialAmountLaxeia As Double = CDbl(dr(11))
-                    'Dim amountVisa As Double = CDbl(dr(12))
 
-                    'Dim totalReceivedAmt As Double = totalVat0 + totalVat5 + totalVat19
-                    'Dim totalAmountToDeliver = (totalReceivedAmt + initial) - payments - amountVisa
-
-                    'xMargin += 20
-                    'e.Graphics.DrawString("Φ.Π.Α. 0%: " & totalVat0.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
-                    'xMargin += 20
-                    'e.Graphics.DrawString("Φ.Π.Α. 5%: " & totalVat5.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
-                    'xMargin += 20
-                    'e.Graphics.DrawString("Φ.Π.Α. 19%: " & totalVat19.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
-                    'xMargin += 20
-                    'e.Graphics.DrawString("Πληρωμές: " & payments.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
                     xMargin += 20
                     e.Graphics.DrawString("Αρχικό Ποσό: " & initial.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
-                    'xMargin += 20
-                    'e.Graphics.DrawString("Ποσό Είσπραξης: " & totalReceivedAmt.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
-                    'xMargin += 20
-                    'e.Graphics.DrawString("Ποσό VISA: " & amountVisa.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
-                    'xMargin += 20
-                    'e.Graphics.DrawString("Τελικό Ποσό Ταμείου για Παράδωση: " & totalAmountToDeliver.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
                     xMargin += 20
 
                     amountLaxeia = getAmountLaxeia()
                     e.Graphics.DrawString("Ποσο λαχείων για Παράδωση: " & (amountLaxeia).ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
-
-                    'xMargin += 30
-                    'Dim reportFontUnderline As Font = New Drawing.Font(REPORT_FONT, 9, FontStyle.Underline)
-                    'e.Graphics.DrawString("Αναλυτική Κατάσταση: ", reportFontUnderline, Brushes.Black, 0, xMargin)
-                    'xMargin += 10
-                    'Dim salesDescription = ""
-                    'If Not dr.IsDBNull(8) Then
-                    'salesDescription = CStr(dr(8))
-                    'End If
-                    'e.Graphics.DrawString(salesDescription, reportFont, Brushes.Black, 0, xMargin)
-
                 End If
                 dr.Close()
             Catch ex As Exception

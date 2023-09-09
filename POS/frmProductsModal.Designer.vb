@@ -22,52 +22,52 @@ Partial Class frmProductsModal
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
-        Me.btnExit = New System.Windows.Forms.Button
-        Me.btnSave = New System.Windows.Forms.Button
-        Me.btnSearch = New System.Windows.Forms.Button
-        Me.btnClear = New System.Windows.Forms.Button
-        Me.btnCalculateWithoutVAT = New System.Windows.Forms.Button
-        Me.btnCalculateWithVAT = New System.Windows.Forms.Button
-        Me.cmdBoxVatType = New System.Windows.Forms.ComboBox
-        Me.lnkLblAddStock = New System.Windows.Forms.LinkLabel
-        Me.txtBoxStockQuantity = New System.Windows.Forms.TextBox
-        Me.Label4 = New System.Windows.Forms.Label
-        Me.Label2 = New System.Windows.Forms.Label
-        Me.txtBoxProfitPercentage = New System.Windows.Forms.TextBox
-        Me.txtBoxProfit = New System.Windows.Forms.TextBox
-        Me.Label1 = New System.Windows.Forms.Label
-        Me.txtBoxBuyAmtNoVAT = New System.Windows.Forms.TextBox
-        Me.txtBoxNotes = New System.Windows.Forms.TextBox
-        Me.lblNotes = New System.Windows.Forms.Label
-        Me.lstBoxBarcodes = New System.Windows.Forms.ListBox
-        Me.lnkLblBarcodes = New System.Windows.Forms.LinkLabel
-        Me.txtBoxSupplierPhone = New System.Windows.Forms.TextBox
-        Me.Label12 = New System.Windows.Forms.Label
-        Me.cmbSupplier = New System.Windows.Forms.ComboBox
-        Me.lblPercent = New System.Windows.Forms.Label
-        Me.txtBoxVAT = New System.Windows.Forms.TextBox
-        Me.lblVat = New System.Windows.Forms.Label
-        Me.cmdBoxCategoy = New System.Windows.Forms.ComboBox
-        Me.Label7 = New System.Windows.Forms.Label
-        Me.ckboxAlert = New System.Windows.Forms.CheckBox
-        Me.txtBoxMinQuantity = New System.Windows.Forms.TextBox
-        Me.Label6 = New System.Windows.Forms.Label
-        Me.lnkLblAddQuantity = New System.Windows.Forms.LinkLabel
-        Me.txtBoxAvailQuantity = New System.Windows.Forms.TextBox
-        Me.Label5 = New System.Windows.Forms.Label
-        Me.Label3 = New System.Windows.Forms.Label
-        Me.txtBoxSellAmt = New System.Windows.Forms.TextBox
-        Me.txtBoxBuyAmt = New System.Windows.Forms.TextBox
-        Me.lblBuyAmt = New System.Windows.Forms.Label
-        Me.lblDescription = New System.Windows.Forms.Label
-        Me.txtBoxDescription = New System.Windows.Forms.TextBox
-        Me.txtBoxSearchBox = New System.Windows.Forms.TextBox
-        Me.lblSearch = New System.Windows.Forms.Label
-        Me.lblExpiry = New System.Windows.Forms.Label
-        Me.dtpExpiry = New System.Windows.Forms.DateTimePicker
-        Me.lblAlertDate = New System.Windows.Forms.Label
-        Me.dtpAlert = New System.Windows.Forms.DateTimePicker
-        Me.chkBoxAlertExpiry = New System.Windows.Forms.CheckBox
+        Me.btnExit = New System.Windows.Forms.Button()
+        Me.btnSave = New System.Windows.Forms.Button()
+        Me.btnSearch = New System.Windows.Forms.Button()
+        Me.btnClear = New System.Windows.Forms.Button()
+        Me.btnCalculateWithoutVAT = New System.Windows.Forms.Button()
+        Me.btnCalculateWithVAT = New System.Windows.Forms.Button()
+        Me.cmdBoxVatType = New System.Windows.Forms.ComboBox()
+        Me.lnkLblAddStock = New System.Windows.Forms.LinkLabel()
+        Me.txtBoxStockQuantity = New System.Windows.Forms.TextBox()
+        Me.Label4 = New System.Windows.Forms.Label()
+        Me.Label2 = New System.Windows.Forms.Label()
+        Me.txtBoxProfitPercentage = New System.Windows.Forms.TextBox()
+        Me.txtBoxProfit = New System.Windows.Forms.TextBox()
+        Me.Label1 = New System.Windows.Forms.Label()
+        Me.txtBoxBuyAmtNoVAT = New System.Windows.Forms.TextBox()
+        Me.txtBoxNotes = New System.Windows.Forms.TextBox()
+        Me.lblNotes = New System.Windows.Forms.Label()
+        Me.lstBoxBarcodes = New System.Windows.Forms.ListBox()
+        Me.lnkLblBarcodes = New System.Windows.Forms.LinkLabel()
+        Me.txtBoxSupplierPhone = New System.Windows.Forms.TextBox()
+        Me.Label12 = New System.Windows.Forms.Label()
+        Me.cmbSupplier = New System.Windows.Forms.ComboBox()
+        Me.lblPercent = New System.Windows.Forms.Label()
+        Me.txtBoxVAT = New System.Windows.Forms.TextBox()
+        Me.lblVat = New System.Windows.Forms.Label()
+        Me.cmdBoxCategoy = New System.Windows.Forms.ComboBox()
+        Me.Label7 = New System.Windows.Forms.Label()
+        Me.ckboxAlert = New System.Windows.Forms.CheckBox()
+        Me.txtBoxMinQuantity = New System.Windows.Forms.TextBox()
+        Me.Label6 = New System.Windows.Forms.Label()
+        Me.lnkLblAddQuantity = New System.Windows.Forms.LinkLabel()
+        Me.txtBoxAvailQuantity = New System.Windows.Forms.TextBox()
+        Me.Label5 = New System.Windows.Forms.Label()
+        Me.Label3 = New System.Windows.Forms.Label()
+        Me.txtBoxSellAmt = New System.Windows.Forms.TextBox()
+        Me.txtBoxBuyAmt = New System.Windows.Forms.TextBox()
+        Me.lblBuyAmt = New System.Windows.Forms.Label()
+        Me.lblDescription = New System.Windows.Forms.Label()
+        Me.txtBoxDescription = New System.Windows.Forms.TextBox()
+        Me.txtBoxSearchBox = New System.Windows.Forms.TextBox()
+        Me.lblSearch = New System.Windows.Forms.Label()
+        Me.lblExpiry = New System.Windows.Forms.Label()
+        Me.dtpExpiry = New System.Windows.Forms.DateTimePicker()
+        Me.lblAlertDate = New System.Windows.Forms.Label()
+        Me.dtpAlert = New System.Windows.Forms.DateTimePicker()
+        Me.chkBoxAlertExpiry = New System.Windows.Forms.CheckBox()
         Me.SuspendLayout()
         '
         'btnExit
@@ -530,7 +530,7 @@ Partial Class frmProductsModal
         Me.txtBoxDescription.Name = "txtBoxDescription"
         Me.txtBoxDescription.ReadOnly = True
         Me.txtBoxDescription.Size = New System.Drawing.Size(418, 35)
-        Me.txtBoxDescription.TabIndex = 3
+        Me.txtBoxDescription.TabIndex = 1
         '
         'txtBoxSearchBox
         '
@@ -540,7 +540,7 @@ Partial Class frmProductsModal
         Me.txtBoxSearchBox.MaxLength = 50
         Me.txtBoxSearchBox.Name = "txtBoxSearchBox"
         Me.txtBoxSearchBox.Size = New System.Drawing.Size(254, 35)
-        Me.txtBoxSearchBox.TabIndex = 1
+        Me.txtBoxSearchBox.TabIndex = 2
         '
         'lblSearch
         '

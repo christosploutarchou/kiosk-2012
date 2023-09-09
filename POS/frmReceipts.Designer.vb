@@ -55,6 +55,7 @@ Partial Class frmReceipts
         Me.txtBoxReceiptNum = New System.Windows.Forms.TextBox()
         Me.lblReceiptNum = New System.Windows.Forms.Label()
         Me.grBoxSearch = New System.Windows.Forms.GroupBox()
+        Me.chkBoxDeletedUsers = New System.Windows.Forms.CheckBox()
         Me.chkBoxCash = New System.Windows.Forms.CheckBox()
         Me.chkBoxVISA = New System.Windows.Forms.CheckBox()
         Me.lblTotalRecAmt = New System.Windows.Forms.Label()
@@ -73,7 +74,8 @@ Partial Class frmReceipts
         Me.lblToDate = New System.Windows.Forms.Label()
         Me.dtpFrom = New System.Windows.Forms.DateTimePicker()
         Me.dtpTo = New System.Windows.Forms.DateTimePicker()
-        Me.chkBoxDeletedUsers = New System.Windows.Forms.CheckBox()
+        Me.txtBoxTotal3 = New System.Windows.Forms.TextBox()
+        Me.Label10 = New System.Windows.Forms.Label()
         Me.tabCtrlReceipts.SuspendLayout()
         Me.TabPage1.SuspendLayout()
         Me.grBoxSearch.SuspendLayout()
@@ -93,6 +95,8 @@ Partial Class frmReceipts
         '
         'TabPage1
         '
+        Me.TabPage1.Controls.Add(Me.txtBoxTotal3)
+        Me.TabPage1.Controls.Add(Me.Label10)
         Me.TabPage1.Controls.Add(Me.vatO)
         Me.TabPage1.Controls.Add(Me.txtBoxTotal0)
         Me.TabPage1.Controls.Add(Me.btnPrint)
@@ -469,6 +473,17 @@ Partial Class frmReceipts
         Me.grBoxSearch.TabStop = False
         Me.grBoxSearch.Text = "Αναζήτηση"
         '
+        'chkBoxDeletedUsers
+        '
+        Me.chkBoxDeletedUsers.AutoSize = True
+        Me.chkBoxDeletedUsers.Font = New System.Drawing.Font("Segoe UI", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.chkBoxDeletedUsers.Location = New System.Drawing.Point(608, 126)
+        Me.chkBoxDeletedUsers.Name = "chkBoxDeletedUsers"
+        Me.chkBoxDeletedUsers.Size = New System.Drawing.Size(126, 25)
+        Me.chkBoxDeletedUsers.TabIndex = 53
+        Me.chkBoxDeletedUsers.Text = "Διαγραμμενοι"
+        Me.chkBoxDeletedUsers.UseVisualStyleBackColor = True
+        '
         'chkBoxCash
         '
         Me.chkBoxCash.AutoSize = True
@@ -655,16 +670,26 @@ Partial Class frmReceipts
         Me.dtpTo.Size = New System.Drawing.Size(352, 33)
         Me.dtpTo.TabIndex = 2
         '
-        'chkBoxDeletedUsers
+        'txtBoxTotal3
         '
-        Me.chkBoxDeletedUsers.AutoSize = True
-        Me.chkBoxDeletedUsers.Font = New System.Drawing.Font("Segoe UI", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.chkBoxDeletedUsers.Location = New System.Drawing.Point(608, 126)
-        Me.chkBoxDeletedUsers.Name = "chkBoxDeletedUsers"
-        Me.chkBoxDeletedUsers.Size = New System.Drawing.Size(126, 25)
-        Me.chkBoxDeletedUsers.TabIndex = 53
-        Me.chkBoxDeletedUsers.Text = "Διαγραμμενοι"
-        Me.chkBoxDeletedUsers.UseVisualStyleBackColor = True
+        Me.txtBoxTotal3.Font = New System.Drawing.Font("Segoe UI", 15.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.txtBoxTotal3.Location = New System.Drawing.Point(474, 633)
+        Me.txtBoxTotal3.MaxLength = 180
+        Me.txtBoxTotal3.Name = "txtBoxTotal3"
+        Me.txtBoxTotal3.ReadOnly = True
+        Me.txtBoxTotal3.Size = New System.Drawing.Size(104, 35)
+        Me.txtBoxTotal3.TabIndex = 131
+        '
+        'Label10
+        '
+        Me.Label10.AutoSize = True
+        Me.Label10.Font = New System.Drawing.Font("Segoe UI", 15.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.Label10.ForeColor = System.Drawing.SystemColors.ControlText
+        Me.Label10.Location = New System.Drawing.Point(325, 633)
+        Me.Label10.Name = "Label10"
+        Me.Label10.Size = New System.Drawing.Size(107, 30)
+        Me.Label10.TabIndex = 130
+        Me.Label10.Text = "Φ.Π.Α. 3%"
         '
         'frmReceipts
         '
@@ -740,4 +765,6 @@ Partial Class frmReceipts
     Friend WithEvents dtpFrom As System.Windows.Forms.DateTimePicker
     Friend WithEvents dtpTo As System.Windows.Forms.DateTimePicker
     Friend WithEvents chkBoxDeletedUsers As System.Windows.Forms.CheckBox
+    Friend WithEvents txtBoxTotal3 As System.Windows.Forms.TextBox
+    Friend WithEvents Label10 As System.Windows.Forms.Label
 End Class

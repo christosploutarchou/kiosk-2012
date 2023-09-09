@@ -11,7 +11,7 @@
     Public GET_MIN_BARCODE As String = "select (select NVL(min(length(barcode)),9999999) from barcodes) from dual"
 
     Public GET_TOTALS As String = "select count(*), NVL(sum(total_amt_with_disc),0), NVL(sum(total_vat5),0), " & _
-                                  "                 NVL(sum(total_vat19),0),         NVL(sum(total_vat0),0) " & _
+                                  "                 NVL(sum(total_vat19),0),         NVL(sum(total_vat0),0), NVL(sum(total_vat3),0) " & _
                                   "from receipts " & _
                                   "where created_by = :1 " & _
                                   "and created_on between (select max(login_when) from sessions " & _

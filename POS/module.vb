@@ -29,16 +29,10 @@ Module connectionModule
     Public canEditProductsFull As Boolean
     Public computerName As String
     Public divideFactor0 As Double = 1
+    Public divideFactor3 As Double = 1
     Public divideFactor5 As Double = 1
     Public divideFactor19 As Double = 1
     Public dualMonitor As Boolean = False
-
-    'Public vatGrafikiYli As Integer = 0
-    'Public vatLaxeia As Integer = 0
-    'Public vatEfimerides As Integer = 0
-    'Public vatPeriodika As Integer = 0
-    'Public vatStavrolexa As Integer = 0
-
     Public minBarcode As Integer
     Public tmpPaymentVAT As Integer = -1
 
@@ -48,6 +42,65 @@ Module connectionModule
 
     Public tmpBarcodeNotFound As String
     Public tmpBarcodeNotFoundExit As Boolean
+
+    Public Sub getVat3PercentColumns()
+        Dim cmd As New OracleCommand("", conn)
+        Dim dr As OracleDataReader
+        Dim sql As String = ""
+        Try
+            'RECEIPTS
+            sql = "select COUNT(*) from ALL_TAB_COLUMNS " & _
+                  "where TABLE_NAME = 'RECEIPTS' " & _
+                  "AND COLUMN_NAME = 'TOTAL_VAT3'"
+
+            cmd = New OracleCommand(sql, conn)
+            cmd.CommandType = CommandType.Text
+            dr = cmd.ExecuteReader()
+            If dr.Read Then
+                If (CInt(dr(0)) = 0) Then
+                    sql = "alter table RECEIPTS add TOTAL_VAT3 Number(10,2)"
+                    cmd = New OracleCommand(sql, conn)
+                    cmd.ExecuteReader()
+                End If
+            End If
+
+            'X_REPORT
+            sql = "select COUNT(*) from ALL_TAB_COLUMNS " & _
+                  "where TABLE_NAME = 'X_REPORT' " & _
+                  "AND COLUMN_NAME = 'TOTAL3PERCENT'"
+            cmd = New OracleCommand(sql, conn)
+            cmd.CommandType = CommandType.Text
+            dr = cmd.ExecuteReader()
+            If dr.Read Then
+                If (CInt(dr(0)) = 0) Then
+                    sql = "alter table X_REPORT add TOTAL3PERCENT Number(10,2)"
+                    cmd = New OracleCommand(sql, conn)
+                    cmd.ExecuteReader()
+                End If
+            End If
+
+            'Z_REPORT
+            sql = "select COUNT(*) from ALL_TAB_COLUMNS " & _
+                  "where TABLE_NAME = 'Z_REPORT' " & _
+                  "AND COLUMN_NAME = 'TOTAL_AMOUNT3'"
+            cmd = New OracleCommand(sql, conn)
+            cmd.CommandType = CommandType.Text
+            dr = cmd.ExecuteReader()
+            If dr.Read Then
+                If (CInt(dr(0)) = 0) Then
+                    sql = "alter table Z_REPORT add TOTAL_AMOUNT3 Number(10,2)"
+                    cmd = New OracleCommand(sql, conn)
+                    cmd.ExecuteReader()
+                End If
+            End If
+            dr.Close()
+        Catch ex As Exception
+            createExceptionFile(ex.Message, " " & sql)
+            MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
+        Finally
+            cmd.Dispose()
+        End Try
+    End Sub
 
     Public Function TruncateDecimal(ByVal value As Decimal, ByVal precision As Integer) As Decimal
         Dim stepper As Decimal = Math.Pow(10, precision)
@@ -258,6 +311,7 @@ Module connectionModule
             Dim totalReceipts As Integer = 0
             Dim totalAmt As Double = 0
             Dim totalVat0 As Double = 0
+            Dim totalVat3 As Double = 0
             Dim totalVat5 As Double = 0
             Dim totalVat19 As Double = 0
             Dim totalPayments As Double = 0
@@ -268,6 +322,7 @@ Module connectionModule
                 totalVat5 = CDbl(dr(2))
                 totalVat19 = CDbl(dr(3))
                 totalVat0 = CDbl(dr(4))
+                totalVat3 = CDbl(dr(5))
             End If
 
             '2. Total Payments
@@ -337,7 +392,7 @@ Module connectionModule
             Dim finalAmountLaxeia As Double = getAmountLaxeia()
             dr.Close()
 
-            sql = "insert into x_report (user_id, from_date, to_date, total_receipts, total_amt, total0percent, total5percent, total19percent, " & _
+            sql = "insert into x_report (user_id, from_date, to_date, total_receipts, total_amt, total0percent, total3percent, total5percent, total19percent, " & _
                   "                      initial_amt, final_amt, payments, created_on, description, amount_laxeia, initialAmtLaxeia, amountVisa, finalAmtLaxeia) " & _
                   "values               ('" & userid & "', " & _
                   "                     (select max(login_when) from sessions where user_id = '" & userid & "'), " & _
@@ -345,6 +400,7 @@ Module connectionModule
                   "                       " & totalReceipts & ", " & _
                   "                       " & totalAmt & ", " & _
                   "                       " & totalVat0 & ", " & _
+                  "                       " & totalVat3 & ", " & _
                   "                       " & totalVat5 & ", " & _
                   "                       " & totalVat19 & ", " & _
                   "                       (select paramvalue from global_params where paramkey = 'init.fiscal.amt'), " & _
@@ -692,6 +748,7 @@ Module connectionModule
         Public totalAmt19 As Double
         Public totalAmt5 As Double
         Public totalAmt0 As Double
+        Public totalAmt3 As Double
         Public totalItems As Integer
         Public dTotalAmt As Double
         Public dTotalWithDiscount As Double

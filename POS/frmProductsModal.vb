@@ -395,7 +395,7 @@ Public Class frmProductsModal
                 cmd.Dispose()
             End If
         End If
-        txtBoxSearchBox.Focus()
+        'txtBoxSearchBox.Focus()
     End Sub
 
     Private Sub lnkLblAddQuantity_LinkClicked(ByVal sender As System.Object, ByVal e As System.Windows.Forms.LinkLabelLinkClickedEventArgs) Handles lnkLblAddQuantity.LinkClicked
