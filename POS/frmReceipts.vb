@@ -163,7 +163,7 @@ Public Class frmReceipts
 
             sql = "select r.serno, r.created_on, r.payment_type, u.username, r.total_amt, r.total_discount, r.total_amt_with_disc, " & _
                   "r.payment_amt, r.return_amt, r.total_vat19, r.total_vat5, p.description, rd.quantity, NVL(p.sell_amt,0) as sell_amt, " & _
-                  "NVL(rd.amount,0) as sell_amt1, rd.amount rdamount, rd.vat rdvat, r.total_vat0, NVL(r.total_vat3,0), " & _
+                  "NVL(rd.amount,0) as sell_amt1, rd.amount rdamount, rd.vat rdvat, r.total_vat0, NVL(r.total_vat3,0) as total_vat3 " & _
                   "from receipts r " & _
                   "inner join users u on u.uuid = r.created_by " & _
                   "inner join receipts_det rd on r.serno = rd.receipt_serno " & _
@@ -290,13 +290,16 @@ Public Class frmReceipts
         e.Graphics.DrawString("Ποσό Επιστροφής: " & txtBoxReturnAmt.Text, reportFont, Brushes.Black, 0, xMargin)
 
         xMargin += 20
-        e.Graphics.DrawString("Ποσό Φ.Π.Α 19%: " & txtBoxTotal19.Text, reportFont, Brushes.Black, 0, xMargin)
+        e.Graphics.DrawString("Ποσό Φ.Π.Α 0%: " & txtBoxTotal0.Text, reportFont, Brushes.Black, 0, xMargin)
+
+        xMargin += 20
+        e.Graphics.DrawString("Ποσό Φ.Π.Α 3%: " & txtBoxTotal3.Text, reportFont, Brushes.Black, 0, xMargin)
 
         xMargin += 20
         e.Graphics.DrawString("Ποσό Φ.Π.Α 5%: " & txtBoxTotal5.Text, reportFont, Brushes.Black, 0, xMargin)
 
         xMargin += 20
-        e.Graphics.DrawString("Ποσό Φ.Π.Α 0%: " & txtBoxTotal0.Text, reportFont, Brushes.Black, 0, xMargin)
+        e.Graphics.DrawString("Ποσό Φ.Π.Α 19%: " & txtBoxTotal19.Text, reportFont, Brushes.Black, 0, xMargin)
 
         xMargin += 20
         e.Graphics.DrawString("-------------------------------------------", reportFont, Brushes.Black, 0, xMargin)

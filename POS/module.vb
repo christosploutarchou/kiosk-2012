@@ -48,6 +48,19 @@ Module connectionModule
         Dim dr As OracleDataReader
         Dim sql As String = ""
         Try
+            'VAT_TYPES
+            sql = "select count(*) from vat_types where vat=3"
+            cmd = New OracleCommand(sql, conn)
+            cmd.CommandType = CommandType.Text
+            dr = cmd.ExecuteReader()
+            If dr.Read Then
+                If (CInt(dr(0)) = 0) Then
+                    sql = "insert into vat_types (uuid, description, vat) values (sys_guid(), 'V.A.T 3%', 3)"
+                    cmd = New OracleCommand(sql, conn)
+                    cmd.ExecuteReader()
+                End If
+            End If
+
             'RECEIPTS
             sql = "select COUNT(*) from ALL_TAB_COLUMNS " & _
                   "where TABLE_NAME = 'RECEIPTS' " & _

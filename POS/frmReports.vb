@@ -441,7 +441,7 @@ Public Class frmReports
                     totalVat3 = CStr(CDbl(dr(3)).ToString("#,##0.00")) * (divideFactor3 / 100)
                 End If
                 dr.Close()
-                dgvReports.ColumnCount = 6
+                dgvReports.ColumnCount = 7
 
                 dgvReports.Columns(0).Name = FROM_DATE
                 dgvReports.Columns(0).Width = 250
@@ -452,19 +452,19 @@ Public Class frmReports
                 dgvReports.Columns(2).Name = "Ολικό Ποσό 0%"
                 dgvReports.Columns(2).Width = 100
 
-                dgvReports.Columns(3).Name = "Ολικό Ποσό 5%"
+                dgvReports.Columns(3).Name = "Ολικό Ποσό 3%"
                 dgvReports.Columns(3).Width = 100
 
-                dgvReports.Columns(4).Name = "Ολικό Ποσό 19%"
+                dgvReports.Columns(4).Name = "Ολικό Ποσό 5%"
                 dgvReports.Columns(4).Width = 100
 
-                dgvReports.Columns(5).Name = "Ολικό Ποσό 3%"
+                dgvReports.Columns(5).Name = "Ολικό Ποσό 19%"
                 dgvReports.Columns(5).Width = 100
 
                 dgvReports.Columns(6).Name = "Συνολικό Ποσό"
                 dgvReports.Columns(6).Width = 149
 
-                Dim row As String() = New String() {dtpFrom.Text, dtpTo.Text, totalVat0.ToString("N2"), totalVat5.ToString("N2"), totalVat19.ToString("N2"), totalVat3.ToString("N2"), totalVat19.ToString("N2"), (totalVat0 + totalVat5 + totalVat19 + totalVat3).ToString("N2")}
+                Dim row As String() = New String() {dtpFrom.Text, dtpTo.Text, totalVat0.ToString("N2"), totalVat3.ToString("N2"), totalVat5.ToString("N2"), totalVat19.ToString("N2"), (totalVat0 + totalVat5 + totalVat19 + totalVat3).ToString("N2")}
                 dgvReports.Rows.Add(row)
                 btnPrint.Visible = True
                 'btnExportToExcel.Visible = True
@@ -497,7 +497,7 @@ Public Class frmReports
 
                 While dr.Read()
 
-                    dgvReports.ColumnCount = 13
+                    dgvReports.ColumnCount = 14
 
                     dgvReports.Columns(0).Name = FROM_DATE
                     dgvReports.Columns(0).Width = 130
@@ -514,29 +514,32 @@ Public Class frmReports
                     dgvReports.Columns(4).Name = "Ποσό 0%"
                     dgvReports.Columns(4).Width = 40
 
-                    dgvReports.Columns(5).Name = "Ποσό 5%"
+                    dgvReports.Columns(5).Name = "Ποσό 3%"
                     dgvReports.Columns(5).Width = 40
 
-                    dgvReports.Columns(6).Name = "Ποσό 19%"
+                    dgvReports.Columns(6).Name = "Ποσό 5%"
                     dgvReports.Columns(6).Width = 40
 
-                    dgvReports.Columns(7).Name = "Ποσό Πωλήσεων"
-                    dgvReports.Columns(7).Width = 70
+                    dgvReports.Columns(7).Name = "Ποσό 19%"
+                    dgvReports.Columns(7).Width = 40
 
-                    dgvReports.Columns(8).Name = "Αρχικό Ποσό"
-                    dgvReports.Columns(8).Width = 60
+                    dgvReports.Columns(8).Name = "Ποσό Πωλήσεων"
+                    dgvReports.Columns(8).Width = 70
 
-                    dgvReports.Columns(9).Name = "Πληρωμές Προμηθευτών"
-                    dgvReports.Columns(9).Width = 80
+                    dgvReports.Columns(9).Name = "Αρχικό Ποσό"
+                    dgvReports.Columns(9).Width = 60
 
-                    dgvReports.Columns(10).Name = "Ποσό VISA"
-                    dgvReports.Columns(10).Width = 50
+                    dgvReports.Columns(10).Name = "Πληρωμές Προμηθευτών"
+                    dgvReports.Columns(10).Width = 80
 
-                    dgvReports.Columns(11).Name = "Τελικό Ποσό Ταμείου για Παράδωση"
-                    dgvReports.Columns(11).Width = 70
+                    dgvReports.Columns(11).Name = "Ποσό VISA"
+                    dgvReports.Columns(11).Width = 50
 
-                    dgvReports.Columns(12).Name = "Ποσό Λαχείων για Παράδωση"
+                    dgvReports.Columns(12).Name = "Τελικό Ποσό Ταμείου για Παράδωση"
                     dgvReports.Columns(12).Width = 70
+
+                    dgvReports.Columns(13).Name = "Ποσό Λαχείων για Παράδωση"
+                    dgvReports.Columns(13).Width = 70
 
                     'dgvReports.Columns(13).Name = "Αναλυτική Κατάσταση"
                     'dgvReports.Columns(13).Width = 190
@@ -576,7 +579,7 @@ Public Class frmReports
 
                     Dim totalAmountDeliver As Double = (total0percent + total3percent + total5percent + total19percent + initial_amt) - payments - visaAmount
 
-                    Dim row As String() = New String() {CStr(dr(0)), CStr(dr(1)), CStr(dr(2)), CInt(dr(3)), total0percent.ToString("N2"), total5percent.ToString("N2"), total19percent.ToString("N2"), final_amt.ToString("N2"), initial_amt.ToString("N2"), payments.ToString("N2"), visaAmount.ToString("N2"), totalAmountDeliver.ToString("N2"), finalAmtLaxeia.ToString("N2"), total3percent.ToString("N2")}
+                    Dim row As String() = New String() {CStr(dr(0)), CStr(dr(1)), CStr(dr(2)), CInt(dr(3)), total0percent.ToString("N2"), total3percent.ToString("N2"), total5percent.ToString("N2"), total19percent.ToString("N2"), final_amt.ToString("N2"), initial_amt.ToString("N2"), payments.ToString("N2"), visaAmount.ToString("N2"), totalAmountDeliver.ToString("N2"), finalAmtLaxeia.ToString("N2")}
                     dgvReports.Rows.Add(row)
                 End While
                 dr.Close()
@@ -1309,6 +1312,8 @@ Public Class frmReports
                 xMargin += 20
                 e.Graphics.DrawString("Ποσό 0%: " & dgvReports.Rows(i).Cells("Ποσό 0%").Value, reportFont, Brushes.Black, 0, xMargin)
                 xMargin += 20
+                e.Graphics.DrawString("Ποσό 3%: " & dgvReports.Rows(i).Cells("Ποσό 3%").Value, reportFont, Brushes.Black, 0, xMargin)
+                xMargin += 20
                 e.Graphics.DrawString("Ποσό 5%: " & dgvReports.Rows(i).Cells("Ποσό 5%").Value, reportFont, Brushes.Black, 0, xMargin)
                 xMargin += 20
                 e.Graphics.DrawString("Ποσό 19%: " & dgvReports.Rows(i).Cells("Ποσό 19%").Value, reportFont, Brushes.Black, 0, xMargin)
@@ -1360,6 +1365,8 @@ Public Class frmReports
                 e.Graphics.DrawString("Έως: " & dgvReports.Rows(i).Cells("Έως").Value, reportFont, Brushes.Black, 0, xMargin)
                 xMargin += 20
                 e.Graphics.DrawString("Ολικό Ποσό 0%: " & dgvReports.Rows(i).Cells("Ολικό Ποσό 0%").Value, reportFont, Brushes.Black, 0, xMargin)
+                xMargin += 20
+                e.Graphics.DrawString("Ολικό Ποσό 3%: " & dgvReports.Rows(i).Cells("Ολικό Ποσό 3%").Value, reportFont, Brushes.Black, 0, xMargin)
                 xMargin += 20
                 e.Graphics.DrawString("Ολικό Ποσό 5%: " & dgvReports.Rows(i).Cells("Ολικό Ποσό 5%").Value, reportFont, Brushes.Black, 0, xMargin)
                 xMargin += 20
@@ -1616,8 +1623,10 @@ Public Class frmReports
     Private Sub fillProductsNoBarcode()
         cmbNoBarcode.Items.Clear()
         cmbNoBarcode.Items.Add("")
+        'cmbNoBarcode.Items.Add("Φ.Π.Α 0%")
+        'cmbNoBarcode.Items.Add("Φ.Π.Α 3%")
         cmbNoBarcode.Items.Add("Φ.Π.Α 5%")
-        cmbNoBarcode.Items.Add("Φ.Π.Α 9%")
+        cmbNoBarcode.Items.Add("Φ.Π.Α 19%")
     End Sub
 
     Private Sub cmbSupplier_TextChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles cmbSupplier.TextChanged
@@ -1741,7 +1750,7 @@ Public Class frmReports
 
         If cmbNoBarcode.Text.Equals("Φ.Π.Α 5%") Then
             tmpSerno = -308
-        ElseIf cmbNoBarcode.Text.Equals("Φ.Π.Α 9%") Then
+        ElseIf cmbNoBarcode.Text.Equals("Φ.Π.Α 19%") Then
             tmpSerno = -309
         End If
 

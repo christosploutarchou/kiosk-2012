@@ -84,8 +84,8 @@ Public Class frmCategories
             Exit Sub
         End If
 
-        If CInt(txtBoxVAT.Text) <> 19 And CInt(txtBoxVAT.Text) <> 5 Then
-            MessageBox.Show("Ο Φ.Π.Α. πρέπει να είναι είτε 19% είτε 5%", "Πληροφορία", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        If CInt(txtBoxVAT.Text) <> 0 And CInt(txtBoxVAT.Text) <> 3 And CInt(txtBoxVAT.Text) <> 5 And CInt(txtBoxVAT.Text) <> 19 Then
+            MessageBox.Show("Ο Φ.Π.Α. πρέπει να είναι 0% ή 3% ή 5% ή 19%", "Πληροφορία", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Exit Sub
         End If
 

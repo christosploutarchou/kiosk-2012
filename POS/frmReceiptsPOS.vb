@@ -234,16 +234,16 @@ Public Class frmReceiptsPOS
         e.Graphics.DrawString("Ποσό Επιστροφής: " & txtBoxReturnAmt.Text, reportFont, Brushes.Black, 0, xMargin)
 
         xMargin += 20
-        e.Graphics.DrawString("Ποσό Φ.Π.Α 19%: " & txtBoxTotal19.Text, reportFont, Brushes.Black, 0, xMargin)
-
-        xMargin += 20
-        e.Graphics.DrawString("Ποσό Φ.Π.Α 5%: " & txtBoxTotal5.Text, reportFont, Brushes.Black, 0, xMargin)
+        e.Graphics.DrawString("Ποσό Φ.Π.Α 0%: " & txtBoxTotal0.Text, reportFont, Brushes.Black, 0, xMargin)
 
         xMargin += 20
         e.Graphics.DrawString("Ποσό Φ.Π.Α 3%: " & txtBoxTotal3.Text, reportFont, Brushes.Black, 0, xMargin)
 
         xMargin += 20
-        e.Graphics.DrawString("Ποσό Φ.Π.Α 0%: " & txtBoxTotal0.Text, reportFont, Brushes.Black, 0, xMargin)
+        e.Graphics.DrawString("Ποσό Φ.Π.Α 5%: " & txtBoxTotal5.Text, reportFont, Brushes.Black, 0, xMargin)
+
+        xMargin += 20
+        e.Graphics.DrawString("Ποσό Φ.Π.Α 19%: " & txtBoxTotal19.Text, reportFont, Brushes.Black, 0, xMargin)
 
         xMargin += 20
         e.Graphics.DrawString("-------------------------------------------", reportFont, Brushes.Black, 0, xMargin)
