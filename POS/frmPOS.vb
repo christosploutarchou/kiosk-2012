@@ -935,21 +935,9 @@ Public Class frmPOS
             For i = 0 To dgvReceipt.Rows.Count - 1
                 Dim tmpAmount As Double = dgvReceipt.Rows(i).Cells("amount").Value
                 Dim tmpQuantity As Integer = dgvReceipt.Rows(i).Cells("quantity").Value
-                Dim tmpSerno As String
+                Dim tmpSerno As String = ""
                 Dim tmpVat As String = dgvReceipt.Rows(i).Cells("vat").Value
-                Dim isKronos As Boolean = False
-                If dgvReceipt.Rows(i).Cells("isKronos").Value.Equals("1") Then
-                    isKronos = True
-                    If tmpVat.Equals("0") Then
-                        tmpSerno = "-313"
-                    ElseIf tmpVat.Equals("5") Then
-                        tmpSerno = "-311"
-                    Else
-                        tmpSerno = "-312"
-                    End If
-                Else
-                    tmpSerno = dgvReceipt.Rows(i).Cells("productSerno").Value
-                End If
+                tmpSerno = dgvReceipt.Rows(i).Cells("productSerno").Value
 
                 Dim tmpIsBox As Integer = CInt(dgvReceipt.Rows(i).Cells("isbox").Value)
                 Dim tmpBoxQnt As Integer = CInt(dgvReceipt.Rows(i).Cells("box_qnt").Value)
@@ -959,37 +947,13 @@ Public Class frmPOS
                 End If
 
                 Dim currentAmt As Double = dgvReceipt.Rows(i).Cells("amount").Value
-                If Not isKronos Then
-                    sql = "insert into receipts_det (receipt_serno, product_serno, quantity, amount, vat, created_on) " & _
-                          "values                   (" & receiptSerno & "," & _
-                          "                          " & tmpSerno & "," & _
-                          "                          " & tmpQuantity & ", " & _
-                          "                          " & currentAmt & ", " & _
-                          "                          " & tmpVat & ", (select systimestamp from dual))"
-                Else
-                    Dim tmpIssueNumber As String = dgvReceipt.Rows(i).Cells("issueNumber").Value
-                    If tmpIssueNumber.Length < 5 Then
-                        Dim zerosToAdd As Integer = 5 - tmpIssueNumber
-                        Dim tmpStr As String = String.Empty
-                        For counter As Integer = 0 To zerosToAdd
-                            tmpStr += "0"
-                        Next
-                        tmpIssueNumber = tmpStr + tmpIssueNumber
-                        tmpStr = String.Empty
-                    End If
 
-                    sql = "insert into receipts_det (receipt_serno, product_serno, quantity, amount, vat, created_on, K_BARCODE, K_ITEM_CODE, K_ISSUE_NUMBER, K_DELIVERY_DATE, K_ITEM_NAME) " & _
-                          "values                   (" & receiptSerno & "," & _
-                          "                          " & tmpSerno & "," & _
-                          "                          " & tmpQuantity & ", " & _
-                          "                          " & currentAmt & ", " & _
-                          "                          " & tmpVat & ", (select systimestamp from dual), " & _
-                          "                         '" & dgvReceipt.Rows(i).Cells("productSerno").Value & "', " & _
-                          "                         '" & dgvReceipt.Rows(i).Cells("itemCode").Value & "', " & _
-                          "                         '" & tmpIssueNumber & "', " & _
-                          "                         '" & dgvReceipt.Rows(i).Cells("deliveryDate").Value & "', " & _
-                          "                         '" & dgvReceipt.Rows(i).Cells("description").Value & "')"
-                End If
+                sql = "insert into receipts_det (receipt_serno, product_serno, quantity, amount, vat, created_on) " & _
+                      "values                   (" & receiptSerno & "," & _
+                      "                          " & tmpSerno & "," & _
+                      "                          " & tmpQuantity & ", " & _
+                      "                          " & currentAmt & ", " & _
+                      "                          " & tmpVat & ", (select systimestamp from dual))"
 
                 cmd = New OracleCommand(sql, conn)
                 cmd.ExecuteReader()
@@ -1023,7 +987,7 @@ Public Class frmPOS
                             sql += ", lastmodifiedscreen = 0 where serno = " & CInt(tmpSerno) & " "
                             cmd = New OracleCommand(sql, conn)
                             cmd.ExecuteReader()
-                        End If                        
+                        End If
                     End If
 
                     If tmpIsBox.Equals(1) Or isBox Then
@@ -1048,9 +1012,9 @@ Public Class frmPOS
 
                         sql = "update products set avail_quantity = (avail_quantity"
                         If tmpAmount >= 0 Then
-                            sql += " - " & tmpBoxQnt & ")"
+                            sql += " - " & (tmpBoxQnt * tmpQuantity) & ")"
                         Else
-                            sql += " + " & tmpBoxQnt & ")"
+                            sql += " + " & (tmpBoxQnt * tmpQuantity) & ")"
                         End If
                         sql += ", lastmodifiedscreen = 0  " & _
                                "where serno in (" & _
