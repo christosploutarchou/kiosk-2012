@@ -43,6 +43,38 @@ Module connectionModule
     Public tmpBarcodeNotFound As String
     Public tmpBarcodeNotFoundExit As Boolean
 
+    Public Sub isBoxReport()
+
+        Dim cmd As New OracleCommand("", conn)
+        Dim dr As OracleDataReader
+        Dim sql As String = ""
+        Try
+            'ISBOX_LOG
+            sql = "select COUNT(*) from ALL_TABLES " & _
+                  "where TABLE_NAME = 'ISBOX_LOG' "
+
+            cmd = New OracleCommand(sql, conn)
+            cmd.CommandType = CommandType.Text
+            dr = cmd.ExecuteReader()
+            If dr.Read Then
+                If (CInt(dr(0)) = 0) Then
+                    sql = "create table ISBOX_LOG (LOGMSG Varchar2(256))"
+                    cmd = New OracleCommand(sql, conn)
+                    cmd.ExecuteReader()
+                End If
+            End If
+            dr.Close()
+        Catch ex As Exception
+            createExceptionFile(ex.Message, " " & sql)
+            MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
+        Finally
+            cmd.Dispose()
+        End Try
+
+
+    End Sub
+
+
     Public Sub getVat3PercentColumns()
         Dim cmd As New OracleCommand("", conn)
         Dim dr As OracleDataReader
@@ -185,7 +217,7 @@ Module connectionModule
                 Else
                     MessageBox.Show("Σφάλμα με την βάση δεδομένων", APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
                     Return False
-                End If                
+                End If
             Else
                 MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
             End If
@@ -626,7 +658,7 @@ Module connectionModule
         Public currentQuantity As Integer
         Public xquantity As Integer
         Public yquantity As Integer
-        Public currentDiscount As Double        
+        Public currentDiscount As Double
     End Structure
 
     Public Structure OfferTypeDiscAt
@@ -634,7 +666,7 @@ Module connectionModule
         Public currentQuantity As Integer
         Public discountAmt As Double
         Public discountAt As Integer
-        Public currentDiscount As Double        
+        Public currentDiscount As Double
     End Structure
 
     Public Sub getMinBarcodeLength()
@@ -742,7 +774,7 @@ Module connectionModule
             dr = cmd.ExecuteReader()
             If dr.Read Then
                 startDate = CDate(dr(0))
-            End If            
+            End If
             dr.Close()
         Catch ex As Exception
             createExceptionFile(ex.Message, " " & sql)

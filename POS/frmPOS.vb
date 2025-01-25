@@ -996,19 +996,56 @@ Public Class frmPOS
 
                 If Not productsNotUpdateQuantity.Contains(tmpSerno) Then
 
+                    Dim isBox As Boolean = False
+
                     If tmpIsBox.Equals(0) Then
-                        sql = "update products set avail_quantity = (avail_quantity"
-                        If tmpAmount >= 0 Then
-                            sql += " - " & tmpQuantity & ")"
-                        Else
-                            sql += " + " & (tmpQuantity * -1) & ")"
-                        End If
-                        sql += ", lastmodifiedscreen = 0 where serno = " & CInt(tmpSerno) & " "
+
+                        'Double check if product is a box to avoid wrong quantity updates
+                        sql = "select nvl(isbox,0) from products where serno = " & CInt(tmpSerno) & ""
                         cmd = New OracleCommand(sql, conn)
-                        cmd.ExecuteReader()
+                        dr = cmd.ExecuteReader()
+
+                        If dr.Read Then
+                            Dim tmp As Integer = CInt(dr(0))
+                            If tmp > 0 Then
+                                isBox = True
+                            End If
+                        End If
+                        dr.Close()
+
+                        If Not isBox Then
+                            sql = "update products set avail_quantity = (avail_quantity"
+                            If tmpAmount >= 0 Then
+                                sql += " - " & tmpQuantity & ")"
+                            Else
+                                sql += " + " & (tmpQuantity * -1) & ")"
+                            End If
+                            sql += ", lastmodifiedscreen = 0 where serno = " & CInt(tmpSerno) & " "
+                            cmd = New OracleCommand(sql, conn)
+                            cmd.ExecuteReader()
+                        End If                        
                     End If
 
-                    If tmpIsBox.Equals(1) Then
+                    If tmpIsBox.Equals(1) Or isBox Then
+                        '
+                        Dim logMsg As String = ""
+                        Dim currentqnt As Integer = 0
+                        Dim q As String = "select avail_quantity from products where serno in (" & _
+                                                "select product_serno from barcodes where UPPER(barcode) in " & _
+                                                "(select UPPER(barcode) from boxbarcodes where product_serno = " & CInt(tmpSerno) & ")" & _
+                                                ")"
+
+                        cmd = New OracleCommand(q, conn)
+                        dr = cmd.ExecuteReader()
+
+                        If dr.Read Then
+                            currentqnt = CInt(dr(0))
+                            logMsg = Date.Now + " Current:" + currentqnt.ToString
+
+                        End If
+                        dr.Close()
+                        '
+
                         sql = "update products set avail_quantity = (avail_quantity"
                         If tmpAmount >= 0 Then
                             sql += " - " & tmpBoxQnt & ")"
@@ -1022,6 +1059,14 @@ Public Class frmPOS
                                                 ")"
 
                         cmd = New OracleCommand(sql, conn)
+                        cmd.ExecuteReader()
+                        If tmpAmount < 0 Then
+                            tmpBoxQnt *= -1
+                        End If
+                        logMsg += ", PrSerno:" + tmpSerno + ", Amt:" + tmpAmount.ToString + ", BoxQnt:" + tmpBoxQnt.ToString + ", NewQnt:" + (currentqnt - tmpBoxQnt).ToString
+
+                        q = "insert into isbox_log (logmsg) values ('" & logMsg & "')"
+                        cmd = New OracleCommand(q, conn)
                         cmd.ExecuteReader()
                     End If
                 End If

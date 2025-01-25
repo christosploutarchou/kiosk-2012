@@ -131,7 +131,7 @@ Public Class frmPosButtonModal
 
     Private Sub btnClear_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnDelete.Click
         If MessageBox.Show("Να διαγραφεί το κουμπί;", "Διαγραφή Κουμπιού", MessageBoxButtons.YesNo) = Windows.Forms.DialogResult.Yes Then
-            Dim sql As String
+            Dim sql As String = ""
             Dim cmd = New OracleCommand("", conn)
             Try
                 sql = "delete from BTN_POS" + tableIndex + "_DET"

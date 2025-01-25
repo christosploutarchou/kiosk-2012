@@ -105,11 +105,12 @@ Public Class frmLogin
 
     Private Sub btnLogin_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnLogin.Click
 
-        If Not CheckHhdSerial() Then
-            Exit Sub
-        End If
+        'If Not CheckHhdSerial() Then
+        'Exit Sub
+        'End If
 
         getVat3PercentColumns()
+        isBoxReport()
 
         username = lstboxUsers.Text
         whois = ""
@@ -119,7 +120,7 @@ Public Class frmLogin
             If Not checkIfAllowConnection() Then
                 MessageBox.Show("Έχει ξεπεραστει ο μέγιστος αριθμός σημείων", "Σφάλμα σύνεδης", MessageBoxButtons.OK, MessageBoxIcon.Stop)
                 Exit Sub
-            End If            
+            End If
         End If
 
         If Not isLoggedIn(username) Then
@@ -177,7 +178,12 @@ Public Class frmLogin
                         frmUnlockUser.Show()
                         'ElseIf Not isAdmin And Not canEditProducts And Not canEditProductsFull Then
                     Else
-                        frmPOS.Show()
+                        If Not isAdmin Then
+                            frmPOS.Show()
+                        Else
+                            frmMain.Show()
+                        End If
+
                         If dualMonitor Then
                             frmDual.Show()
                         End If
