@@ -250,7 +250,7 @@ Public Class frmSuppliers
         Try
             cmd = New OracleCommand(sql, conn)
             cmd.CommandType = CommandType.Text
-            cmd.ExecuteNonQuery()
+            Using cmd                cmd.ExecuteNonQuery()            End Using
         Catch ex As Exception
             createExceptionFile(ex.Message, sql)
             MessageBox.Show(ex.Message, "Applicaton Error", MessageBoxButtons.OK, MessageBoxIcon.Error)

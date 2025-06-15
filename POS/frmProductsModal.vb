@@ -306,19 +306,19 @@ Public Class frmProductsModal
 
             cmd = New OracleCommand(sql, conn)
             cmd.CommandType = CommandType.Text
-            cmd.ExecuteNonQuery()
+            Using cmd                cmd.ExecuteNonQuery()            End Using
             txtBoxAvailQuantity.Text = 0
 
             sql = "delete from barcodes where product_serno = " & serno & ""
             cmd = New OracleCommand(sql, conn)
             cmd.CommandType = CommandType.Text
-            cmd.ExecuteReader()
+            Using cmd                cmd.ExecuteNonQuery()            End Using
 
             For i As Integer = 0 To lstBoxBarcodes.Items.Count - 1
                 sql = "insert into barcodes (product_serno, barcode) values (" & serno & ", '" & lstBoxBarcodes.Items.Item(i) & "')"
                 cmd = New OracleCommand(sql, conn)
                 cmd.CommandType = CommandType.Text
-                cmd.ExecuteNonQuery()
+                Using cmd                    cmd.ExecuteNonQuery()                End Using
             Next
             MessageBox.Show("Το προϊόν έχει αποθηκευτεί επιτυχώς", "Αποθήκευση Νέου Προϊόντως", MessageBoxButtons.OK, MessageBoxIcon.Information)
             newProduct = False

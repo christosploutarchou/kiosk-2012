@@ -107,7 +107,7 @@ Public Class frmCategories
             End If
             cmd = New OracleCommand(sql, conn)
             cmd.CommandType = CommandType.Text
-            cmd.ExecuteNonQuery()
+            Using cmd                cmd.ExecuteNonQuery()            End Using
 
             MessageBox.Show("Η εντολή εκτελέστηκε επιτυχώς", "Πληροφορία", MessageBoxButtons.OK, MessageBoxIcon.Information)
             txtBoxDescription.ResetText()

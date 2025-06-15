@@ -298,7 +298,7 @@ Public Class frmInvoices
 
             cmd = New OracleCommand(sql, conn)
             cmd.CommandType = CommandType.Text
-            cmd.ExecuteNonQuery()
+            Using cmd                cmd.ExecuteNonQuery()            End Using
 
             For i = 0 To dgvProductsAndQnt.Rows.Count - 1
                 generateInvoicesDetLines(i, invSerno, dgvProductsAndQnt.Rows(i).Cells("productserno").Value, _
@@ -614,7 +614,7 @@ Public Class frmInvoices
 
             cmd = New OracleCommand(sql, conn)
             cmd.CommandType = CommandType.Text
-            cmd.ExecuteNonQuery()
+            Using cmd                cmd.ExecuteNonQuery()            End Using
         Catch ex As Exception
             MessageBox.Show(ex.ToString + " " + sql, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
         Finally
@@ -663,7 +663,7 @@ Public Class frmInvoices
                   "'" & vatType & "', " & totalVATamt & ", '" & supplierId & "', '" & invNumber & "')"
             cmd = New OracleCommand(sql, conn)
             cmd.CommandType = CommandType.Text
-            cmd.ExecuteNonQuery()
+            Using cmd                cmd.ExecuteNonQuery()            End Using
         Catch ex As Exception
             MessageBox.Show(ex.Message)
             createExceptionFile(ex.Message, " " & sql)

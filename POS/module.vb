@@ -89,7 +89,7 @@ Module connectionModule
                 If (CInt(dr(0)) = 0) Then
                     sql = "insert into vat_types (uuid, description, vat) values (sys_guid(), 'V.A.T 3%', 3)"
                     cmd = New OracleCommand(sql, conn)
-                    cmd.ExecuteNonQuery()
+                    Using cmd                        cmd.ExecuteNonQuery()                    End Using
                 End If
             End If
 
@@ -246,29 +246,35 @@ Module connectionModule
 
     Public Sub getParams()
         Dim FILE_NAME As String = "C:\params.txt"
-        Dim tmp As String
-        Dim objReader
-        If System.IO.File.Exists(FILE_NAME) Then
-            Try
-                objReader = New System.IO.StreamReader(FILE_NAME)
-                tmp = objReader.ReadToEnd
-                Dim params As String() = tmp.Split(New Char() {"~"c})
-                computerName = params(0)
-                divideFactor0 = params(1).Replace(",", ".")
-                divideFactor5 = params(2).Replace(",", ".")
-                divideFactor19 = params(3).Replace(",", ".")
-                If params(4).Equals("1") Then
-                    dualMonitor = True
-                End If
-            Catch ex As Exception
-            Finally
-                objReader.Close()
-            End Try
-        Else
+
+        If Not System.IO.File.Exists(FILE_NAME) Then
             MessageBox.Show(READ_PARAMS, ERROR_MSG, MessageBoxButtons.OK, MessageBoxIcon.Error)
             computerName = "-1"
+            Return
         End If
+
+        Try
+            Using objReader As New System.IO.StreamReader(FILE_NAME)
+                Dim tmp As String = objReader.ReadToEnd()
+                Dim params As String() = tmp.Split("~"c)
+
+                If params.Length >= 5 Then
+                    computerName = params(0)
+                    divideFactor0 = params(1).Replace(",", ".")
+                    divideFactor5 = params(2).Replace(",", ".")
+                    divideFactor19 = params(3).Replace(",", ".")
+                    dualMonitor = (params(4) = "1")
+                Else
+                    MessageBox.Show("Το αρχείο παραμέτρων είναι κατεστραμμένο ή ελλιπές.", ERROR_MSG, MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                    computerName = "-1"
+                End If
+            End Using
+        Catch ex As Exception
+            MessageBox.Show("Σφάλμα κατά την ανάγνωση του αρχείου παραμέτρων: " & ex.Message, ERROR_MSG, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            computerName = "-1"
+        End Try
     End Sub
+
 
     Public Sub getKIOSKParams()
         Dim cmd As New OracleCommand("", conn)
@@ -459,7 +465,7 @@ Module connectionModule
                   "                       " & amountVisa & ", " & finalAmountLaxeia & ")"
 
             cmd = New OracleCommand(sql, conn)
-            cmd.ExecuteNonQuery()
+            Using cmd                cmd.ExecuteNonQuery()            End Using
             Return True
         Catch ex As Exception
             createExceptionFile(ex.Message, sql)
@@ -469,46 +475,50 @@ Module connectionModule
         End Try
     End Function
 
-    Public Function getUser(ByVal userid As String) As String
-        Dim result = ""
-        Dim cmd As New OracleCommand("", conn)
-        Dim dr As OracleDataReader
-        Try
-            cmd = New OracleCommand(GET_USER_BY_ID, conn)
-            Dim whoisParam As New OracleParameter
-            whoisParam.OracleDbType = OracleDbType.Varchar2
-            whoisParam.Value = whois
-            cmd.Parameters.Add(whoisParam)
+    Public Function GetUser(ByVal userId As String) As String
+        Dim result As String = ""
+        Dim sql As String = GET_USER_BY_ID
 
-            dr = cmd.ExecuteReader()
-            If dr.Read Then
-                result = CStr(dr(0))
+        Try
+            If conn.State = ConnectionState.Closed Then
+                openConn()
             End If
-            dr.Close()
+
+            Using cmd As New OracleCommand(sql, conn)
+                cmd.CommandType = CommandType.Text
+                cmd.Parameters.Add(New OracleParameter("userid", OracleDbType.Varchar2)).Value = userId
+
+                Using dr As OracleDataReader = cmd.ExecuteReader()
+                    If dr.Read() Then
+                        result = dr.GetString(0)
+                    End If
+                End Using
+            End Using
+
         Catch ex As Exception
-            createExceptionFile(ex.Message, " " & GET_USER_BY_ID)
+            createExceptionFile(ex.Message, sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
-            cmd.Dispose()
         End Try
+
         Return result
     End Function
+
 
     Public Function getUserByUsername(ByVal username As String) As String
         Dim result = ""
         Dim cmd As New OracleCommand("", conn)
-        Dim dr As OracleDataReader
         Dim sql As String = ""
         Try
             sql = "select username from users " & _
                   "where uuid = (select uuid from users where username = '" & username & "')"
 
             cmd = New OracleCommand(sql, conn)
-            dr = cmd.ExecuteReader()
-            If dr.Read Then
-                result = CStr(dr(0))
-            End If
-            dr.Close()
+            Using dr = cmd.ExecuteReader()
+                If dr.Read Then
+                    result = CStr(dr(0))
+                End If
+            End Using
+
         Catch ex As Exception
             createExceptionFile(ex.Message, sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
@@ -518,28 +528,34 @@ Module connectionModule
         Return result
     End Function
 
-    Public Sub logoutUser(ByVal username As String)
-        Dim sql As String = "update sessions set is_active = 0, logout_when = (select systimestamp from dual) " & _
-                            "where user_id = (select uuid from users where username = '" & username & "') and is_active = 1"
-        Dim cmd As New OracleCommand(sql, conn)
+    Public Sub LogoutUser(ByVal username As String)
+        Dim sql As String = "UPDATE sessions " & _
+        "SET is_active = 0, logout_when = (SELECT SYSTIMESTAMP FROM dual) " & _
+        "WHERE user_id = (SELECT uuid FROM users WHERE username = :username) " & _
+        "AND is_active = 1"
+
         Try
-            While conn.State = ConnectionState.Closed
+            If conn.State = ConnectionState.Closed Then
                 openConn()
-            End While
-            cmd.CommandType = CommandType.Text
-            cmd.ExecuteNonQuery()
+            End If
+
+            Using cmd As New OracleCommand(sql, conn)
+                cmd.CommandType = CommandType.Text
+                cmd.Parameters.Add(New OracleParameter("username", username))
+                cmd.ExecuteNonQuery()
+            End Using
+
         Catch ex As Exception
             createExceptionFile(ex.Message, sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
-            cmd.Dispose()
+
         End Try
     End Sub
+
 
     Public Function isLoggedIn(ByVal username As String) As Boolean
         Dim result As Boolean = False
         Dim cmd As New OracleCommand("", conn)
-        Dim dr As OracleDataReader
         Try
             cmd = New OracleCommand(CHECK_IF_LOGGED_IN, conn)
 
@@ -547,18 +563,18 @@ Module connectionModule
             userNameparam.OracleDbType = OracleDbType.Varchar2
             userNameparam.Value = username
             cmd.Parameters.Add(userNameparam)
-
             cmd.CommandType = CommandType.Text
 
-            dr = cmd.ExecuteReader()
-            If dr.Read() Then
-                If CInt(dr.GetValue(0)) = 0 Then
-                    result = False
-                Else
-                    result = True
+            Using dr = cmd.ExecuteReader()
+                If dr.Read() Then
+                    If CInt(dr.GetValue(0)) = 0 Then
+                        result = False
+                    Else
+                        result = True
+                    End If
                 End If
-            End If
-            dr.Close()
+                dr.Close()
+            End Using
         Catch ex As Exception
             createExceptionFile(ex.Message, " " & CHECK_IF_LOGGED_IN)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
@@ -671,15 +687,14 @@ Module connectionModule
 
     Public Sub getMinBarcodeLength()
         Dim cmd As New OracleCommand("", conn)
-        Dim dr As OracleDataReader
         Try
             cmd = New OracleCommand(GET_MIN_BARCODE, conn)
             cmd.CommandType = CommandType.Text
-            dr = cmd.ExecuteReader()
-            If dr.Read Then
-                minBarcode = CInt(dr(0))
-            End If
-            dr.Close()
+            Using dr = cmd.ExecuteReader()
+                If dr.Read Then
+                    minBarcode = CInt(dr(0))
+                End If
+            End Using
         Catch ex As Exception
             createExceptionFile(ex.Message, " " & GET_MIN_BARCODE)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
@@ -701,62 +716,74 @@ Module connectionModule
     End Sub
 
     Public Sub isPasswordEncrypted()
-        Dim cmd As New OracleCommand("", conn)
-        Dim dr As OracleDataReader
+        If Not isConnOpen() Then
+            MessageBox.Show(CANNOT_ACCESS_DB, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Exit Sub
+        End If
+
         Try
-            cmd = New OracleCommand(GET_ALL_PASS_ENCRYPTED, conn)
-            cmd.CommandType = CommandType.Text
-            dr = cmd.ExecuteReader()
-            If dr.Read Then
-                If dr(0) = 0 Then
-                    encryptPassword("all")
-                End If
-            End If
-            dr.Close()
+            Using cmd As New OracleCommand(GET_ALL_PASS_ENCRYPTED, conn)
+                cmd.CommandType = CommandType.Text
+                Using dr As OracleDataReader = cmd.ExecuteReader()
+                    If dr.Read() AndAlso Convert.ToInt32(dr(0)) = 0 Then
+                        encryptPassword("all")
+                    End If
+                End Using
+            End Using
         Catch ex As Exception
             createExceptionFile(ex.Message, " " & GET_ALL_PASS_ENCRYPTED)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
-            cmd.Dispose()
         End Try
     End Sub
 
     Public Sub encryptPassword(ByVal username As String)
-        Dim cmd As New OracleCommand("", conn)
-        Dim dr As OracleDataReader
-
-        If username.Equals("all") Then
-            Try
-                cmd = New OracleCommand(GET_ALL_USERS_AND_PASS, conn)
-                cmd.CommandType = CommandType.Text
-                dr = cmd.ExecuteReader()
-                Dim userNameAndPass As New Dictionary(Of String, String)
-
-                While dr.Read
-                    userNameAndPass.Add(dr(0), dr(1))
-                End While
-
-                For Each iKey As String In userNameAndPass.Keys
-                    Dim tmpUsername = iKey
-                    Dim tmpPassword = userNameAndPass.Item(tmpUsername)
-
-                    Dim tmpEncryptedPass As String = getEncryptedValue(tmpPassword)
-                    cmd = New OracleCommand("update users set pass='" & tmpEncryptedPass & "' where username = '" & tmpUsername & "'", conn)
-                    cmd.CommandType = CommandType.Text
-                    cmd.ExecuteNonQuery()
-                Next
-                cmd = New OracleCommand("update global_params set paramkey=1 where paramvalue='all.pass.encrypted'", conn)
-                cmd.CommandType = CommandType.Text
-                cmd.ExecuteNonQuery()
-                dr.Close()
-            Catch ex As Exception
-                createExceptionFile(ex.Message, " " & GET_ALL_USERS_AND_PASS)
-                MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-            Finally
-                cmd.Dispose()
-            End Try
+        If Not isConnOpen() Then
+            MessageBox.Show(CANNOT_ACCESS_DB, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Exit Sub
         End If
+
+        If Not username.Equals("all", StringComparison.OrdinalIgnoreCase) Then Exit Sub
+
+        Try
+            Dim userNameAndPass As New Dictionary(Of String, String)
+
+            ' Get all usernames and passwords
+            Using cmd As New OracleCommand(GET_ALL_USERS_AND_PASS, conn)
+                cmd.CommandType = CommandType.Text
+                Using dr As OracleDataReader = cmd.ExecuteReader()
+                    While dr.Read()
+                        Dim user As String = dr.GetString(0)
+                        Dim pass As String = dr.GetString(1)
+                        userNameAndPass(user) = pass
+                    End While
+                End Using
+            End Using
+
+            ' Update each user with encrypted password
+            For Each entry In userNameAndPass
+                Dim tmpUsername = entry.Key
+                Dim tmpEncryptedPass = getEncryptedValue(entry.Value)
+
+                Dim updateSql As String = "UPDATE users SET pass = :pass WHERE username = :username"
+                Using updateCmd As New OracleCommand(updateSql, conn)
+                    updateCmd.Parameters.Add(New OracleParameter("pass", tmpEncryptedPass))
+                    updateCmd.Parameters.Add(New OracleParameter("username", tmpUsername))
+                    updateCmd.ExecuteNonQuery()
+                End Using
+            Next
+
+            ' Set global param
+            Dim globalUpdateSql As String = "UPDATE global_params SET paramkey = 1 WHERE paramvalue = 'all.pass.encrypted'"
+            Using globalCmd As New OracleCommand(globalUpdateSql, conn)
+                globalCmd.ExecuteNonQuery()
+            End Using
+
+        Catch ex As Exception
+            createExceptionFile(ex.Message, GET_ALL_USERS_AND_PASS)
+            MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
     End Sub
+
 
     Public Function getEncryptedValue(ByVal value As String) As String
         Dim bArray() As Byte = System.Text.Encoding.UTF8.GetBytes(value)
@@ -765,22 +792,26 @@ Module connectionModule
     End Function
 
     Public Sub getStartDate()
-        Dim cmd As New OracleCommand("", conn)
-        Dim dr As OracleDataReader
-        Dim sql As String = "select to_date(paramvalue, 'DD/MM/YY') from global_params where paramkey='start.date'"
+        If Not isConnOpen() Then
+            MessageBox.Show(CANNOT_ACCESS_DB, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Exit Sub
+        End If
+
+        Const sql As String = "SELECT TO_DATE(paramvalue, 'DD/MM/YY') FROM global_params WHERE paramkey = 'start.date'"
+
         Try
-            cmd = New OracleCommand(sql, conn)
-            cmd.CommandType = CommandType.Text
-            dr = cmd.ExecuteReader()
-            If dr.Read Then
-                startDate = CDate(dr(0))
-            End If
-            dr.Close()
+            Using cmd As New OracleCommand(sql, conn)
+                cmd.CommandType = CommandType.Text
+                Using dr As OracleDataReader = cmd.ExecuteReader()
+                    If dr.Read() AndAlso Not dr.IsDBNull(0) Then
+                        startDate = dr.GetDateTime(0)
+                    End If
+                End Using
+            End Using
+
         Catch ex As Exception
-            createExceptionFile(ex.Message, " " & sql)
+            createExceptionFile(ex.Message, sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
-            cmd.Dispose()
         End Try
     End Sub
 

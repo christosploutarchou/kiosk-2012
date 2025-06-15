@@ -260,7 +260,7 @@ Public Class frmNewUser
             End If
             cmd = New OracleCommand(sql, conn)
             cmd.CommandType = CommandType.Text
-            cmd.ExecuteNonQuery()
+            Using cmd                cmd.ExecuteNonQuery()            End Using
             fillUsersList()
             rdbNewUser.Checked = True
             resetFields()

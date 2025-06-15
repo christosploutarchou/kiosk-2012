@@ -74,7 +74,7 @@ Public Class frmBoxBarcodesModal
                 sql = "insert into boxbarcodes (product_serno, barcode) values (" & tmpGlobalProductSerno & ", '" & dgvProductsAndQnt.Rows(i).Cells("barcode").Value & "')"
                 cmd = New OracleCommand(sql, conn)
                 cmd.CommandType = CommandType.Text
-                cmd.ExecuteNonQuery()
+                Using cmd                    cmd.ExecuteNonQuery()                End Using
             Next
         Catch ex As Exception
             createExceptionFile(ex.Message, sql)

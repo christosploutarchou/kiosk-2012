@@ -57,7 +57,7 @@ Public Class frmPosButtonModal
                 End If
                 cmd = New OracleCommand(sql, conn)
                 cmd.CommandType = CommandType.Text
-                cmd.ExecuteNonQuery()
+                Using cmd                    cmd.ExecuteNonQuery()                End Using
             End If
 
             sql = "delete from BTN_POS" + tableIndex + "_DET"
@@ -71,7 +71,7 @@ Public Class frmPosButtonModal
                       "'" & dgvLinkedProducts.Rows(i).Cells("posDescription").Value & "')"
                 cmd = New OracleCommand(sql, conn)
                 cmd.CommandType = CommandType.Text
-                cmd.ExecuteNonQuery()
+                Using cmd                    cmd.ExecuteNonQuery()                End Using
             Next
             dr.Close()
         Catch ex As Exception

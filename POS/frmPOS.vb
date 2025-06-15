@@ -532,36 +532,23 @@ Public Class frmPOS
         frmDual.txtBoxDualFinal.Text = txtBoxTotalWithDiscount.Text
     End Sub
 
-    Private Sub dgvReceipt_CellClick(ByVal sender As System.Object, ByVal e As System.Windows.Forms.DataGridViewCellEventArgs) Handles dgvReceipt.CellClick
-        Dim index As Integer
-        Try
-            index = dgvReceipt.SelectedRows.Item(0).Index
-        Catch ex As Exception
-            index = -1
-            Exit Sub
-        End Try
+    Private Sub dgvReceipt_CellClick(ByVal sender As Object, ByVal e As DataGridViewCellEventArgs) Handles dgvReceipt.CellClick
+        If e.RowIndex < 0 OrElse Not componentsEnabled Then Exit Sub
 
-        If Not componentsEnabled Then
-            Exit Sub
-        End If
+        Dim index As Integer = e.RowIndex
 
-        If MessageBox.Show(DELETE_SELECTED_LINE, DELETE_LINE, MessageBoxButtons.YesNo, MessageBoxIcon.Question) = Windows.Forms.DialogResult.Yes Then
+        If MessageBox.Show(DELETE_SELECTED_LINE, DELETE_LINE, MessageBoxButtons.YesNo, MessageBoxIcon.Question) = DialogResult.Yes Then
             dgvReceipt.AllowUserToDeleteRows = True
 
-            Dim tmpDesc As String
-            Dim tmpQuantity As String
-            Dim tmpIsKronos As String
-            Dim tmpProductSerno As String
+            Dim row = dgvReceipt.Rows(index)
+            Dim tmpDesc As String = If(row.Cells("description").Value IsNot Nothing, row.Cells("description").Value.ToString(), "")
+            Dim tmpQuantity As Integer = 0
+            If row.Cells("quantity").Value IsNot Nothing Then
+                Integer.TryParse(row.Cells("quantity").Value.ToString(), tmpQuantity)
+            End If
+            Dim tmpProductSerno As String = If(row.Cells("productSerno").Value IsNot Nothing, row.Cells("productSerno").Value.ToString(), "")
 
-            tmpDesc = dgvReceipt.Rows(index).Cells("description").Value
-            tmpQuantity = dgvReceipt.Rows(index).Cells("quantity").Value
-            tmpIsKronos = "0" 'dgvReceipt.Rows(index).Cells("isKronos").Value
-            tmpProductSerno = dgvReceipt.Rows(index).Cells("productSerno").Value
-
-            updateProductsAndQuantity(tmpDesc, CInt(tmpQuantity))
-            'If tmpIsKronos.Equals("1") Then
-            'updateKronosProductsAndQuantity(dgvReceipt.Rows(index).Cells("productSerno").Value, dgvReceipt.Rows(index).Cells("itemCode").Value, dgvReceipt.Rows(index).Cells("issueNumber").Value, dgvReceipt.Rows(index).Cells("deliveryDate").Value)
-            'End If
+            updateProductsAndQuantity(tmpDesc, tmpQuantity)
 
             Try
                 recalculateDiscountForOffers(tmpProductSerno, tmpQuantity)
@@ -579,6 +566,55 @@ Public Class frmPOS
             formatDataGrid()
         End If
     End Sub
+
+
+    'Private Sub dgvReceipt_CellClick(ByVal sender As System.Object, ByVal e As System.Windows.Forms.DataGridViewCellEventArgs) Handles dgvReceipt.CellClick
+    'Dim index As Integer
+    '   Try
+    '      index = dgvReceipt.SelectedRows.Item(0).Index
+    ' Catch ex As Exception
+    '   index = -1
+    '    Exit Sub
+    ' End Try
+
+    '    If Not componentsEnabled Then
+    '       Exit Sub
+    '  End If
+
+    '    If MessageBox.Show(DELETE_SELECTED_LINE, DELETE_LINE, MessageBoxButtons.YesNo, MessageBoxIcon.Question) = Windows.Forms.DialogResult.Yes Then
+    '       dgvReceipt.AllowUserToDeleteRows = True
+
+    'Dim tmpDesc As String
+    'Dim tmpQuantity As String
+    'Dim tmpIsKronos As String
+    'Dim tmpProductSerno As String
+
+    '       tmpDesc = dgvReceipt.Rows(index).Cells("description").Value
+    '      tmpQuantity = dgvReceipt.Rows(index).Cells("quantity").Value
+    '     tmpIsKronos = "0" 'dgvReceipt.Rows(index).Cells("isKronos").Value
+    '    tmpProductSerno = dgvReceipt.Rows(index).Cells("productSerno").Value
+
+    '        updateProductsAndQuantity(tmpDesc, CInt(tmpQuantity))
+    ''If tmpIsKronos.Equals("1") Then
+    ''updateKronosProductsAndQuantity(dgvReceipt.Rows(index).Cells("productSerno").Value, dgvReceipt.Rows(index).Cells("itemCode").Value, dgvReceipt.Rows(index).Cells("issueNumber").Value, dgvReceipt.Rows(index).Cells("deliveryDate").Value)
+    ''End If
+    '
+    '       Try
+    '          recalculateDiscountForOffers(tmpProductSerno, tmpQuantity)
+    '     Catch ex As Exception
+    '        createExceptionFile(ex.Message, " File frmPOS.vb, Line 678 - Method dgvReceipt_CellClick")
+    '   End Try
+    '
+    '       createDeleteLineFile("User ID: " & whois & ", Description: " & tmpDesc & ", Quantity: " & tmpQuantity & ", Amount: " & dgvReceipt.Rows(index).Cells("amount").Value)
+    '
+    '       dgvReceipt.Rows.RemoveAt(index)
+    '      dgvReceipt.Refresh()
+    '
+    '       recalculateAmounts()
+    '      txtBoxBarcode.Focus()
+    '     formatDataGrid()
+    'End If
+    'End Sub
 
     Private Sub recalculateDiscountForOffers(ByVal productSerno As String, ByVal quantity As String)
         Dim tmpOfferDiscAtItem As OfferTypeDiscAt
@@ -878,19 +914,18 @@ Public Class frmPOS
 
         Dim description As String = ""
         Dim cmd = New OracleCommand("", conn)
-        Dim dr As OracleDataReader
+        'Dim dr As OracleDataReader
         receiptSerno = -1
 
         Dim sql As String = ""
         Try
             sql = "select receiptsSeq.nextVal from dual"
             cmd = New OracleCommand(sql, conn)
-            dr = cmd.ExecuteReader()
-
-            If dr.Read() Then
-                receiptSerno = CInt(dr(0))
-            End If
-            dr.Close()
+            Using drR = cmd.ExecuteReader()
+                If drR.Read() Then
+                    receiptSerno = CInt(drR(0))
+                End If
+            End Using
 
             If totalDiscount > 0 Then
                 If totalAmt19 >= totalDiscount Then
@@ -925,7 +960,7 @@ Public Class frmPOS
                   "                      " & totalAmt3 & "," & _
                   "                     '" & whois & "' ) "
             cmd = New OracleCommand(sql, conn)
-            cmd.ExecuteNonQuery()
+            Using cmd                cmd.ExecuteNonQuery()            End Using
 
             Dim productsNotUpdateQuantity As New ArrayList()
             For i As Integer = -313 To -300
@@ -956,7 +991,7 @@ Public Class frmPOS
                       "                          " & tmpVat & ", (select systimestamp from dual))"
 
                 cmd = New OracleCommand(sql, conn)
-                cmd.ExecuteNonQuery()
+                Using cmd                    cmd.ExecuteNonQuery()                End Using
 
                 If Not productsNotUpdateQuantity.Contains(tmpSerno) Then
 
@@ -967,15 +1002,14 @@ Public Class frmPOS
                         'Double check if product is a box to avoid wrong quantity updates
                         sql = "select nvl(isbox,0) from products where serno = " & CInt(tmpSerno) & ""
                         cmd = New OracleCommand(sql, conn)
-                        dr = cmd.ExecuteReader()
-
-                        If dr.Read Then
-                            Dim tmp As Integer = CInt(dr(0))
-                            If tmp > 0 Then
-                                isBox = True
+                        Using dr = cmd.ExecuteReader()
+                            If dr.Read Then
+                                Dim tmp As Integer = CInt(dr(0))
+                                If tmp > 0 Then
+                                    isBox = True
+                                End If
                             End If
-                        End If
-                        dr.Close()
+                        End Using
 
                         If Not isBox Then
                             sql = "update products set avail_quantity = (avail_quantity"
@@ -986,7 +1020,9 @@ Public Class frmPOS
                             End If
                             sql += ", lastmodifiedscreen = 0 where serno = " & CInt(tmpSerno) & " "
                             cmd = New OracleCommand(sql, conn)
-                            cmd.ExecuteNonQuery()
+                            Using cmd
+                                cmd.ExecuteNonQuery()
+                            End Using
                         End If
                     End If
 
@@ -1000,15 +1036,13 @@ Public Class frmPOS
                                                 ")"
 
                         cmd = New OracleCommand(q, conn)
-                        dr = cmd.ExecuteReader()
+                        Using dr = cmd.ExecuteReader()
+                            If dr.Read Then
+                                currentqnt = CInt(dr(0))
+                                logMsg = Date.Now + " Current:" + currentqnt.ToString
 
-                        If dr.Read Then
-                            currentqnt = CInt(dr(0))
-                            logMsg = Date.Now + " Current:" + currentqnt.ToString
-
-                        End If
-                        dr.Close()
-                        '
+                            End If
+                        End Using
 
                         sql = "update products set avail_quantity = (avail_quantity"
                         If tmpAmount >= 0 Then
@@ -1023,7 +1057,7 @@ Public Class frmPOS
                                                 ")"
 
                         cmd = New OracleCommand(sql, conn)
-                        cmd.ExecuteNonQuery()
+                        Using cmd                            cmd.ExecuteNonQuery()                        End Using
                         If tmpAmount < 0 Then
                             tmpBoxQnt *= -1
                         End If
@@ -1031,10 +1065,7 @@ Public Class frmPOS
 
                         q = "insert into isbox_log (logmsg) values ('" & logMsg & "')"
                         cmd = New OracleCommand(q, conn)
-                        Using cmd
-                            cmd.ExecuteNonQuery()
-                        End Using
-                    End If
+                        Using cmd                            cmd.ExecuteNonQuery()                        End Using                    End If
                 End If
             Next
 
@@ -1334,7 +1365,7 @@ Public Class frmPOS
                 sql = "insert into payments (created_by, created_on, amount,vat, amountVAT) " & _
                       "values('" & whois & "', (select systimestamp from dual), " & txtBoxManualAmt.Text & ", '" & vat & "', " & amountVAT & ")"
                 cmd = New OracleCommand(sql, conn)
-                cmd.ExecuteNonQuery()
+                Using cmd                    cmd.ExecuteNonQuery()                End Using
 
                 If MessageBox.Show("Εκτύπωση Πληρωμής;", "Εκτύπωση Πληρωμής", MessageBoxButtons.YesNo, MessageBoxIcon.Question) = Windows.Forms.DialogResult.Yes Then
                     printType = "P"
@@ -1638,7 +1669,7 @@ Public Class frmPOS
             tmpTrxn.offerXYItems = offerXYItems
             Dim tmpOffersArrayList As New ArrayList()
             For Each tmp In offerDiscAtItems
-                tmpOffersArrayList.Add(tmp)                
+                tmpOffersArrayList.Add(tmp)
             Next
             tmpTrxn.offerDiscAtItems = tmpOffersArrayList
             tmpTrxn.productsAndQuantity = productsAndQuantity

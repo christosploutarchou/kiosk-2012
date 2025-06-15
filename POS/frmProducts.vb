@@ -133,34 +133,33 @@ Public Class frmProducts
     End Sub
 
     Private Sub resetFields()
-        txtBoxSearchBox.Clear()
-        txtBoxDescription.Clear()
-        txtBoxBuyAmt.Clear()
-        txtBoxSellAmt.Clear()
+        ' Clear textboxes
+        For Each ctrl As Control In Me.Controls
+            If TypeOf ctrl Is TextBox Then
+                CType(ctrl, TextBox).Clear()
+            End If
+        Next
+
+        ' Reset combo boxes
         cmdBoxCategoy.Items.Clear()
         cmbSupplier.Items.Clear()
+
+        ' Reset checkboxes
         ckboxAlert.Checked = False
-        txtBoxVAT.Clear()
-        txtBoxSupplierPhone.Clear()
-        txtBoxAvailQuantity.Clear()
-        txtBoxMinQuantity.Clear()
-        lstBoxBarcodes.Items.Clear()
-        txtBoxBuyAmtNoVAT.Clear()
-        serno = -1
-        categoryId = ""
-        supplierId = ""
-        vatTypeId = ""
-        txtBoxSearchBox.Focus()
-        txtBoxNotes.Clear()
+        chkBoxAlertExpiry.Checked = False
+        chkBoxOffer.Checked = False
+        chkboxBox.Checked = False
+
+        ' Reset dates
         dtpAlert.Value = Today
         dtpExpiry.Value = Today
         dtpOfferFrom.Value = Today
         dtpOfferTo.Value = Today
-        txtBoxStockQuantity.Clear()
-        chkBoxAlertExpiry.Checked = False
-        txtBoxProfit.Clear()
-        txtBoxProfitPercentage.Clear()
-        chkBoxOffer.Checked = False
+
+        ' Reset barcodes list
+        lstBoxBarcodes.Items.Clear()
+
+        ' Reset offer-related fields
         txtBoxOfferX.Clear()
         txtBoxOfferDisc.Clear()
         txtBoxOfferDiscAt.Clear()
@@ -168,36 +167,58 @@ Public Class frmProducts
         txtBoxOfferDisc.Visible = False
         txtBoxOfferDiscAt.Visible = False
         lblOfferDisc.Visible = False
-        chkboxBox.Checked = False
-        txtBoxBoxUnits.Clear()
-    End Sub
 
-    Private Sub resetFieldsNoSearchBox()
-        txtBoxDescription.Clear()
-        txtBoxBuyAmt.Clear()
-        txtBoxSellAmt.Clear()
-        cmdBoxCategoy.Items.Clear()
-        cmbSupplier.Items.Clear()
-        ckboxAlert.Checked = False
-        txtBoxVAT.Clear()
-        txtBoxSupplierPhone.Clear()
-        txtBoxAvailQuantity.Clear()
-        txtBoxMinQuantity.Clear()
-        lstBoxBarcodes.Items.Clear()
-        txtBoxBuyAmtNoVAT.Clear()
+        ' Reset variables
         serno = -1
         categoryId = ""
         supplierId = ""
         vatTypeId = ""
+
+        ' Set focus
         txtBoxSearchBox.Focus()
+    End Sub
+
+
+    Private Sub resetFieldsNoSearchBox()
+        ' Clear textboxes (excluding SearchBox)
+        txtBoxDescription.Clear()
+        txtBoxBuyAmt.Clear()
+        txtBoxSellAmt.Clear()
+        txtBoxVAT.Clear()
+        txtBoxSupplierPhone.Clear()
+        txtBoxAvailQuantity.Clear()
+        txtBoxMinQuantity.Clear()
+        txtBoxBuyAmtNoVAT.Clear()
         txtBoxNotes.Clear()
-        dtpAlert.Value = Today
-        dtpExpiry.Value = Today
         txtBoxStockQuantity.Clear()
-        chkBoxAlertExpiry.Checked = False
         txtBoxProfit.Clear()
         txtBoxProfitPercentage.Clear()
+
+        ' Clear list boxes
+        lstBoxBarcodes.Items.Clear()
+
+        ' Clear combo boxes
+        cmdBoxCategoy.Items.Clear()
+        cmbSupplier.Items.Clear()
+
+        ' Reset checkboxes
+        ckboxAlert.Checked = False
+        chkBoxAlertExpiry.Checked = False
+
+        ' Reset date pickers
+        dtpAlert.Value = Today
+        dtpExpiry.Value = Today
+
+        ' Reset backend variables
+        serno = -1
+        categoryId = ""
+        supplierId = ""
+        vatTypeId = ""
+
+        ' Restore focus to search box
+        txtBoxSearchBox.Focus()
     End Sub
+
 
     Private Sub btnSave_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnSave.Click
         Dim sql As String = ""
@@ -398,7 +419,7 @@ Public Class frmProducts
 
                 cmd = New OracleCommand(sql, conn)
                 cmd.CommandType = CommandType.Text
-                cmd.ExecuteNonQuery()
+                Using cmd                    cmd.ExecuteNonQuery()                End Using
                 txtBoxAvailQuantity.Text = 0
             Else
                 Dim minQuantity As Integer = 0
@@ -439,19 +460,24 @@ Public Class frmProducts
 
                 cmd = New OracleCommand(sql, conn)
                 cmd.CommandType = CommandType.Text
-                cmd.ExecuteNonQuery()
+                Using cmd
+                    cmd.ExecuteNonQuery()
+                End Using
             End If
 
             sql = "delete from barcodes where product_serno = " & serno & ""
             cmd = New OracleCommand(sql, conn)
             cmd.CommandType = CommandType.Text
-            cmd.ExecuteNonQuery()
+            Using cmd
+                cmd.ExecuteNonQuery()
+            End Using
+
 
             For i As Integer = 0 To lstBoxBarcodes.Items.Count - 1
                 sql = "insert into barcodes (product_serno, barcode) values (" & serno & ", '" & lstBoxBarcodes.Items.Item(i) & "')"
                 cmd = New OracleCommand(sql, conn)
                 cmd.CommandType = CommandType.Text
-                cmd.ExecuteNonQuery()
+                Using cmd                    cmd.ExecuteNonQuery()                End Using
             Next
             MessageBox.Show("Το προϊόν έχει αποθηκευτεί επιτυχώς", "Αποθήκευση Νέου Προϊόντως", MessageBoxButtons.OK, MessageBoxIcon.Information)
             newProduct = False
@@ -567,7 +593,6 @@ Public Class frmProducts
         Dim vattypeIdtemp As String = ""
         Dim supplierIdtemp As String = ""
         Dim cmd As New OracleCommand("", conn)
-        Dim dr As OracleDataReader
         Dim sql As String = ""
         resetFieldsNoSearchBox()
 
@@ -586,96 +611,98 @@ Public Class frmProducts
             Dim counter As Integer = 0
             Dim result
             cmd.CommandType = CommandType.Text
-            dr = cmd.ExecuteReader()
+            Using dr = cmd.ExecuteReader()
+                If dr.Read() Then
+                    newProduct = False
+                    chkboxBox.Enabled = True
+                    serno = CInt(dr("serno"))
+                    tmpGlobalProductSerno = serno
+                    txtBoxDescription.Text = dr("description")
+                    txtBoxBuyAmt.Text = dr("buy_amt")
+                    txtBoxVAT.Text = dr("vat")
 
-            If dr.Read() Then
-                newProduct = False
-                chkboxBox.Enabled = True
-                serno = CInt(dr("serno"))
-                tmpGlobalProductSerno = serno
-                txtBoxDescription.Text = dr("description")
-                txtBoxBuyAmt.Text = dr("buy_amt")
-                txtBoxVAT.Text = dr("vat")
+                    Dim buyAmtNoVat As Double = CDbl(dr("buy_amt_no_vat"))
 
-                Dim buyAmtNoVat As Double = CDbl(dr("buy_amt_no_vat"))
+                    txtBoxBuyAmtNoVAT.Text = buyAmtNoVat.ToString("N3")
+                    txtBoxSellAmt.Text = dr("sell_amt")
 
-                txtBoxBuyAmtNoVAT.Text = buyAmtNoVat.ToString("N3")
-                txtBoxSellAmt.Text = dr("sell_amt")
+                    txtBoxNotes.Text = dr("notes")
 
-                txtBoxNotes.Text = dr("notes")
+                    dtpExpiry.Value = CDate(dr("expiry_date"))
+                    dtpAlert.Value = CDate(dr("alert_date"))
 
-                dtpExpiry.Value = CDate(dr("expiry_date"))
-                dtpAlert.Value = CDate(dr("alert_date"))
+                    dtpOfferFrom.Value = CDate(dr("offerfromdate"))
+                    dtpOfferTo.Value = CDate(dr("offertodate"))
 
-                dtpOfferFrom.Value = CDate(dr("offerfromdate"))
-                dtpOfferTo.Value = CDate(dr("offertodate"))
+                    categoryIdtemp = dr("cat_id")
+                    vattypeIdtemp = dr("vattype_id")
+                    supplierIdtemp = dr("supplier_id")
 
-                categoryIdtemp = dr("cat_id")
-                vattypeIdtemp = dr("vattype_id")
-                supplierIdtemp = dr("supplier_id")
+                    txtBoxAvailQuantity.Text = dr("avq")
+                    txtBoxStockQuantity.Text = dr("stq")
+                    txtBoxMinQuantity.Text = dr("min_quantity")
+                    txtBoxProfit.Text = dr("amt_profit")
+                    txtBoxProfitPercentage.Text = dr("profit_percent")
 
-                txtBoxAvailQuantity.Text = dr("avq")
-                txtBoxStockQuantity.Text = dr("stq")
-                txtBoxMinQuantity.Text = dr("min_quantity")
-                txtBoxProfit.Text = dr("amt_profit")
-                txtBoxProfitPercentage.Text = dr("profit_percent")
-
-                If CInt(dr("alert_on_min")) = 1 Then
-                    ckboxAlert.Checked = True
-                    txtBoxMinQuantity.ReadOnly = False
-                Else
-                    txtBoxMinQuantity.ReadOnly = True
-                End If
-
-                If CInt(dr("alert_on_expiry")) = 1 Then
-                    chkBoxAlertExpiry.Checked = True
-                Else
-                    chkBoxAlertExpiry.Checked = False
-                End If
-
-                If CInt(dr("offer")) = 1 Then
-                    chkBoxOffer.Checked = True
-                    If CInt(dr("offerType")) = 1 Then
-                        txtBoxOfferDisc.Text = CDbl(dr("offerdisc"))
-                        txtBoxOfferDiscAt.Text = CInt(dr("offerat"))
+                    If CInt(dr("alert_on_min")) = 1 Then
+                        ckboxAlert.Checked = True
+                        txtBoxMinQuantity.ReadOnly = False
+                    Else
+                        txtBoxMinQuantity.ReadOnly = True
                     End If
-                    setDiscountComponents()
-                Else
-                    chkBoxOffer.Checked = False
-                End If
 
-                If CInt(dr("isbox")) = 1 Then
-                    chkboxBox.Checked = True
-                    txtBoxBoxUnits.Text = CInt(dr("box_qnt"))
-                End If
-
-                sql = "select barcode " & _
-                      "from barcodes " & _
-                      "where product_serno = " & serno & " "
-
-                cmd = New OracleCommand(sql, conn)
-                cmd.CommandType = CommandType.Text
-                dr = cmd.ExecuteReader()
-                While dr.Read
-                    lstBoxBarcodes.Items.Add(dr("barcode"))
-                End While
-            Else
-                chkboxBox.Enabled = False
-                result = MessageBox.Show("Το προϊόν δεν βρέθηκε, προσθήκη;", "Νέο Προϊόν", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question)
-                If result = DialogResult.No Or result = DialogResult.Cancel Then
-                    resetFields()
-                Else
-                    If checkIfExistsInDB(txtBoxSearchBox.Text) Then
-                        MessageBox.Show("Ο κωδικός Barcode είναι ήδη καταχωρημένος σε άλλο προϊόν", "Καταχώρηση Barcode", MessageBoxButtons.OK, MessageBoxIcon.Stop)
-                        Exit Sub
+                    If CInt(dr("alert_on_expiry")) = 1 Then
+                        chkBoxAlertExpiry.Checked = True
+                    Else
+                        chkBoxAlertExpiry.Checked = False
                     End If
-                    If Not checkIfExist(txtBoxSearchBox.Text) Then
-                        lstBoxBarcodes.Items.Add(txtBoxSearchBox.Text)
+
+                    If CInt(dr("offer")) = 1 Then
+                        chkBoxOffer.Checked = True
+                        If CInt(dr("offerType")) = 1 Then
+                            txtBoxOfferDisc.Text = CDbl(dr("offerdisc"))
+                            txtBoxOfferDiscAt.Text = CInt(dr("offerat"))
+                        End If
+                        setDiscountComponents()
+                    Else
+                        chkBoxOffer.Checked = False
                     End If
-                    txtBoxSearchBox.Clear()
+
+                    If CInt(dr("isbox")) = 1 Then
+                        chkboxBox.Checked = True
+                        txtBoxBoxUnits.Text = CInt(dr("box_qnt"))
+                    End If
+
+                    sql = "select barcode " & _
+                          "from barcodes " & _
+                          "where product_serno = " & serno & " "
+
+                    cmd = New OracleCommand(sql, conn)
+                    cmd.CommandType = CommandType.Text
+                    Using drBarcodes = cmd.ExecuteReader()
+                        While drBarcodes.Read
+                            lstBoxBarcodes.Items.Add(drBarcodes("barcode"))
+                        End While
+                    End Using
+                Else
+                    chkboxBox.Enabled = False
+                    result = MessageBox.Show("Το προϊόν δεν βρέθηκε, προσθήκη;", "Νέο Προϊόν", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question)
+                    If result = DialogResult.No Or result = DialogResult.Cancel Then
+                        resetFields()
+                    Else
+                        If checkIfExistsInDB(txtBoxSearchBox.Text) Then
+                            MessageBox.Show("Ο κωδικός Barcode είναι ήδη καταχωρημένος σε άλλο προϊόν", "Καταχώρηση Barcode", MessageBoxButtons.OK, MessageBoxIcon.Stop)
+                            Exit Sub
+                        End If
+                        If Not checkIfExist(txtBoxSearchBox.Text) Then
+                            lstBoxBarcodes.Items.Add(txtBoxSearchBox.Text)
+                        End If
+                        txtBoxSearchBox.Clear()
+                    End If
                 End If
-            End If
-            dr.Close()
+            End Using
+
+            
             If Not newProduct Or result = DialogResult.Yes Then
                 enableComponents()
                 fillCategories()

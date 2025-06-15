@@ -125,7 +125,6 @@ Public Class frmLogin
 
         If Not isLoggedIn(username) Then
             Dim cmd As New OracleCommand
-            Dim dr As OracleDataReader
             Try
                 cmd = New OracleCommand(GET_USER_INFO, conn)
                 sql = GET_USER_INFO
@@ -141,62 +140,61 @@ Public Class frmLogin
                 cmd.Parameters.Add(passparam)
 
                 cmd.CommandType = CommandType.Text
-                dr = cmd.ExecuteReader()
-
                 Dim isUnlock As Boolean = False
-
-                If dr.Read() Then
-                    If CInt(dr.GetValue(3)) = 1 Then
-                        canViewReports = True
-                    Else
-                        canViewReports = False
-                    End If
-
-                    If CInt(dr.GetValue(4)) = 1 Then
-                        canEditProducts = True
-                    Else
-                        canEditProducts = False
-                    End If
-
-                    If CInt(dr.GetValue(5)) = 1 Then
-                        canEditProductsFull = True
-                    Else
-                        canEditProductsFull = False
-                    End If
-
-                    If CInt(dr.GetValue(1)) = 1 Then
-                        isAdmin = True
-                    Else
-                        isAdmin = False
-                    End If
-
-                    whois = dr.GetValue(0)
-                    Me.Hide()
-                    txtBoxPassword.Clear()
-                    If CInt(dr.GetValue(2)) = 1 Then
-                        isUnlock = True
-                        frmUnlockUser.Show()
-                        'ElseIf Not isAdmin And Not canEditProducts And Not canEditProductsFull Then
-                    Else
-                        If Not isAdmin Then
-                            frmPOS.Show()
+                Using drLogged = cmd.ExecuteReader()
+                    If drLogged.Read() Then
+                        If CInt(drLogged.GetValue(3)) = 1 Then
+                            canViewReports = True
                         Else
-                            frmMain.Show()
+                            canViewReports = False
                         End If
 
-                        If dualMonitor Then
-                            frmDual.Show()
+                        If CInt(drLogged.GetValue(4)) = 1 Then
+                            canEditProducts = True
+                        Else
+                            canEditProducts = False
                         End If
-                        'Else
-                        'frmMain.Show()
+
+                        If CInt(drLogged.GetValue(5)) = 1 Then
+                            canEditProductsFull = True
+                        Else
+                            canEditProductsFull = False
+                        End If
+
+                        If CInt(drLogged.GetValue(1)) = 1 Then
+                            isAdmin = True
+                        Else
+                            isAdmin = False
+                        End If
+
+                        whois = drLogged.GetValue(0)
+                        Me.Hide()
+                        txtBoxPassword.Clear()
+                        If CInt(drLogged.GetValue(2)) = 1 Then
+                            isUnlock = True
+                            frmUnlockUser.Show()
+                            'ElseIf Not isAdmin And Not canEditProducts And Not canEditProductsFull Then
+                        Else
+                            If Not isAdmin Then
+                                frmPOS.Show()
+                            Else
+                                frmMain.Show()
+                            End If
+
+                            If dualMonitor Then
+                                frmDual.Show()
+                            End If
+                            'Else
+                            'frmMain.Show()
+                        End If
+                    Else
+                        MessageBox.Show(INVALID_LOGIN, ERROR_MSG, MessageBoxButtons.OK, MessageBoxIcon.Error)
+                        drLogged.Close()
+                        cmd.Dispose()
+                        Exit Sub
                     End If
-                Else
-                    MessageBox.Show(INVALID_LOGIN, ERROR_MSG, MessageBoxButtons.OK, MessageBoxIcon.Error)
-                    dr.Close()
                     cmd.Dispose()
-                    Exit Sub
-                End If
-                cmd.Dispose()
+                End Using
 
                 If Not isUnlock Then
                     Dim amountLaxeia As Double = 0
@@ -223,7 +221,6 @@ Public Class frmLogin
                     cmd.CommandType = CommandType.Text
                     cmd.ExecuteReader()
                 End If
-                dr.Close()
             Catch ex As Exception
                 createExceptionFile(ex.Message, " " & sql)
                 MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
