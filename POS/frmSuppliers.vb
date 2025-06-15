@@ -250,7 +250,7 @@ Public Class frmSuppliers
         Try
             cmd = New OracleCommand(sql, conn)
             cmd.CommandType = CommandType.Text
-            cmd.ExecuteReader()
+            cmd.ExecuteNonQuery()
         Catch ex As Exception
             createExceptionFile(ex.Message, sql)
             MessageBox.Show(ex.Message, "Applicaton Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
@@ -319,7 +319,7 @@ Public Class frmSuppliers
         Try
             cmd = New OracleCommand(sql, conn)
             cmd.CommandType = CommandType.Text
-            cmd.ExecuteReader()
+            cmd.ExecuteNonQuery()
 
             '2. Delete supplier
             sql = "delete from suppliers " & _
@@ -327,7 +327,7 @@ Public Class frmSuppliers
 
             cmd = New OracleCommand(sql, conn)
             cmd.CommandType = CommandType.Text
-            cmd.ExecuteReader()
+            cmd.ExecuteNonQuery()
         Catch ex As Exception
             createExceptionFile(ex.Message, sql)
             MessageBox.Show(ex.Message, "Applicaton Error", MessageBoxButtons.OK, MessageBoxIcon.Error)

@@ -33,7 +33,7 @@ Public Class frmLottery
                       "values (" & "'" & dgvLinkedProducts.Rows(i).Cells("barcode").Value & "')"
                 cmd = New OracleCommand(sql, conn)
                 cmd.CommandType = CommandType.Text
-                cmd.ExecuteReader()
+                cmd.ExecuteNonQuery()
             Next
             calculateAmount()
         Catch ex As Exception

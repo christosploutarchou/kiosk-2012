@@ -307,7 +307,7 @@ Public Class frmMain
 
                 cmd = New OracleCommand(sql, conn)
                 cmd.CommandType = CommandType.Text
-                cmd.ExecuteReader()
+                cmd.ExecuteNonQuery()
 
                 MessageBox.Show("Το ποσά έχουν αποθηκευτεί επιτυχώς", "Αποθήκευση αλλαγής", MessageBoxButtons.OK, MessageBoxIcon.Information)
             Catch ex As Exception

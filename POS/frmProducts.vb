@@ -398,7 +398,7 @@ Public Class frmProducts
 
                 cmd = New OracleCommand(sql, conn)
                 cmd.CommandType = CommandType.Text
-                cmd.ExecuteReader()
+                cmd.ExecuteNonQuery()
                 txtBoxAvailQuantity.Text = 0
             Else
                 Dim minQuantity As Integer = 0
@@ -439,19 +439,19 @@ Public Class frmProducts
 
                 cmd = New OracleCommand(sql, conn)
                 cmd.CommandType = CommandType.Text
-                cmd.ExecuteReader()
+                cmd.ExecuteNonQuery()
             End If
 
             sql = "delete from barcodes where product_serno = " & serno & ""
             cmd = New OracleCommand(sql, conn)
             cmd.CommandType = CommandType.Text
-            cmd.ExecuteReader()
+            cmd.ExecuteNonQuery()
 
             For i As Integer = 0 To lstBoxBarcodes.Items.Count - 1
                 sql = "insert into barcodes (product_serno, barcode) values (" & serno & ", '" & lstBoxBarcodes.Items.Item(i) & "')"
                 cmd = New OracleCommand(sql, conn)
                 cmd.CommandType = CommandType.Text
-                cmd.ExecuteReader()
+                cmd.ExecuteNonQuery()
             Next
             MessageBox.Show("Το προϊόν έχει αποθηκευτεί επιτυχώς", "Αποθήκευση Νέου Προϊόντως", MessageBoxButtons.OK, MessageBoxIcon.Information)
             newProduct = False
@@ -523,7 +523,7 @@ Public Class frmProducts
                 Dim sql As String = "delete from barcodes where UPPER(barcode) = '" & lstBoxBarcodes.Text.ToUpper & "'"
                 Dim cmd As New OracleCommand(sql, conn)
                 cmd.CommandType = CommandType.Text
-                cmd.ExecuteReader()
+                cmd.ExecuteNonQuery()
                 cmd.Dispose()
             End If
         End If

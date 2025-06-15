@@ -298,7 +298,7 @@ Public Class frmInvoices
 
             cmd = New OracleCommand(sql, conn)
             cmd.CommandType = CommandType.Text
-            cmd.ExecuteReader()
+            cmd.ExecuteNonQuery()
 
             For i = 0 To dgvProductsAndQnt.Rows.Count - 1
                 generateInvoicesDetLines(i, invSerno, dgvProductsAndQnt.Rows(i).Cells("productserno").Value, _
@@ -528,13 +528,13 @@ Public Class frmInvoices
         Try
             cmd = New OracleCommand(sql, conn)
             cmd.CommandType = CommandType.Text
-            cmd.ExecuteReader()
+            cmd.ExecuteNonQuery()
 
             '2. Clear invoice details
             sql = "delete from invoices_det where inv_serno = " & tmpInvoice.serno & ""
             cmd = New OracleCommand(sql, conn)
             cmd.CommandType = CommandType.Text
-            cmd.ExecuteReader()
+            cmd.ExecuteNonQuery()
 
             '3. Populate invoice details
             For i = 0 To dgvProductsAndQnt.Rows.Count - 1
@@ -593,7 +593,7 @@ Public Class frmInvoices
                   "where serno = " & prSerno & " "
             cmd = New OracleCommand(sql, conn)
             cmd.CommandType = CommandType.Text
-            cmd.ExecuteReader()
+            cmd.ExecuteNonQuery()
         Catch ex As Exception
             MessageBox.Show(ex.ToString + " " + sql, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
         Finally
@@ -614,7 +614,7 @@ Public Class frmInvoices
 
             cmd = New OracleCommand(sql, conn)
             cmd.CommandType = CommandType.Text
-            cmd.ExecuteReader()
+            cmd.ExecuteNonQuery()
         Catch ex As Exception
             MessageBox.Show(ex.ToString + " " + sql, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
         Finally
@@ -663,7 +663,7 @@ Public Class frmInvoices
                   "'" & vatType & "', " & totalVATamt & ", '" & supplierId & "', '" & invNumber & "')"
             cmd = New OracleCommand(sql, conn)
             cmd.CommandType = CommandType.Text
-            cmd.ExecuteReader()
+            cmd.ExecuteNonQuery()
         Catch ex As Exception
             MessageBox.Show(ex.Message)
             createExceptionFile(ex.Message, " " & sql)

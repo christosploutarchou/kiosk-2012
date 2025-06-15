@@ -723,7 +723,7 @@ Public Class frmReports
                               "                    total_amount = " & (totalVat0 + totalVat3 + totalVat5 + totalVat19) & " " & _
                               "where z_seq = " & zseq & ""
                         cmd = New OracleCommand(sql, conn)
-                        cmd.ExecuteReader()
+                        cmd.ExecuteNonQuery()
                     End If
 
                     btnPrint.Visible = True
@@ -1879,7 +1879,7 @@ Public Class frmReports
                     sql = "insert into z_report (z_date, z_seq) " & _
                           "values               ('" & tmpDate & "', 1)"
                     cmd = New OracleCommand(sql, conn)
-                    cmd.ExecuteReader()
+                    cmd.ExecuteNonQuery()
                     zseq = 1
 
                 Else
@@ -1896,7 +1896,7 @@ Public Class frmReports
                         sql = "insert into z_report (z_date, z_seq) " & _
                               "values               ('" & tmpDate & "', '" & zseq & "')"
                         cmd = New OracleCommand(sql, conn)
-                        cmd.ExecuteReader()
+                        cmd.ExecuteNonQuery()
                     End If
                 End If
             End If

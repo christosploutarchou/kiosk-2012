@@ -57,13 +57,13 @@ Public Class frmPosButtonModal
                 End If
                 cmd = New OracleCommand(sql, conn)
                 cmd.CommandType = CommandType.Text
-                cmd.ExecuteReader()
+                cmd.ExecuteNonQuery()
             End If
 
             sql = "delete from BTN_POS" + tableIndex + "_DET"
             cmd = New OracleCommand(sql, conn)
             cmd.CommandType = CommandType.Text
-            cmd.ExecuteReader()
+            cmd.ExecuteNonQuery()
 
             For i = 0 To dgvLinkedProducts.Rows.Count - 1
                 sql = "insert into BTN_POS" + tableIndex + "_DET (seqno, product_serno, DISPLAY_DESC) " & _
@@ -71,7 +71,7 @@ Public Class frmPosButtonModal
                       "'" & dgvLinkedProducts.Rows(i).Cells("posDescription").Value & "')"
                 cmd = New OracleCommand(sql, conn)
                 cmd.CommandType = CommandType.Text
-                cmd.ExecuteReader()
+                cmd.ExecuteNonQuery()
             Next
             dr.Close()
         Catch ex As Exception
@@ -137,11 +137,11 @@ Public Class frmPosButtonModal
                 sql = "delete from BTN_POS" + tableIndex + "_DET"
                 cmd = New OracleCommand(sql, conn)
                 cmd.CommandType = CommandType.Text
-                cmd.ExecuteReader()
+                cmd.ExecuteNonQuery()
                 sql = "delete from BTN_POS" + tableIndex
                 cmd = New OracleCommand(sql, conn)
                 cmd.CommandType = CommandType.Text
-                cmd.ExecuteReader()
+                cmd.ExecuteNonQuery()
                 cmd.Dispose()
                 Me.Dispose()
             Catch ex As Exception

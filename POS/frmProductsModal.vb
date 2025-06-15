@@ -306,7 +306,7 @@ Public Class frmProductsModal
 
             cmd = New OracleCommand(sql, conn)
             cmd.CommandType = CommandType.Text
-            cmd.ExecuteReader()
+            cmd.ExecuteNonQuery()
             txtBoxAvailQuantity.Text = 0
 
             sql = "delete from barcodes where product_serno = " & serno & ""
@@ -318,7 +318,7 @@ Public Class frmProductsModal
                 sql = "insert into barcodes (product_serno, barcode) values (" & serno & ", '" & lstBoxBarcodes.Items.Item(i) & "')"
                 cmd = New OracleCommand(sql, conn)
                 cmd.CommandType = CommandType.Text
-                cmd.ExecuteReader()
+                cmd.ExecuteNonQuery()
             Next
             MessageBox.Show("Το προϊόν έχει αποθηκευτεί επιτυχώς", "Αποθήκευση Νέου Προϊόντως", MessageBoxButtons.OK, MessageBoxIcon.Information)
             newProduct = False
@@ -373,7 +373,6 @@ Public Class frmProductsModal
         End If
         dr.Close()
         cmd.Dispose()
-        Return False
     End Function
 
     Private Function checkIfExist(ByVal newBarcode As String) As Boolean
@@ -391,7 +390,7 @@ Public Class frmProductsModal
                 Dim sql As String = "delete from barcodes where UPPER(barcode) = '" & lstBoxBarcodes.Text.ToUpper & "'"
                 Dim cmd As New OracleCommand(sql, conn)
                 cmd.CommandType = CommandType.Text
-                cmd.ExecuteReader()
+                cmd.ExecuteNonQuery()
                 cmd.Dispose()
             End If
         End If

@@ -135,7 +135,7 @@ Public Class frmNewUser
                       "where username = '" & lstBoxUsers.Text & "'"
                 cmd = New OracleCommand(sql, conn)
                 cmd.CommandType = CommandType.Text
-                cmd.ExecuteReader()
+                cmd.ExecuteNonQuery()
                 cmd.Dispose()
                 fillUsersList()
                 resetFields()
@@ -260,7 +260,7 @@ Public Class frmNewUser
             End If
             cmd = New OracleCommand(sql, conn)
             cmd.CommandType = CommandType.Text
-            cmd.ExecuteReader()
+            cmd.ExecuteNonQuery()
             fillUsersList()
             rdbNewUser.Checked = True
             resetFields()

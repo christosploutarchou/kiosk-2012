@@ -89,7 +89,7 @@ Module connectionModule
                 If (CInt(dr(0)) = 0) Then
                     sql = "insert into vat_types (uuid, description, vat) values (sys_guid(), 'V.A.T 3%', 3)"
                     cmd = New OracleCommand(sql, conn)
-                    cmd.ExecuteReader()
+                    cmd.ExecuteNonQuery()
                 End If
             End If
 
@@ -459,7 +459,7 @@ Module connectionModule
                   "                       " & amountVisa & ", " & finalAmountLaxeia & ")"
 
             cmd = New OracleCommand(sql, conn)
-            cmd.ExecuteReader()
+            cmd.ExecuteNonQuery()
             Return True
         Catch ex As Exception
             createExceptionFile(ex.Message, sql)
@@ -527,7 +527,7 @@ Module connectionModule
                 openConn()
             End While
             cmd.CommandType = CommandType.Text
-            cmd.ExecuteReader()
+            cmd.ExecuteNonQuery()
         Catch ex As Exception
             createExceptionFile(ex.Message, sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
@@ -588,7 +588,7 @@ Module connectionModule
                 openConn()
             End While
             cmd.CommandType = CommandType.Text
-            cmd.ExecuteReader()
+            cmd.ExecuteNonQuery()
         Catch ex As Exception
             createExceptionFile(ex.Message, sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
@@ -743,11 +743,11 @@ Module connectionModule
                     Dim tmpEncryptedPass As String = getEncryptedValue(tmpPassword)
                     cmd = New OracleCommand("update users set pass='" & tmpEncryptedPass & "' where username = '" & tmpUsername & "'", conn)
                     cmd.CommandType = CommandType.Text
-                    cmd.ExecuteReader()
+                    cmd.ExecuteNonQuery()
                 Next
                 cmd = New OracleCommand("update global_params set paramkey=1 where paramvalue='all.pass.encrypted'", conn)
                 cmd.CommandType = CommandType.Text
-                cmd.ExecuteReader()
+                cmd.ExecuteNonQuery()
                 dr.Close()
             Catch ex As Exception
                 createExceptionFile(ex.Message, " " & GET_ALL_USERS_AND_PASS)

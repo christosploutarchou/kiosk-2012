@@ -925,7 +925,7 @@ Public Class frmPOS
                   "                      " & totalAmt3 & "," & _
                   "                     '" & whois & "' ) "
             cmd = New OracleCommand(sql, conn)
-            cmd.ExecuteReader()
+            cmd.ExecuteNonQuery()
 
             Dim productsNotUpdateQuantity As New ArrayList()
             For i As Integer = -313 To -300
@@ -956,7 +956,7 @@ Public Class frmPOS
                       "                          " & tmpVat & ", (select systimestamp from dual))"
 
                 cmd = New OracleCommand(sql, conn)
-                cmd.ExecuteReader()
+                cmd.ExecuteNonQuery()
 
                 If Not productsNotUpdateQuantity.Contains(tmpSerno) Then
 
@@ -986,7 +986,7 @@ Public Class frmPOS
                             End If
                             sql += ", lastmodifiedscreen = 0 where serno = " & CInt(tmpSerno) & " "
                             cmd = New OracleCommand(sql, conn)
-                            cmd.ExecuteReader()
+                            cmd.ExecuteNonQuery()
                         End If
                     End If
 
@@ -1023,7 +1023,7 @@ Public Class frmPOS
                                                 ")"
 
                         cmd = New OracleCommand(sql, conn)
-                        cmd.ExecuteReader()
+                        cmd.ExecuteNonQuery()
                         If tmpAmount < 0 Then
                             tmpBoxQnt *= -1
                         End If
@@ -1031,7 +1031,9 @@ Public Class frmPOS
 
                         q = "insert into isbox_log (logmsg) values ('" & logMsg & "')"
                         cmd = New OracleCommand(q, conn)
-                        cmd.ExecuteReader()
+                        Using cmd
+                            cmd.ExecuteNonQuery()
+                        End Using
                     End If
                 End If
             Next
@@ -1332,7 +1334,7 @@ Public Class frmPOS
                 sql = "insert into payments (created_by, created_on, amount,vat, amountVAT) " & _
                       "values('" & whois & "', (select systimestamp from dual), " & txtBoxManualAmt.Text & ", '" & vat & "', " & amountVAT & ")"
                 cmd = New OracleCommand(sql, conn)
-                cmd.ExecuteReader()
+                cmd.ExecuteNonQuery()
 
                 If MessageBox.Show("Εκτύπωση Πληρωμής;", "Εκτύπωση Πληρωμής", MessageBoxButtons.YesNo, MessageBoxIcon.Question) = Windows.Forms.DialogResult.Yes Then
                     printType = "P"
