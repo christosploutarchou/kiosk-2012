@@ -419,7 +419,9 @@ Public Class frmProducts
 
                 cmd = New OracleCommand(sql, conn)
                 cmd.CommandType = CommandType.Text
-                Using cmd                    cmd.ExecuteNonQuery()                End Using
+                Using cmd
+                    cmd.ExecuteNonQuery()
+                End Using
                 txtBoxAvailQuantity.Text = 0
             Else
                 Dim minQuantity As Integer = 0
@@ -477,7 +479,9 @@ Public Class frmProducts
                 sql = "insert into barcodes (product_serno, barcode) values (" & serno & ", '" & lstBoxBarcodes.Items.Item(i) & "')"
                 cmd = New OracleCommand(sql, conn)
                 cmd.CommandType = CommandType.Text
-                Using cmd                    cmd.ExecuteNonQuery()                End Using
+                Using cmd
+                    cmd.ExecuteNonQuery()
+                End Using
             Next
             MessageBox.Show("Το προϊόν έχει αποθηκευτεί επιτυχώς", "Αποθήκευση Νέου Προϊόντως", MessageBoxButtons.OK, MessageBoxIcon.Information)
             newProduct = False

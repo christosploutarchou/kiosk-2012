@@ -114,10 +114,8 @@ Public Class frmPOS
         End If
         Dim productFound As Boolean = False
 
-        Dim cmd As New OracleCommand("", conn)
         Dim sql As String = ""
         Try
-            Dim dr As OracleDataReader
             If txtBoxBarcode.Text.Length >= minBarcode Then
                 sql = "select p.serno, p.description, p.sell_amt, v.vat, " & _
                       "nvl(offer,-1), nvl(offer_type,-1), nvl(offer_x,0), nvl(offer_y,0), nvl(offer_disc,0), nvl(offer_at,0), " & _
@@ -127,52 +125,50 @@ Public Class frmPOS
                       "inner join vat_types v on p.vattype_id = v.uuid " & _
                       "where p.serno = (select b.product_serno from BARCODES b where UPPER(b.barcode) =  '" & txtBoxBarcode.Text.ToUpper & "')"
 
-                cmd = New OracleCommand(sql, conn)
-                cmd.CommandType = CommandType.Text
 
-                dr = cmd.ExecuteReader()
+                Dim cmdSelectProduct = New OracleCommand(sql, conn)
+                Using dr = cmdSelectProduct.ExecuteReader()
+                    If dr.Read() Then
+                        totalItems += 1
+                        productFound = True
+                        Dim sellAmt As Double = CDbl(dr(2))
+                        Dim currentAmt As Double = sellAmt * CInt(txtBoxQuantity.Text)
+                        currentAmt *= returnProduct
 
-                If dr.Read() Then
-                    totalItems += 1
-                    productFound = True
-                    Dim sellAmt As Double = CDbl(dr(2))
-                    Dim currentAmt As Double = sellAmt * CInt(txtBoxQuantity.Text)
-                    currentAmt *= returnProduct
+                        Dim row As String() = New String() {dr(0), totalItems, dr(1), txtBoxQuantity.Text, sellAmt.ToString("N2"), currentAmt.ToString("N2"), dr(3), "0", CInt(dr("isbox")), CInt(dr("box_qnt"))}
+                        dgvReceipt.Rows.Add(row)
+                        totalAmt += Math.Round(currentAmt, 2)
+                        totalWithDiscount += Math.Round(currentAmt, 2)
+                        txtBoxTotalAmt.Text = totalAmt.ToString("N2")
 
-                    Dim row As String() = New String() {dr(0), totalItems, dr(1), txtBoxQuantity.Text, sellAmt.ToString("N2"), currentAmt.ToString("N2"), dr(3), "0", CInt(dr("isbox")), CInt(dr("box_qnt"))}
-                    dgvReceipt.Rows.Add(row)
-                    totalAmt += Math.Round(currentAmt, 2)
-                    totalWithDiscount += Math.Round(currentAmt, 2)
-                    txtBoxTotalAmt.Text = totalAmt.ToString("N2")
+                        Dim tmpVat = CDbl(dr(2)) * returnProduct * CInt(txtBoxQuantity.Text)
 
-                    Dim tmpVat = CDbl(dr(2)) * returnProduct * CInt(txtBoxQuantity.Text)
+                        If CInt(dr(3)) = 0 Then
+                            totalAmt0 += tmpVat
+                        ElseIf CInt(dr(3)) = 3 Then
+                            totalAmt3 += tmpVat
+                        ElseIf CInt(dr(3)) = 5 Then
+                            totalAmt5 += tmpVat
+                        ElseIf CInt(dr(3)) = 19 Then
+                            totalAmt19 += tmpVat
+                        End If
+                        fillProductsAndQuantity(CStr(dr(0)))
 
-                    If CInt(dr(3)) = 0 Then
-                        totalAmt0 += tmpVat
-                    ElseIf CInt(dr(3)) = 3 Then
-                        totalAmt3 += tmpVat
-                    ElseIf CInt(dr(3)) = 5 Then
-                        totalAmt5 += tmpVat
-                    ElseIf CInt(dr(3)) = 19 Then
-                        totalAmt19 += tmpVat
-                    End If
-                    fillProductsAndQuantity(CStr(dr(0)))
-
-                    Dim offer As Integer = CInt(dr(4))
-                    Dim dateOfferFrom As Date = CDate(dr("offerfromdate"))
-                    Dim dateOfferTo As Date = CDate(dr("offertodate"))
-                    If offer <> -1 Then
-                        Dim foundProduct As Boolean = False
-                        Dim productSerno As Integer = dr(0)
-                        Dim offerType As Integer = CInt(dr(5))
-                        If offerType = 1 And _
-                        DateTime.Compare(Date.Now, dateOfferFrom) > 0 And _
-                        DateTime.Compare(Date.Now, dateOfferTo) < 0 Then
-                            setDiscountOfferType1(productSerno, CInt(dr(9)), CDbl(dr(8)))
+                        Dim offer As Integer = CInt(dr(4))
+                        Dim dateOfferFrom As Date = CDate(dr("offerfromdate"))
+                        Dim dateOfferTo As Date = CDate(dr("offertodate"))
+                        If offer <> -1 Then
+                            Dim foundProduct As Boolean = False
+                            Dim productSerno As Integer = dr(0)
+                            Dim offerType As Integer = CInt(dr(5))
+                            If offerType = 1 And _
+                            DateTime.Compare(Date.Now, dateOfferFrom) > 0 And _
+                            DateTime.Compare(Date.Now, dateOfferTo) < 0 Then
+                                setDiscountOfferType1(productSerno, CInt(dr(9)), CDbl(dr(8)))
+                            End If
                         End If
                     End If
-                    dr.Close()
-                End If
+                End Using
             End If
 
             If productFound Then
@@ -186,7 +182,6 @@ Public Class frmPOS
             createExceptionFile(ex.Message, " " & sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Finally
-            cmd.Dispose()
             formatDataGrid()
         End Try
     End Sub
@@ -291,74 +286,75 @@ Public Class frmPOS
 
     Private Sub setPosButtons(ByVal all As Integer)
         Dim sql As String = ""
-        Dim cmd As New OracleCommand("", conn)
-        Dim dr As OracleDataReader
+        'Dim cmd As New OracleCommand("", conn)
+        'Dim dr As OracleDataReader
         btnItemsMap.Clear()
         Try
             If all = 1 Then
                 For i As Integer = 1 To 23
                     sql = "select disp_name, NVL(is_visible,0) from BTN_POS" + i.ToString
-                    cmd = New OracleCommand(sql, conn)
-                    dr = cmd.ExecuteReader
-                    If dr.Read() Then
-                        If CInt(dr(1)) = 1 Then
-                            CType(Me.Controls("btnPos" & i), Button).Visible = True
-                            CType(Me.Controls("btnPos" & i), Button).Text = dr(0)
-                        End If
+                    Dim cmdBtn = New OracleCommand(sql, conn)
+                    Using dr = cmdBtn.ExecuteReader
+                        If dr.Read() Then
+                            If CInt(dr(1)) = 1 Then
+                                CType(Me.Controls("btnPos" & i), Button).Visible = True
+                                CType(Me.Controls("btnPos" & i), Button).Text = dr(0)
+                            End If
 
-                        Dim tmpBtnItem = New BtnItem
-                        tmpBtnItem.Id = "btnPos" & i
-                        tmpBtnItem.Name = dr(0)
-                        'TODO: DISCOUNT ON POS BUTTONS
-                        sql = "select DISPLAY_DESC, product_serno, p.DESCRIPTION, " & _
-                              "(select vat from vat_types where uuid=p.VATTYPE_ID), p.SELL_AMT, NVL(p.isbox,0), NVL(p.box_qnt,0), " & _
-                              "nvl(p.offer,-1), nvl(p.offer_type,-1), nvl(p.offer_x,0), nvl(p.offer_y,0), nvl(p.offer_disc,0), nvl(p.offer_at,0), " & _
-                              "nvl(p.offerfromdate, sysdate) offerfromdate , nvl(p.offertodate, sysdate) offertodate " & _
-                              "from BTN_POS" + i.ToString + "_DET d " & _
-                              "inner join PRODUCTS p on p.serno = d.PRODUCT_SERNO " & _
-                              "order by nvl(seqno, -1)"
-                        cmd = New OracleCommand(sql, conn)
-                        dr = cmd.ExecuteReader
-                        Dim tmpBtnItemDetails As BtnItemDetails
-                        Dim tmpDetailsArrayList As New ArrayList
-                        While dr.Read
-                            tmpBtnItemDetails = New BtnItemDetails
-                            tmpBtnItemDetails.DisplayDesc = dr(0)
-                            tmpBtnItemDetails.ProductSerno = CInt(dr(1))
-                            tmpBtnItemDetails.Description = dr(2)
-                            tmpBtnItemDetails.Vat = CInt(dr(3))
-                            tmpBtnItemDetails.ProductPrice = CDbl(dr(4))
-                            tmpBtnItemDetails.IsBox = CInt(dr(5))
-                            tmpBtnItemDetails.BoxQnt = CInt(dr(6))
-                            tmpDetailsArrayList.Add(tmpBtnItemDetails)
-                        End While
-                        tmpBtnItem.LinkedItemsDetails = tmpDetailsArrayList
-                        tmpBtnItem.LinkedItems = tmpBtnItem.LinkedItemsDetails.Count
-                        btnItemsMap.Add("btnPos" & i, tmpBtnItem)
-                    End If
-                    dr.Close()
+                            Dim tmpBtnItem = New BtnItem
+                            tmpBtnItem.Id = "btnPos" & i
+                            tmpBtnItem.Name = dr(0)
+                            'TODO: DISCOUNT ON POS BUTTONS
+                            sql = "select DISPLAY_DESC, product_serno, p.DESCRIPTION, " & _
+                                  "(select vat from vat_types where uuid=p.VATTYPE_ID), p.SELL_AMT, NVL(p.isbox,0), NVL(p.box_qnt,0), " & _
+                                  "nvl(p.offer,-1), nvl(p.offer_type,-1), nvl(p.offer_x,0), nvl(p.offer_y,0), nvl(p.offer_disc,0), nvl(p.offer_at,0), " & _
+                                  "nvl(p.offerfromdate, sysdate) offerfromdate , nvl(p.offertodate, sysdate) offertodate " & _
+                                  "from BTN_POS" + i.ToString + "_DET d " & _
+                                  "inner join PRODUCTS p on p.serno = d.PRODUCT_SERNO " & _
+                                  "order by nvl(seqno, -1)"
+                            Dim cmdBtnPos = New OracleCommand(sql, conn)
+                            Dim tmpBtnItemDetails As BtnItemDetails
+                            Dim tmpDetailsArrayList As New ArrayList
+                            Using drBtnPos = cmdBtnPos.ExecuteReader
+                                While drBtnPos.Read
+                                    tmpBtnItemDetails = New BtnItemDetails
+                                    tmpBtnItemDetails.DisplayDesc = drBtnPos(0)
+                                    tmpBtnItemDetails.ProductSerno = CInt(drBtnPos(1))
+                                    tmpBtnItemDetails.Description = drBtnPos(2)
+                                    tmpBtnItemDetails.Vat = CInt(drBtnPos(3))
+                                    tmpBtnItemDetails.ProductPrice = CDbl(drBtnPos(4))
+                                    tmpBtnItemDetails.IsBox = CInt(drBtnPos(5))
+                                    tmpBtnItemDetails.BoxQnt = CInt(drBtnPos(6))
+                                    tmpDetailsArrayList.Add(tmpBtnItemDetails)
+                                End While
+                            End Using
+
+                            tmpBtnItem.LinkedItemsDetails = tmpDetailsArrayList
+                            tmpBtnItem.LinkedItems = tmpBtnItem.LinkedItemsDetails.Count
+                            btnItemsMap.Add("btnPos" & i, tmpBtnItem)
+                        End If
+                    End Using
                 Next
             Else
                 sql = "select disp_name, is_visible from BTN_POS" + setCurrentTableIndex()
-                cmd = New OracleCommand(sql, conn)
-                dr = cmd.ExecuteReader
-                If dr.Read() Then
-                    CType(Me.Controls("btnPos" & setCurrentTableIndex()), Button).Text = dr(0)
-                    If CInt(dr(1)) = 0 Then
-                        CType(Me.Controls("btnPos" & setCurrentTableIndex()), Button).BackColor = Color.Red
+                Dim cmdIsVis = New OracleCommand(sql, conn)
+                Using drVisible = cmdIsVis.ExecuteReader
+                    If drVisible.Read() Then
+                        CType(Me.Controls("btnPos" & setCurrentTableIndex()), Button).Text = drVisible(0)
+                        If CInt(drVisible(1)) = 0 Then
+                            CType(Me.Controls("btnPos" & setCurrentTableIndex()), Button).BackColor = Color.Red
+                        Else
+                            CType(Me.Controls("btnPos" & setCurrentTableIndex()), Button).BackColor = Color.Blue
+                        End If
                     Else
-                        CType(Me.Controls("btnPos" & setCurrentTableIndex()), Button).BackColor = Color.Blue
+                        CType(Me.Controls("btnPos" & setCurrentTableIndex()), Button).BackColor = Color.Red
+                        CType(Me.Controls("btnPos" & setCurrentTableIndex()), Button).Text = ""
                     End If
-                Else
-                    CType(Me.Controls("btnPos" & setCurrentTableIndex()), Button).BackColor = Color.Red
-                    CType(Me.Controls("btnPos" & setCurrentTableIndex()), Button).Text = ""
-                End If
-                dr.Close()
+                End Using
             End If
         Catch ex As Exception
             MessageBox.Show(ex.Message + sql, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
         Finally
-            cmd.Dispose()
         End Try
     End Sub
 
@@ -678,25 +674,26 @@ Public Class frmPOS
             Exit Sub
         End If
 
+        Dim serno As Integer = -1
         Dim sql As String = "select serno from products where description = '" & productDesc & "'"
-        Dim cmd = New OracleCommand(sql, conn)
-        Dim dr As OracleDataReader = cmd.ExecuteReader()
 
-        Dim serno As Integer
-        If dr.Read() Then
-            serno = CInt(dr(0))
-        End If
-        dr.Close()
-        cmd.Dispose()
+        Dim cmdProductSerno = New OracleCommand(sql, conn)
+        Using drR = cmdProductSerno.ExecuteReader()
+            If drR.Read() Then
+                serno = CInt(drR(0))
+            Else
+                Exit Sub
+            End If
+        End Using
 
-        Dim strSerno = CStr(serno)
+        Dim strSerno = serno.ToString
 
         If productsAndQuantity.ContainsKey(strSerno) Then
-            Dim tmpQuantity As Integer = productsAndQuantity(strSerno)
+            Dim tmpQuantity As Integer = CInt(productsAndQuantity(strSerno))
             If tmpQuantity = quantity Then
                 productsAndQuantity.Remove(strSerno)
             Else
-                productsAndQuantity(strSerno) = CInt(productsAndQuantity(strSerno)) - quantity
+                productsAndQuantity(strSerno) = tmpQuantity - quantity
             End If
         End If
     End Sub
@@ -913,15 +910,15 @@ Public Class frmPOS
         End If
 
         Dim description As String = ""
-        Dim cmd = New OracleCommand("", conn)
+        'Dim cmd = New OracleCommand("", conn)
         'Dim dr As OracleDataReader
         receiptSerno = -1
 
         Dim sql As String = ""
         Try
             sql = "select receiptsSeq.nextVal from dual"
-            cmd = New OracleCommand(sql, conn)
-            Using drR = cmd.ExecuteReader()
+            Dim cmdReceiptsSeq = New OracleCommand(sql, conn)
+            Using drR = cmdReceiptsSeq.ExecuteReader()
                 If drR.Read() Then
                     receiptSerno = CInt(drR(0))
                 End If
@@ -959,8 +956,8 @@ Public Class frmPOS
                   "                  (select systimestamp from dual), " & _
                   "                      " & totalAmt3 & "," & _
                   "                     '" & whois & "' ) "
-            cmd = New OracleCommand(sql, conn)
-            Using cmd                cmd.ExecuteNonQuery()            End Using
+            Dim cmdInsertReceipt = New OracleCommand(sql, conn)
+            Using cmdInsertReceipt                cmdInsertReceipt.ExecuteNonQuery()            End Using
 
             Dim productsNotUpdateQuantity As New ArrayList()
             For i As Integer = -313 To -300
@@ -990,8 +987,8 @@ Public Class frmPOS
                       "                          " & currentAmt & ", " & _
                       "                          " & tmpVat & ", (select systimestamp from dual))"
 
-                cmd = New OracleCommand(sql, conn)
-                Using cmd                    cmd.ExecuteNonQuery()                End Using
+                Dim cmdReceiptsDet = New OracleCommand(sql, conn)
+                Using cmdReceiptsDet                    cmdReceiptsDet.ExecuteNonQuery()                End Using
 
                 If Not productsNotUpdateQuantity.Contains(tmpSerno) Then
 
@@ -1001,8 +998,8 @@ Public Class frmPOS
 
                         'Double check if product is a box to avoid wrong quantity updates
                         sql = "select nvl(isbox,0) from products where serno = " & CInt(tmpSerno) & ""
-                        cmd = New OracleCommand(sql, conn)
-                        Using dr = cmd.ExecuteReader()
+                        Dim cmdProducts = New OracleCommand(sql, conn)
+                        Using dr = cmdProducts.ExecuteReader()
                             If dr.Read Then
                                 Dim tmp As Integer = CInt(dr(0))
                                 If tmp > 0 Then
@@ -1010,6 +1007,7 @@ Public Class frmPOS
                                 End If
                             End If
                         End Using
+                        cmdProducts.Dispose()
 
                         If Not isBox Then
                             sql = "update products set avail_quantity = (avail_quantity"
@@ -1019,9 +1017,9 @@ Public Class frmPOS
                                 sql += " + " & (tmpQuantity * -1) & ")"
                             End If
                             sql += ", lastmodifiedscreen = 0 where serno = " & CInt(tmpSerno) & " "
-                            cmd = New OracleCommand(sql, conn)
-                            Using cmd
-                                cmd.ExecuteNonQuery()
+                            Dim cmdUpdateQnt = New OracleCommand(sql, conn)
+                            Using cmdUpdateQnt
+                                cmdUpdateQnt.ExecuteNonQuery()
                             End Using
                         End If
                     End If
@@ -1035,12 +1033,11 @@ Public Class frmPOS
                                                 "(select UPPER(barcode) from boxbarcodes where product_serno = " & CInt(tmpSerno) & ")" & _
                                                 ")"
 
-                        cmd = New OracleCommand(q, conn)
-                        Using dr = cmd.ExecuteReader()
+                        Dim cmdSelectQnt = New OracleCommand(q, conn)
+                        Using dr = cmdSelectQnt.ExecuteReader()
                             If dr.Read Then
                                 currentqnt = CInt(dr(0))
                                 logMsg = Date.Now + " Current:" + currentqnt.ToString
-
                             End If
                         End Using
 
@@ -1056,16 +1053,17 @@ Public Class frmPOS
                                                 "(select UPPER(barcode) from boxbarcodes where product_serno = " & CInt(tmpSerno) & ")" & _
                                                 ")"
 
-                        cmd = New OracleCommand(sql, conn)
-                        Using cmd                            cmd.ExecuteNonQuery()                        End Using
+                        Dim cmdUpdateQnt = New OracleCommand(sql, conn)
+                        Using cmdUpdateQnt                            cmdUpdateQnt.ExecuteNonQuery()                        End Using
                         If tmpAmount < 0 Then
                             tmpBoxQnt *= -1
                         End If
+
                         logMsg += ", PrSerno:" + tmpSerno + ", Amt:" + tmpAmount.ToString + ", BoxQnt:" + tmpBoxQnt.ToString + ", NewQnt:" + (currentqnt - tmpBoxQnt).ToString
 
                         q = "insert into isbox_log (logmsg) values ('" & logMsg & "')"
-                        cmd = New OracleCommand(q, conn)
-                        Using cmd                            cmd.ExecuteNonQuery()                        End Using                    End If
+                        Dim cmdBoxLog = New OracleCommand(q, conn)
+                        Using cmdBoxLog                            cmdBoxLog.ExecuteNonQuery()                        End Using                    End If
                 End If
             Next
 
@@ -1126,7 +1124,6 @@ Public Class frmPOS
             createExceptionFile(ex.Message, " " & sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Finally
-            cmd.Dispose()
             getMinBarcodeLength()
         End Try
     End Sub
