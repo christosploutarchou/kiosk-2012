@@ -89,13 +89,15 @@ Module connectionModule
                 If (CInt(dr(0)) = 0) Then
                     sql = "insert into vat_types (uuid, description, vat) values (sys_guid(), 'V.A.T 3%', 3)"
                     cmd = New OracleCommand(sql, conn)
-                    Using cmd                        cmd.ExecuteNonQuery()                    End Using
+                    Using cmd
+                        cmd.ExecuteNonQuery()
+                    End Using
                 End If
             End If
 
             'RECEIPTS
-            sql = "select COUNT(*) from ALL_TAB_COLUMNS " & _
-                  "where TABLE_NAME = 'RECEIPTS' " & _
+            sql = "select COUNT(*) from ALL_TAB_COLUMNS " &
+                  "where TABLE_NAME = 'RECEIPTS' " &
                   "AND COLUMN_NAME = 'TOTAL_VAT3'"
 
             cmd = New OracleCommand(sql, conn)
@@ -110,8 +112,8 @@ Module connectionModule
             End If
 
             'X_REPORT
-            sql = "select COUNT(*) from ALL_TAB_COLUMNS " & _
-                  "where TABLE_NAME = 'X_REPORT' " & _
+            sql = "select COUNT(*) from ALL_TAB_COLUMNS " &
+                  "where TABLE_NAME = 'X_REPORT' " &
                   "AND COLUMN_NAME = 'TOTAL3PERCENT'"
             cmd = New OracleCommand(sql, conn)
             cmd.CommandType = CommandType.Text
@@ -125,8 +127,8 @@ Module connectionModule
             End If
 
             'Z_REPORT
-            sql = "select COUNT(*) from ALL_TAB_COLUMNS " & _
-                  "where TABLE_NAME = 'Z_REPORT' " & _
+            sql = "select COUNT(*) from ALL_TAB_COLUMNS " &
+                  "where TABLE_NAME = 'Z_REPORT' " &
                   "AND COLUMN_NAME = 'TOTAL_AMOUNT3'"
             cmd = New OracleCommand(sql, conn)
             cmd.CommandType = CommandType.Text
@@ -281,9 +283,9 @@ Module connectionModule
         Dim dr As OracleDataReader
         Dim sql As String = ""
         Try
-            sql = "select paramkey, paramvalue " & _
-                                "from global_params  " & _
-                                "where paramkey in ('login.title1', 'login.title2', 'kiosk.name', 'company.name', " & _
+            sql = "select paramkey, paramvalue " &
+                                "from global_params  " &
+                                "where paramkey in ('login.title1', 'login.title2', 'kiosk.name', 'company.name', " &
                                 "                   'kiosk.address1', 'kiosk.address2', 'company.vat')"
             cmd = New OracleCommand(sql, conn)
             cmd.CommandType = CommandType.Text
@@ -377,10 +379,10 @@ Module connectionModule
             End If
 
             '2. Total Payments
-            sql = "select NVL(sum(amount),0) from payments " & _
-                  "where created_by = '" & userid & "' " & _
-                  "and created_on between (select max(login_when) from sessions " & _
-                                          "where user_id = '" & userid & "') " & _
+            sql = "select NVL(sum(amount),0) from payments " &
+                  "where created_by = '" & userid & "' " &
+                  "and created_on between (select max(login_when) from sessions " &
+                                          "where user_id = '" & userid & "') " &
                   "and (select systimestamp from dual)"
 
             cmd = New OracleCommand(sql, conn)
@@ -391,14 +393,14 @@ Module connectionModule
             End If
 
             'Description
-            sql = "select product_serno, description , count(product_serno), sum(quantity) " & _
-                  "from receipts_det " & _
-                  "inner join products on products.serno = receipts_det.product_serno " & _
-                  "where receipt_serno in (select serno from receipts  " & _
-                                          "where created_by = '" & userid & "' " & _
-                                          "and created_on between (select max(login_when) from sessions " & _
-                                          "where user_id = '" & userid & "') " & _
-                                          "and (select systimestamp from dual)) " & _
+            sql = "select product_serno, description , count(product_serno), sum(quantity) " &
+                  "from receipts_det " &
+                  "inner join products on products.serno = receipts_det.product_serno " &
+                  "where receipt_serno in (select serno from receipts  " &
+                                          "where created_by = '" & userid & "' " &
+                                          "and created_on between (select max(login_when) from sessions " &
+                                          "where user_id = '" & userid & "') " &
+                                          "and (select systimestamp from dual)) " &
                   "group by product_serno, description "
 
             cmd = New OracleCommand(sql, conn)
@@ -409,13 +411,13 @@ Module connectionModule
             End While
 
             'Total amount laxeia
-            sql = "select NVL(sum(amount),0) " & _
-                  "from receipts_det " & _
-                  "where vat=0 and " & _
-                  "receipt_serno in (select serno from receipts  " & _
-                                    "where created_by = '" & userid & "' " & _
-                                    "and created_on between (select max(login_when) from sessions " & _
-                                                            "where user_id = '" & userid & "') " & _
+            sql = "select NVL(sum(amount),0) " &
+                  "from receipts_det " &
+                  "where vat=0 and " &
+                  "receipt_serno in (select serno from receipts  " &
+                                    "where created_by = '" & userid & "' " &
+                                    "and created_on between (select max(login_when) from sessions " &
+                                                            "where user_id = '" & userid & "') " &
                                                             "and (select systimestamp from dual)) "
 
             cmd = New OracleCommand(sql, conn)
@@ -425,12 +427,12 @@ Module connectionModule
                 amountLaxeia = CDbl(dr(0))
             End If
 
-            sql = "select NVL(sum(total_amt_with_disc),0) " & _
-                  "from receipts " & _
-                  "where payment_type='V' and " & _
-                  "created_by = '" & userid & "' and " & _
-                  "created_on between (select max(login_when) from sessions " & _
-                  "                    where user_id = '" & userid & "') " & _
+            sql = "select NVL(sum(total_amt_with_disc),0) " &
+                  "from receipts " &
+                  "where payment_type='V' and " &
+                  "created_by = '" & userid & "' and " &
+                  "created_on between (select max(login_when) from sessions " &
+                  "                    where user_id = '" & userid & "') " &
                   "                    and (select systimestamp from dual) "
 
             cmd = New OracleCommand(sql, conn)
@@ -443,29 +445,31 @@ Module connectionModule
             Dim finalAmountLaxeia As Double = getAmountLaxeia()
             dr.Close()
 
-            sql = "insert into x_report (user_id, from_date, to_date, total_receipts, total_amt, total0percent, total3percent, total5percent, total19percent, " & _
-                  "                      initial_amt, final_amt, payments, created_on, description, amount_laxeia, initialAmtLaxeia, amountVisa, finalAmtLaxeia) " & _
-                  "values               ('" & userid & "', " & _
-                  "                     (select max(login_when) from sessions where user_id = '" & userid & "'), " & _
-                  "                     (select systimestamp from dual), " & _
-                  "                       " & totalReceipts & ", " & _
-                  "                       " & totalAmt & ", " & _
-                  "                       " & totalVat0 & ", " & _
-                  "                       " & totalVat3 & ", " & _
-                  "                       " & totalVat5 & ", " & _
-                  "                       " & totalVat19 & ", " & _
-                  "                       (select paramvalue from global_params where paramkey = 'init.fiscal.amt'), " & _
-                  "                       (select sum(" & totalAmt & " ) from dual), " & _
-                  "                       " & totalPayments & ", (select systimestamp from dual), " & _
-                  "                      ''," & _
-                  "                       " & amountLaxeia & ", " & _
-                  "                      (select AMOUNTLAXEIAONLOGIN from sessions where user_id = '" & userid & "' " & _
-                  "                       and login_when =(select max(login_when) from sessions " & _
-                  "                                        where user_id = '" & userid & "')), " & _
+            sql = "insert into x_report (user_id, from_date, to_date, total_receipts, total_amt, total0percent, total3percent, total5percent, total19percent, " &
+                  "                      initial_amt, final_amt, payments, created_on, description, amount_laxeia, initialAmtLaxeia, amountVisa, finalAmtLaxeia) " &
+                  "values               ('" & userid & "', " &
+                  "                     (select max(login_when) from sessions where user_id = '" & userid & "'), " &
+                  "                     (select systimestamp from dual), " &
+                  "                       " & totalReceipts & ", " &
+                  "                       " & totalAmt & ", " &
+                  "                       " & totalVat0 & ", " &
+                  "                       " & totalVat3 & ", " &
+                  "                       " & totalVat5 & ", " &
+                  "                       " & totalVat19 & ", " &
+                  "                       (select paramvalue from global_params where paramkey = 'init.fiscal.amt'), " &
+                  "                       (select sum(" & totalAmt & " ) from dual), " &
+                  "                       " & totalPayments & ", (select systimestamp from dual), " &
+                  "                      ''," &
+                  "                       " & amountLaxeia & ", " &
+                  "                      (select AMOUNTLAXEIAONLOGIN from sessions where user_id = '" & userid & "' " &
+                  "                       and login_when =(select max(login_when) from sessions " &
+                  "                                        where user_id = '" & userid & "')), " &
                   "                       " & amountVisa & ", " & finalAmountLaxeia & ")"
 
             cmd = New OracleCommand(sql, conn)
-            Using cmd                cmd.ExecuteNonQuery()            End Using
+            Using cmd
+                cmd.ExecuteNonQuery()
+            End Using
             Return True
         Catch ex As Exception
             createExceptionFile(ex.Message, sql)
