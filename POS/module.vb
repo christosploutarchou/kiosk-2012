@@ -279,42 +279,42 @@ Module connectionModule
 
 
     Public Sub getKIOSKParams()
-        Dim cmd As New OracleCommand("", conn)
-        Dim dr As OracleDataReader
-        Dim sql As String = ""
+        Dim sql As String = "SELECT paramkey, paramvalue " &
+                        "FROM global_params " &
+                        "WHERE paramkey IN ('login.title1', 'login.title2', 'kiosk.name', 'company.name', " &
+                        "'kiosk.address1', 'kiosk.address2', 'company.vat')"
+
         Try
-            sql = "select paramkey, paramvalue " &
-                                "from global_params  " &
-                                "where paramkey in ('login.title1', 'login.title2', 'kiosk.name', 'company.name', " &
-                                "                   'kiosk.address1', 'kiosk.address2', 'company.vat')"
-            cmd = New OracleCommand(sql, conn)
-            cmd.CommandType = CommandType.Text
-            dr = cmd.ExecuteReader()
-            While dr.Read
-                If dr("paramkey").ToString.Equals("login.title1") Then
-                    LOGIN_TITLE1 = CStr(dr("paramValue"))
-                ElseIf dr("paramkey").ToString.Equals("login.title2") Then
-                    LOGIN_TITLE2 = CStr(dr("paramValue"))
-                ElseIf dr("paramkey").ToString.Equals("kiosk.name") Then
-                    KIOSK_NAME = CStr(dr("paramValue"))
-                ElseIf dr("paramkey").ToString.Equals("company.name") Then
-                    COMPANY_NAME = CStr(dr("paramValue"))
-                ElseIf dr("paramkey").ToString.Equals("kiosk.address1") Then
-                    KIOSK_ADDRESS1 = CStr(dr("paramValue"))
-                ElseIf dr("paramkey").ToString.Equals("kiosk.address2") Then
-                    KIOSK_ADDRESS2 = CStr(dr("paramValue"))
-                ElseIf dr("paramkey").ToString.Equals("company.vat") Then
-                    COMPANY_VAT = CStr(dr("paramValue"))
-                End If
-            End While
-            dr.Close()
+            Using cmd As New OracleCommand(sql, conn)
+                cmd.CommandType = CommandType.Text
+                Using dr As OracleDataReader = cmd.ExecuteReader()
+                    ' Map keys to variables using a dictionary
+                    Dim paramMap As New Dictionary(Of String, Action(Of String)) From {
+                    {"login.title1", Sub(val) LOGIN_TITLE1 = val},
+                    {"login.title2", Sub(val) LOGIN_TITLE2 = val},
+                    {"kiosk.name", Sub(val) KIOSK_NAME = val},
+                    {"company.name", Sub(val) COMPANY_NAME = val},
+                    {"kiosk.address1", Sub(val) KIOSK_ADDRESS1 = val},
+                    {"kiosk.address2", Sub(val) KIOSK_ADDRESS2 = val},
+                    {"company.vat", Sub(val) COMPANY_VAT = val}
+                }
+
+                    While dr.Read()
+                        Dim key As String = dr("paramkey").ToString()
+                        Dim value As String = dr("paramvalue").ToString()
+                        If paramMap.ContainsKey(key) Then
+                            paramMap(key)(value)
+                        End If
+                    End While
+                End Using
+            End Using
         Catch ex As Exception
             createExceptionFile(ex.Message, " " & sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
-            cmd.Dispose()
         End Try
     End Sub
+
+
 
     Public Function findMonth(ByVal month As String) As String
         Select Case month
