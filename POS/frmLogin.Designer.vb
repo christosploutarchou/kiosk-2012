@@ -22,24 +22,24 @@ Partial Class frmLogin
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
-        Me.txtBoxPassword = New System.Windows.Forms.TextBox
-        Me.lstboxUsers = New System.Windows.Forms.ListBox
-        Me.btn0 = New System.Windows.Forms.Button
-        Me.btn3 = New System.Windows.Forms.Button
-        Me.btn2 = New System.Windows.Forms.Button
-        Me.btn1 = New System.Windows.Forms.Button
-        Me.btn6 = New System.Windows.Forms.Button
-        Me.btn5 = New System.Windows.Forms.Button
-        Me.btn4 = New System.Windows.Forms.Button
-        Me.btn9 = New System.Windows.Forms.Button
-        Me.btn8 = New System.Windows.Forms.Button
-        Me.btn7 = New System.Windows.Forms.Button
-        Me.lblLoginTitle1 = New System.Windows.Forms.Label
-        Me.lblLoginTitle2 = New System.Windows.Forms.Label
-        Me.btnClear = New System.Windows.Forms.Button
-        Me.btnBack = New System.Windows.Forms.Button
-        Me.btnLogin = New System.Windows.Forms.Button
-        Me.btnExit = New System.Windows.Forms.Button
+        Me.txtBoxPassword = New System.Windows.Forms.TextBox()
+        Me.lstboxUsers = New System.Windows.Forms.ListBox()
+        Me.btn0 = New System.Windows.Forms.Button()
+        Me.btn3 = New System.Windows.Forms.Button()
+        Me.btn2 = New System.Windows.Forms.Button()
+        Me.btn1 = New System.Windows.Forms.Button()
+        Me.btn6 = New System.Windows.Forms.Button()
+        Me.btn5 = New System.Windows.Forms.Button()
+        Me.btn4 = New System.Windows.Forms.Button()
+        Me.btn9 = New System.Windows.Forms.Button()
+        Me.btn8 = New System.Windows.Forms.Button()
+        Me.btn7 = New System.Windows.Forms.Button()
+        Me.lblLoginTitle1 = New System.Windows.Forms.Label()
+        Me.lblLoginTitle2 = New System.Windows.Forms.Label()
+        Me.btnClear = New System.Windows.Forms.Button()
+        Me.btnBack = New System.Windows.Forms.Button()
+        Me.btnLogin = New System.Windows.Forms.Button()
+        Me.btnExit = New System.Windows.Forms.Button()
         Me.SuspendLayout()
         '
         'txtBoxPassword
@@ -279,7 +279,7 @@ Partial Class frmLogin
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
-        Me.ClientSize = New System.Drawing.Size(741, 506)
+        Me.ClientSize = New System.Drawing.Size(735, 502)
         Me.Controls.Add(Me.btnClear)
         Me.Controls.Add(Me.btnBack)
         Me.Controls.Add(Me.btnLogin)
@@ -300,7 +300,7 @@ Partial Class frmLogin
         Me.Controls.Add(Me.btnExit)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D
         Me.MaximizeBox = False
-        Me.MaximumSize = New System.Drawing.Size(751, 535)
+        Me.MaximumSize = New System.Drawing.Size(755, 545)
         Me.MinimumSize = New System.Drawing.Size(751, 535)
         Me.Name = "frmLogin"
         Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen

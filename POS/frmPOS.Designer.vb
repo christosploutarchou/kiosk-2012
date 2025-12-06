@@ -22,95 +22,95 @@ Partial Class frmPOS
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
-        Me.dgvReceipt = New System.Windows.Forms.DataGridView
-        Me.btn19percent = New System.Windows.Forms.Button
-        Me.btn5percent = New System.Windows.Forms.Button
-        Me.btn7 = New System.Windows.Forms.Button
-        Me.btn0 = New System.Windows.Forms.Button
-        Me.btn3 = New System.Windows.Forms.Button
-        Me.btn2 = New System.Windows.Forms.Button
-        Me.btn1 = New System.Windows.Forms.Button
-        Me.btn6 = New System.Windows.Forms.Button
-        Me.btn5 = New System.Windows.Forms.Button
-        Me.btn4 = New System.Windows.Forms.Button
-        Me.btn9 = New System.Windows.Forms.Button
-        Me.btn8 = New System.Windows.Forms.Button
-        Me.txtBoxManualAmt = New System.Windows.Forms.TextBox
-        Me.btnDiscount = New System.Windows.Forms.Button
-        Me.btnDiscountPercent = New System.Windows.Forms.Button
-        Me.txtBoxBarcode = New System.Windows.Forms.TextBox
-        Me.lblBarcode = New System.Windows.Forms.Label
-        Me.lblQuantity = New System.Windows.Forms.Label
-        Me.txtBoxQuantity = New System.Windows.Forms.TextBox
-        Me.Panel1 = New System.Windows.Forms.Panel
-        Me.lblTotal = New System.Windows.Forms.Label
-        Me.txtBoxTotalWithDiscount = New System.Windows.Forms.TextBox
-        Me.txtBoxPaymentAmt = New System.Windows.Forms.TextBox
-        Me.txtBoxReturnAmt = New System.Windows.Forms.TextBox
-        Me.txtBoxDiscount = New System.Windows.Forms.TextBox
-        Me.txtBoxTotalAmt = New System.Windows.Forms.TextBox
-        Me.lblReturn = New System.Windows.Forms.Label
-        Me.lblPayment = New System.Windows.Forms.Label
-        Me.lblDiscount = New System.Windows.Forms.Label
-        Me.lblTotalAmt = New System.Windows.Forms.Label
-        Me.btnDot = New System.Windows.Forms.Button
-        Me.PrintDocument1 = New System.Drawing.Printing.PrintDocument
-        Me.Button2 = New System.Windows.Forms.Button
-        Me.chkBoxReturnProduct = New System.Windows.Forms.CheckBox
-        Me.btnPayments = New System.Windows.Forms.Button
-        Me.btnKronos = New System.Windows.Forms.Button
-        Me.lblCurrentUser = New System.Windows.Forms.Label
-        Me.BackgroundWorker1 = New System.ComponentModel.BackgroundWorker
-        Me.btnPos1 = New System.Windows.Forms.Button
-        Me.btnPos2 = New System.Windows.Forms.Button
-        Me.btnPos3 = New System.Windows.Forms.Button
-        Me.btnPos6 = New System.Windows.Forms.Button
-        Me.btnPos5 = New System.Windows.Forms.Button
-        Me.btnPos4 = New System.Windows.Forms.Button
-        Me.btnPos8 = New System.Windows.Forms.Button
-        Me.btnPos7 = New System.Windows.Forms.Button
-        Me.btnPos13 = New System.Windows.Forms.Button
-        Me.btnPos12 = New System.Windows.Forms.Button
-        Me.btnPos11 = New System.Windows.Forms.Button
-        Me.btnPos10 = New System.Windows.Forms.Button
-        Me.btnPos9 = New System.Windows.Forms.Button
-        Me.btnPos18 = New System.Windows.Forms.Button
-        Me.btnPos17 = New System.Windows.Forms.Button
-        Me.btnPos16 = New System.Windows.Forms.Button
-        Me.btnPos15 = New System.Windows.Forms.Button
-        Me.btnPos14 = New System.Windows.Forms.Button
-        Me.btnPos23 = New System.Windows.Forms.Button
-        Me.btnPos22 = New System.Windows.Forms.Button
-        Me.btnPos21 = New System.Windows.Forms.Button
-        Me.btnPos20 = New System.Windows.Forms.Button
-        Me.btnPos19 = New System.Windows.Forms.Button
-        Me.btnReceipts = New System.Windows.Forms.Button
-        Me.btnHold = New System.Windows.Forms.Button
-        Me.btnKronosSearch = New System.Windows.Forms.Button
-        Me.btnClearBarcode = New System.Windows.Forms.Button
-        Me.btnCash = New System.Windows.Forms.Button
-        Me.btnClear = New System.Windows.Forms.Button
-        Me.btnPayment = New System.Windows.Forms.Button
-        Me.btnVisa = New System.Windows.Forms.Button
-        Me.btnExit = New System.Windows.Forms.Button
-        Me.btnBackspace = New System.Windows.Forms.Button
-        Me.btnCancelPayment = New System.Windows.Forms.Button
-        Me.btnCancelDiscount = New System.Windows.Forms.Button
-        Me.btnRemoveQuantity = New System.Windows.Forms.Button
-        Me.btnAddQuantity = New System.Windows.Forms.Button
-        Me.productSerno = New System.Windows.Forms.DataGridViewTextBoxColumn
-        Me.serno = New System.Windows.Forms.DataGridViewTextBoxColumn
-        Me.description = New System.Windows.Forms.DataGridViewTextBoxColumn
-        Me.quantity = New System.Windows.Forms.DataGridViewTextBoxColumn
-        Me.unitprice = New System.Windows.Forms.DataGridViewTextBoxColumn
-        Me.amount = New System.Windows.Forms.DataGridViewTextBoxColumn
-        Me.vat = New System.Windows.Forms.DataGridViewTextBoxColumn
-        Me.isKronos = New System.Windows.Forms.DataGridViewTextBoxColumn
-        Me.isbox = New System.Windows.Forms.DataGridViewTextBoxColumn
-        Me.box_qnt = New System.Windows.Forms.DataGridViewTextBoxColumn
-        Me.itemCode = New System.Windows.Forms.DataGridViewTextBoxColumn
-        Me.issueNumber = New System.Windows.Forms.DataGridViewTextBoxColumn
-        Me.deliveryDate = New System.Windows.Forms.DataGridViewTextBoxColumn
+        Me.dgvReceipt = New System.Windows.Forms.DataGridView()
+        Me.productSerno = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.serno = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.description = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.quantity = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.unitprice = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.amount = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.vat = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.isKronos = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.isbox = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.box_qnt = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.itemCode = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.issueNumber = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.deliveryDate = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.btn19percent = New System.Windows.Forms.Button()
+        Me.btn5percent = New System.Windows.Forms.Button()
+        Me.btn7 = New System.Windows.Forms.Button()
+        Me.btn0 = New System.Windows.Forms.Button()
+        Me.btn3 = New System.Windows.Forms.Button()
+        Me.btn2 = New System.Windows.Forms.Button()
+        Me.btn1 = New System.Windows.Forms.Button()
+        Me.btn6 = New System.Windows.Forms.Button()
+        Me.btn5 = New System.Windows.Forms.Button()
+        Me.btn4 = New System.Windows.Forms.Button()
+        Me.btn9 = New System.Windows.Forms.Button()
+        Me.btn8 = New System.Windows.Forms.Button()
+        Me.txtBoxManualAmt = New System.Windows.Forms.TextBox()
+        Me.btnDiscount = New System.Windows.Forms.Button()
+        Me.btnDiscountPercent = New System.Windows.Forms.Button()
+        Me.txtBoxBarcode = New System.Windows.Forms.TextBox()
+        Me.lblBarcode = New System.Windows.Forms.Label()
+        Me.lblQuantity = New System.Windows.Forms.Label()
+        Me.txtBoxQuantity = New System.Windows.Forms.TextBox()
+        Me.Panel1 = New System.Windows.Forms.Panel()
+        Me.btnCancelPayment = New System.Windows.Forms.Button()
+        Me.btnCancelDiscount = New System.Windows.Forms.Button()
+        Me.lblTotal = New System.Windows.Forms.Label()
+        Me.txtBoxTotalWithDiscount = New System.Windows.Forms.TextBox()
+        Me.txtBoxPaymentAmt = New System.Windows.Forms.TextBox()
+        Me.txtBoxReturnAmt = New System.Windows.Forms.TextBox()
+        Me.txtBoxDiscount = New System.Windows.Forms.TextBox()
+        Me.txtBoxTotalAmt = New System.Windows.Forms.TextBox()
+        Me.lblReturn = New System.Windows.Forms.Label()
+        Me.lblPayment = New System.Windows.Forms.Label()
+        Me.lblDiscount = New System.Windows.Forms.Label()
+        Me.lblTotalAmt = New System.Windows.Forms.Label()
+        Me.btnDot = New System.Windows.Forms.Button()
+        Me.PrintDocument1 = New System.Drawing.Printing.PrintDocument()
+        Me.Button2 = New System.Windows.Forms.Button()
+        Me.chkBoxReturnProduct = New System.Windows.Forms.CheckBox()
+        Me.btnPayments = New System.Windows.Forms.Button()
+        Me.btnKronos = New System.Windows.Forms.Button()
+        Me.lblCurrentUser = New System.Windows.Forms.Label()
+        Me.BackgroundWorker1 = New System.ComponentModel.BackgroundWorker()
+        Me.btnPos1 = New System.Windows.Forms.Button()
+        Me.btnPos2 = New System.Windows.Forms.Button()
+        Me.btnPos3 = New System.Windows.Forms.Button()
+        Me.btnPos6 = New System.Windows.Forms.Button()
+        Me.btnPos5 = New System.Windows.Forms.Button()
+        Me.btnPos4 = New System.Windows.Forms.Button()
+        Me.btnPos8 = New System.Windows.Forms.Button()
+        Me.btnPos7 = New System.Windows.Forms.Button()
+        Me.btnPos13 = New System.Windows.Forms.Button()
+        Me.btnPos12 = New System.Windows.Forms.Button()
+        Me.btnPos11 = New System.Windows.Forms.Button()
+        Me.btnPos10 = New System.Windows.Forms.Button()
+        Me.btnPos9 = New System.Windows.Forms.Button()
+        Me.btnPos18 = New System.Windows.Forms.Button()
+        Me.btnPos17 = New System.Windows.Forms.Button()
+        Me.btnPos16 = New System.Windows.Forms.Button()
+        Me.btnPos15 = New System.Windows.Forms.Button()
+        Me.btnPos14 = New System.Windows.Forms.Button()
+        Me.btnPos23 = New System.Windows.Forms.Button()
+        Me.btnPos22 = New System.Windows.Forms.Button()
+        Me.btnPos21 = New System.Windows.Forms.Button()
+        Me.btnPos20 = New System.Windows.Forms.Button()
+        Me.btnPos19 = New System.Windows.Forms.Button()
+        Me.btnReceipts = New System.Windows.Forms.Button()
+        Me.btnHold = New System.Windows.Forms.Button()
+        Me.btnKronosSearch = New System.Windows.Forms.Button()
+        Me.btnClearBarcode = New System.Windows.Forms.Button()
+        Me.btnCash = New System.Windows.Forms.Button()
+        Me.btnClear = New System.Windows.Forms.Button()
+        Me.btnPayment = New System.Windows.Forms.Button()
+        Me.btnVisa = New System.Windows.Forms.Button()
+        Me.btnExit = New System.Windows.Forms.Button()
+        Me.btnBackspace = New System.Windows.Forms.Button()
+        Me.btnRemoveQuantity = New System.Windows.Forms.Button()
+        Me.btnAddQuantity = New System.Windows.Forms.Button()
         CType(Me.dgvReceipt, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.Panel1.SuspendLayout()
         Me.SuspendLayout()
@@ -128,6 +128,94 @@ Partial Class frmPOS
         Me.dgvReceipt.ReadOnly = True
         Me.dgvReceipt.Size = New System.Drawing.Size(709, 300)
         Me.dgvReceipt.TabIndex = 31
+        '
+        'productSerno
+        '
+        Me.productSerno.HeaderText = "serno"
+        Me.productSerno.Name = "productSerno"
+        Me.productSerno.ReadOnly = True
+        Me.productSerno.Visible = False
+        '
+        'serno
+        '
+        Me.serno.HeaderText = "Σειρά"
+        Me.serno.Name = "serno"
+        Me.serno.ReadOnly = True
+        Me.serno.Width = 50
+        '
+        'description
+        '
+        Me.description.HeaderText = "Περιγραφή"
+        Me.description.Name = "description"
+        Me.description.ReadOnly = True
+        Me.description.Width = 235
+        '
+        'quantity
+        '
+        Me.quantity.HeaderText = "Ποσ."
+        Me.quantity.Name = "quantity"
+        Me.quantity.ReadOnly = True
+        '
+        'unitprice
+        '
+        Me.unitprice.HeaderText = "Τιμή Μονάδας (€)"
+        Me.unitprice.Name = "unitprice"
+        Me.unitprice.ReadOnly = True
+        '
+        'amount
+        '
+        Me.amount.HeaderText = "Ποσό (€)"
+        Me.amount.Name = "amount"
+        Me.amount.ReadOnly = True
+        '
+        'vat
+        '
+        Me.vat.HeaderText = "Φ.Π.Α"
+        Me.vat.Name = "vat"
+        Me.vat.ReadOnly = True
+        Me.vat.Width = 80
+        '
+        'isKronos
+        '
+        Me.isKronos.HeaderText = "isKronos"
+        Me.isKronos.Name = "isKronos"
+        Me.isKronos.ReadOnly = True
+        Me.isKronos.Visible = False
+        '
+        'isbox
+        '
+        Me.isbox.HeaderText = "isbox"
+        Me.isbox.Name = "isbox"
+        Me.isbox.ReadOnly = True
+        Me.isbox.Visible = False
+        '
+        'box_qnt
+        '
+        Me.box_qnt.HeaderText = "box_qnt"
+        Me.box_qnt.Name = "box_qnt"
+        Me.box_qnt.ReadOnly = True
+        Me.box_qnt.Visible = False
+        '
+        'itemCode
+        '
+        Me.itemCode.HeaderText = "itemCode"
+        Me.itemCode.Name = "itemCode"
+        Me.itemCode.ReadOnly = True
+        Me.itemCode.Visible = False
+        '
+        'issueNumber
+        '
+        Me.issueNumber.HeaderText = "issueNumber"
+        Me.issueNumber.Name = "issueNumber"
+        Me.issueNumber.ReadOnly = True
+        Me.issueNumber.Visible = False
+        '
+        'deliveryDate
+        '
+        Me.deliveryDate.HeaderText = "deliveryDate"
+        Me.deliveryDate.Name = "deliveryDate"
+        Me.deliveryDate.ReadOnly = True
+        Me.deliveryDate.Visible = False
         '
         'btn19percent
         '
@@ -358,11 +446,36 @@ Partial Class frmPOS
         Me.Panel1.Controls.Add(Me.lblPayment)
         Me.Panel1.Controls.Add(Me.lblDiscount)
         Me.Panel1.Controls.Add(Me.lblTotalAmt)
-        Me.Panel1.Font = New System.Drawing.Font("Arial Narrow", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.Panel1.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.Panel1.Location = New System.Drawing.Point(713, 77)
         Me.Panel1.Name = "Panel1"
         Me.Panel1.Size = New System.Drawing.Size(291, 193)
         Me.Panel1.TabIndex = 68
+        '
+        'btnCancelPayment
+        '
+        Me.btnCancelPayment.BackgroundImage = Global.POS.My.Resources.Resources.cancel
+        Me.btnCancelPayment.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
+        Me.btnCancelPayment.Font = New System.Drawing.Font("Segoe UI Semibold", 15.75!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.btnCancelPayment.ForeColor = System.Drawing.Color.FromArgb(CType(CType(192, Byte), Integer), CType(CType(0, Byte), Integer), CType(CType(0, Byte), Integer))
+        Me.btnCancelPayment.Location = New System.Drawing.Point(236, 122)
+        Me.btnCancelPayment.Name = "btnCancelPayment"
+        Me.btnCancelPayment.Size = New System.Drawing.Size(52, 34)
+        Me.btnCancelPayment.TabIndex = 83
+        Me.btnCancelPayment.UseVisualStyleBackColor = True
+        '
+        'btnCancelDiscount
+        '
+        Me.btnCancelDiscount.BackgroundImage = Global.POS.My.Resources.Resources.cancel
+        Me.btnCancelDiscount.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
+        Me.btnCancelDiscount.Font = New System.Drawing.Font("Segoe UI Semibold", 15.75!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.btnCancelDiscount.ForeColor = System.Drawing.Color.FromArgb(CType(CType(192, Byte), Integer), CType(CType(0, Byte), Integer), CType(CType(0, Byte), Integer))
+        Me.btnCancelDiscount.Location = New System.Drawing.Point(236, 78)
+        Me.btnCancelDiscount.Name = "btnCancelDiscount"
+        Me.btnCancelDiscount.Size = New System.Drawing.Size(52, 34)
+        Me.btnCancelDiscount.TabIndex = 82
+        Me.btnCancelDiscount.TextAlign = System.Drawing.ContentAlignment.TopCenter
+        Me.btnCancelDiscount.UseVisualStyleBackColor = True
         '
         'lblTotal
         '
@@ -371,7 +484,7 @@ Partial Class frmPOS
         Me.lblTotal.ForeColor = System.Drawing.Color.MediumBlue
         Me.lblTotal.Location = New System.Drawing.Point(8, 7)
         Me.lblTotal.Name = "lblTotal"
-        Me.lblTotal.Size = New System.Drawing.Size(62, 30)
+        Me.lblTotal.Size = New System.Drawing.Size(60, 30)
         Me.lblTotal.TabIndex = 78
         Me.lblTotal.Text = "Total"
         '
@@ -536,7 +649,7 @@ Partial Class frmPOS
         Me.lblCurrentUser.Font = New System.Drawing.Font("Segoe UI Semibold", 14.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(161, Byte))
         Me.lblCurrentUser.Location = New System.Drawing.Point(798, 707)
         Me.lblCurrentUser.Name = "lblCurrentUser"
-        Me.lblCurrentUser.Size = New System.Drawing.Size(68, 25)
+        Me.lblCurrentUser.Size = New System.Drawing.Size(65, 25)
         Me.lblCurrentUser.TabIndex = 86
         Me.lblCurrentUser.Text = "Label1"
         '
@@ -925,31 +1038,6 @@ Partial Class frmPOS
         Me.btnBackspace.TabIndex = 62
         Me.btnBackspace.UseVisualStyleBackColor = False
         '
-        'btnCancelPayment
-        '
-        Me.btnCancelPayment.BackgroundImage = Global.POS.My.Resources.Resources.cancel
-        Me.btnCancelPayment.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
-        Me.btnCancelPayment.Font = New System.Drawing.Font("Segoe UI Semibold", 15.75!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.btnCancelPayment.ForeColor = System.Drawing.Color.FromArgb(CType(CType(192, Byte), Integer), CType(CType(0, Byte), Integer), CType(CType(0, Byte), Integer))
-        Me.btnCancelPayment.Location = New System.Drawing.Point(236, 122)
-        Me.btnCancelPayment.Name = "btnCancelPayment"
-        Me.btnCancelPayment.Size = New System.Drawing.Size(52, 34)
-        Me.btnCancelPayment.TabIndex = 83
-        Me.btnCancelPayment.UseVisualStyleBackColor = True
-        '
-        'btnCancelDiscount
-        '
-        Me.btnCancelDiscount.BackgroundImage = Global.POS.My.Resources.Resources.cancel
-        Me.btnCancelDiscount.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
-        Me.btnCancelDiscount.Font = New System.Drawing.Font("Segoe UI Semibold", 15.75!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.btnCancelDiscount.ForeColor = System.Drawing.Color.FromArgb(CType(CType(192, Byte), Integer), CType(CType(0, Byte), Integer), CType(CType(0, Byte), Integer))
-        Me.btnCancelDiscount.Location = New System.Drawing.Point(236, 78)
-        Me.btnCancelDiscount.Name = "btnCancelDiscount"
-        Me.btnCancelDiscount.Size = New System.Drawing.Size(52, 34)
-        Me.btnCancelDiscount.TabIndex = 82
-        Me.btnCancelDiscount.TextAlign = System.Drawing.ContentAlignment.TopCenter
-        Me.btnCancelDiscount.UseVisualStyleBackColor = True
-        '
         'btnRemoveQuantity
         '
         Me.btnRemoveQuantity.BackgroundImage = Global.POS.My.Resources.Resources.minus
@@ -972,101 +1060,13 @@ Partial Class frmPOS
         Me.btnAddQuantity.TabIndex = 66
         Me.btnAddQuantity.UseVisualStyleBackColor = True
         '
-        'productSerno
-        '
-        Me.productSerno.HeaderText = "serno"
-        Me.productSerno.Name = "productSerno"
-        Me.productSerno.ReadOnly = True
-        Me.productSerno.Visible = False
-        '
-        'serno
-        '
-        Me.serno.HeaderText = "Σειρά"
-        Me.serno.Name = "serno"
-        Me.serno.ReadOnly = True
-        Me.serno.Width = 50
-        '
-        'description
-        '
-        Me.description.HeaderText = "Περιγραφή"
-        Me.description.Name = "description"
-        Me.description.ReadOnly = True
-        Me.description.Width = 235
-        '
-        'quantity
-        '
-        Me.quantity.HeaderText = "Ποσ."
-        Me.quantity.Name = "quantity"
-        Me.quantity.ReadOnly = True
-        '
-        'unitprice
-        '
-        Me.unitprice.HeaderText = "Τιμή Μονάδας (€)"
-        Me.unitprice.Name = "unitprice"
-        Me.unitprice.ReadOnly = True
-        '
-        'amount
-        '
-        Me.amount.HeaderText = "Ποσό (€)"
-        Me.amount.Name = "amount"
-        Me.amount.ReadOnly = True
-        '
-        'vat
-        '
-        Me.vat.HeaderText = "Φ.Π.Α"
-        Me.vat.Name = "vat"
-        Me.vat.ReadOnly = True
-        Me.vat.Width = 80
-        '
-        'isKronos
-        '
-        Me.isKronos.HeaderText = "isKronos"
-        Me.isKronos.Name = "isKronos"
-        Me.isKronos.ReadOnly = True
-        Me.isKronos.Visible = False
-        '
-        'isbox
-        '
-        Me.isbox.HeaderText = "isbox"
-        Me.isbox.Name = "isbox"
-        Me.isbox.ReadOnly = True
-        Me.isbox.Visible = False
-        '
-        'box_qnt
-        '
-        Me.box_qnt.HeaderText = "box_qnt"
-        Me.box_qnt.Name = "box_qnt"
-        Me.box_qnt.ReadOnly = True
-        Me.box_qnt.Visible = False
-        '
-        'itemCode
-        '
-        Me.itemCode.HeaderText = "itemCode"
-        Me.itemCode.Name = "itemCode"
-        Me.itemCode.ReadOnly = True
-        Me.itemCode.Visible = False
-        '
-        'issueNumber
-        '
-        Me.issueNumber.HeaderText = "issueNumber"
-        Me.issueNumber.Name = "issueNumber"
-        Me.issueNumber.ReadOnly = True
-        Me.issueNumber.Visible = False
-        '
-        'deliveryDate
-        '
-        Me.deliveryDate.HeaderText = "deliveryDate"
-        Me.deliveryDate.Name = "deliveryDate"
-        Me.deliveryDate.ReadOnly = True
-        Me.deliveryDate.Visible = False
-        '
         'frmPOS
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
         Me.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
-        Me.ClientSize = New System.Drawing.Size(1014, 739)
+        Me.ClientSize = New System.Drawing.Size(1004, 725)
         Me.Controls.Add(Me.btnPos23)
         Me.Controls.Add(Me.btnPos22)
         Me.Controls.Add(Me.btnPos21)

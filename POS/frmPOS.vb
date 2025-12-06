@@ -1,4 +1,5 @@
 ﻿Imports Oracle.DataAccess.Client
+
 Imports System.ComponentModel
 
 Public Class frmPOS
@@ -946,230 +947,231 @@ Public Class frmPOS
         setDualMonitorContents()
     End Sub
 
-    Private Sub generateReceipt()
-        If Not isConnOpen() Then
-            MessageBox.Show("Cannot connect to database, please try again", APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-            Exit Sub
-        End If
+    ' INITIAL VERSION BEFORE CHATHPT SUGGESTIONS
+    'Private Sub generateReceipt()
+    '    If Not isConnOpen() Then
+    '        MessageBox.Show("Cannot connect to database, please try again", APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
+    '        Exit Sub
+    '    End If
 
-        Dim description As String = ""
-        'Dim cmd = New OracleCommand("", conn)
-        'Dim dr As OracleDataReader
-        receiptSerno = -1
+    '    Dim description As String = ""
+    '    'Dim cmd = New OracleCommand("", conn)
+    '    'Dim dr As OracleDataReader
+    '    receiptSerno = -1
 
-        Dim sql As String = ""
-        Try
-            sql = "select receiptsSeq.nextVal from dual"
-            Dim cmdReceiptsSeq = New OracleCommand(sql, conn)
-            Using drR = cmdReceiptsSeq.ExecuteReader()
-                If drR.Read() Then
-                    receiptSerno = CInt(drR(0))
-                End If
-            End Using
+    '    Dim sql As String = ""
+    '    Try
+    '        sql = "select receiptsSeq.nextVal from dual"
+    '        Dim cmdReceiptsSeq = New OracleCommand(sql, conn)
+    '        Using drR = cmdReceiptsSeq.ExecuteReader()
+    '            If drR.Read() Then
+    '                receiptSerno = CInt(drR(0))
+    '            End If
+    '        End Using
 
-            If totalDiscount > 0 Then
-                If totalAmt19 >= totalDiscount Then
-                    totalAmt19 -= totalDiscount
-                Else
-                    Dim diff As Double = totalDiscount - totalAmt19
-                    totalAmt19 -= (totalDiscount - diff)
+    '        If totalDiscount > 0 Then
+    '            If totalAmt19 >= totalDiscount Then
+    '                totalAmt19 -= totalDiscount
+    '            Else
+    '                Dim diff As Double = totalDiscount - totalAmt19
+    '                totalAmt19 -= (totalDiscount - diff)
 
-                    If totalAmt5 > 0 Then
-                        totalAmt5 -= diff
-                    End If
+    '                If totalAmt5 > 0 Then
+    '                    totalAmt5 -= diff
+    '                End If
 
-                    If totalAmt3 > 0 Then
-                        totalAmt3 -= diff
-                    End If
-                End If
-            End If
+    '                If totalAmt3 > 0 Then
+    '                    totalAmt3 -= diff
+    '                End If
+    '            End If
+    '        End If
 
-            sql = "insert into receipts (serno, payment_type, total_discount, total_vat19, total_vat5, total_vat0, return_amt, total_amt_with_disc, " & _
-                  "                      total_amt, payment_amt, created_on, total_vat3, created_by) " & _
-                  "values               (" & receiptSerno & "," & _
-                  "                     '" & paymentMethod & "'," & _
-                  "                      " & totalDiscount & "," & _
-                  "                      " & totalAmt19 & "," & _
-                  "                      " & totalAmt5 & "," & _
-                  "                      " & totalAmt0 & "," & _
-                  "                      " & returnAmount & "," & _
-                  "                      " & totalWithDiscount & ", " & _
-                  "                      " & totalAmt & ", " & _
-                  "                      " & payment & ", " & _
-                  "                  (select systimestamp from dual), " & _
-                  "                      " & totalAmt3 & "," & _
-                  "                     '" & whois & "' ) "
-            Dim cmdInsertReceipt = New OracleCommand(sql, conn)
-            Using cmdInsertReceipt                cmdInsertReceipt.ExecuteNonQuery()            End Using
+    '        sql = "insert into receipts (serno, payment_type, total_discount, total_vat19, total_vat5, total_vat0, return_amt, total_amt_with_disc, " & _
+    '              "                      total_amt, payment_amt, created_on, total_vat3, created_by) " & _
+    '              "values               (" & receiptSerno & "," & _
+    '              "                     '" & paymentMethod & "'," & _
+    '              "                      " & totalDiscount & "," & _
+    '              "                      " & totalAmt19 & "," & _
+    '              "                      " & totalAmt5 & "," & _
+    '              "                      " & totalAmt0 & "," & _
+    '              "                      " & returnAmount & "," & _
+    '              "                      " & totalWithDiscount & ", " & _
+    '              "                      " & totalAmt & ", " & _
+    '              "                      " & payment & ", " & _
+    '              "                  (select systimestamp from dual), " & _
+    '              "                      " & totalAmt3 & "," & _
+    '              "                     '" & whois & "' ) "
+    '        Dim cmdInsertReceipt = New OracleCommand(sql, conn)
+    '        Using cmdInsertReceipt    '            cmdInsertReceipt.ExecuteNonQuery()    '        End Using
 
-            Dim productsNotUpdateQuantity As New ArrayList()
-            For i As Integer = -313 To -300
-                productsNotUpdateQuantity.Add(i.ToString)
-            Next
+    '        Dim productsNotUpdateQuantity As New ArrayList()
+    '        For i As Integer = -313 To -300
+    '            productsNotUpdateQuantity.Add(i.ToString)
+    '        Next
 
-            For i = 0 To dgvReceipt.Rows.Count - 1
-                Dim tmpAmount As Double = dgvReceipt.Rows(i).Cells("amount").Value
-                Dim tmpQuantity As Integer = dgvReceipt.Rows(i).Cells("quantity").Value
-                Dim tmpSerno As String = ""
-                Dim tmpVat As String = dgvReceipt.Rows(i).Cells("vat").Value
-                tmpSerno = dgvReceipt.Rows(i).Cells("productSerno").Value
+    '        For i = 0 To dgvReceipt.Rows.Count - 1
+    '            Dim tmpAmount As Double = dgvReceipt.Rows(i).Cells("amount").Value
+    '            Dim tmpQuantity As Integer = dgvReceipt.Rows(i).Cells("quantity").Value
+    '            Dim tmpSerno As String = ""
+    '            Dim tmpVat As String = dgvReceipt.Rows(i).Cells("vat").Value
+    '            tmpSerno = dgvReceipt.Rows(i).Cells("productSerno").Value
 
-                Dim tmpIsBox As Integer = CInt(dgvReceipt.Rows(i).Cells("isbox").Value)
-                Dim tmpBoxQnt As Integer = CInt(dgvReceipt.Rows(i).Cells("box_qnt").Value)
+    '            Dim tmpIsBox As Integer = CInt(dgvReceipt.Rows(i).Cells("isbox").Value)
+    '            Dim tmpBoxQnt As Integer = CInt(dgvReceipt.Rows(i).Cells("box_qnt").Value)
 
-                If tmpAmount < 0 Then
-                    tmpQuantity *= -1
-                End If
+    '            If tmpAmount < 0 Then
+    '                tmpQuantity *= -1
+    '            End If
 
-                Dim currentAmt As Double = dgvReceipt.Rows(i).Cells("amount").Value
+    '            Dim currentAmt As Double = dgvReceipt.Rows(i).Cells("amount").Value
 
-                sql = "insert into receipts_det (receipt_serno, product_serno, quantity, amount, vat, created_on) " & _
-                      "values                   (" & receiptSerno & "," & _
-                      "                          " & tmpSerno & "," & _
-                      "                          " & tmpQuantity & ", " & _
-                      "                          " & currentAmt & ", " & _
-                      "                          " & tmpVat & ", (select systimestamp from dual))"
+    '            sql = "insert into receipts_det (receipt_serno, product_serno, quantity, amount, vat, created_on) " & _
+    '                  "values                   (" & receiptSerno & "," & _
+    '                  "                          " & tmpSerno & "," & _
+    '                  "                          " & tmpQuantity & ", " & _
+    '                  "                          " & currentAmt & ", " & _
+    '                  "                          " & tmpVat & ", (select systimestamp from dual))"
 
-                Dim cmdReceiptsDet = New OracleCommand(sql, conn)
-                Using cmdReceiptsDet                    cmdReceiptsDet.ExecuteNonQuery()                End Using
+    '            Dim cmdReceiptsDet = New OracleCommand(sql, conn)
+    '            Using cmdReceiptsDet    '                cmdReceiptsDet.ExecuteNonQuery()    '            End Using
 
-                If Not productsNotUpdateQuantity.Contains(tmpSerno) Then
+    '            If Not productsNotUpdateQuantity.Contains(tmpSerno) Then
 
-                    Dim isBox As Boolean = False
+    '                Dim isBox As Boolean = False
 
-                    If tmpIsBox.Equals(0) Then
+    '                If tmpIsBox.Equals(0) Then
 
-                        'Double check if product is a box to avoid wrong quantity updates
-                        sql = "select nvl(isbox,0) from products where serno = " & CInt(tmpSerno) & ""
-                        Dim cmdProducts = New OracleCommand(sql, conn)
-                        Using dr = cmdProducts.ExecuteReader()
-                            If dr.Read Then
-                                Dim tmp As Integer = CInt(dr(0))
-                                If tmp > 0 Then
-                                    isBox = True
-                                End If
-                            End If
-                        End Using
-                        cmdProducts.Dispose()
+    '                    'Double check if product is a box to avoid wrong quantity updates
+    '                    sql = "select nvl(isbox,0) from products where serno = " & CInt(tmpSerno) & ""
+    '                    Dim cmdProducts = New OracleCommand(sql, conn)
+    '                    Using dr = cmdProducts.ExecuteReader()
+    '                        If dr.Read Then
+    '                            Dim tmp As Integer = CInt(dr(0))
+    '                            If tmp > 0 Then
+    '                                isBox = True
+    '                            End If
+    '                        End If
+    '                    End Using
+    '                    cmdProducts.Dispose()
 
-                        If Not isBox Then
-                            sql = "update products set avail_quantity = (avail_quantity"
-                            If tmpAmount >= 0 Then
-                                sql += " - " & tmpQuantity & ")"
-                            Else
-                                sql += " + " & (tmpQuantity * -1) & ")"
-                            End If
-                            sql += ", lastmodifiedscreen = 0 where serno = " & CInt(tmpSerno) & " "
-                            Dim cmdUpdateQnt = New OracleCommand(sql, conn)
-                            Using cmdUpdateQnt
-                                cmdUpdateQnt.ExecuteNonQuery()
-                            End Using
-                        End If
-                    End If
+    '                    If Not isBox Then
+    '                        sql = "update products set avail_quantity = (avail_quantity"
+    '                        If tmpAmount >= 0 Then
+    '                            sql += " - " & tmpQuantity & ")"
+    '                        Else
+    '                            sql += " + " & (tmpQuantity * -1) & ")"
+    '                        End If
+    '                        sql += ", lastmodifiedscreen = 0 where serno = " & CInt(tmpSerno) & " "
+    '                        Dim cmdUpdateQnt = New OracleCommand(sql, conn)
+    '                        Using cmdUpdateQnt
+    '                            cmdUpdateQnt.ExecuteNonQuery()
+    '                        End Using
+    '                    End If
+    '                End If
 
-                    If tmpIsBox.Equals(1) Or isBox Then
-                        '
-                        Dim logMsg As String = ""
-                        Dim currentqnt As Integer = 0
-                        Dim q As String = "select avail_quantity from products where serno in (" & _
-                                                "select product_serno from barcodes where UPPER(barcode) in " & _
-                                                "(select UPPER(barcode) from boxbarcodes where product_serno = " & CInt(tmpSerno) & ")" & _
-                                                ")"
+    '                If tmpIsBox.Equals(1) Or isBox Then
+    '                    '
+    '                    Dim logMsg As String = ""
+    '                    Dim currentqnt As Integer = 0
+    '                    Dim q As String = "select avail_quantity from products where serno in (" & _
+    '                                            "select product_serno from barcodes where UPPER(barcode) in " & _
+    '                                            "(select UPPER(barcode) from boxbarcodes where product_serno = " & CInt(tmpSerno) & ")" & _
+    '                                            ")"
 
-                        Dim cmdSelectQnt = New OracleCommand(q, conn)
-                        Using dr = cmdSelectQnt.ExecuteReader()
-                            If dr.Read Then
-                                currentqnt = CInt(dr(0))
-                                logMsg = Date.Now + " Current:" + currentqnt.ToString
-                            End If
-                        End Using
+    '                    Dim cmdSelectQnt = New OracleCommand(q, conn)
+    '                    Using dr = cmdSelectQnt.ExecuteReader()
+    '                        If dr.Read Then
+    '                            currentqnt = CInt(dr(0))
+    '                            logMsg = Date.Now + " Current:" + currentqnt.ToString
+    '                        End If
+    '                    End Using
 
-                        sql = "update products set avail_quantity = (avail_quantity"
-                        If tmpAmount >= 0 Then
-                            sql += " - " & (tmpBoxQnt * tmpQuantity) & ")"
-                        Else
-                            sql += " + " & (tmpBoxQnt * tmpQuantity) & ")"
-                        End If
-                        sql += ", lastmodifiedscreen = 0  " & _
-                               "where serno in (" & _
-                                                "select product_serno from barcodes where UPPER(barcode) in " & _
-                                                "(select UPPER(barcode) from boxbarcodes where product_serno = " & CInt(tmpSerno) & ")" & _
-                                                ")"
+    '                    sql = "update products set avail_quantity = (avail_quantity"
+    '                    If tmpAmount >= 0 Then
+    '                        sql += " - " & (tmpBoxQnt * tmpQuantity) & ")"
+    '                    Else
+    '                        sql += " + " & (tmpBoxQnt * tmpQuantity) & ")"
+    '                    End If
+    '                    sql += ", lastmodifiedscreen = 0  " & _
+    '                           "where serno in (" & _
+    '                                            "select product_serno from barcodes where UPPER(barcode) in " & _
+    '                                            "(select UPPER(barcode) from boxbarcodes where product_serno = " & CInt(tmpSerno) & ")" & _
+    '                                            ")"
 
-                        Dim cmdUpdateQnt = New OracleCommand(sql, conn)
-                        Using cmdUpdateQnt                            cmdUpdateQnt.ExecuteNonQuery()                        End Using
-                        If tmpAmount < 0 Then
-                            tmpBoxQnt *= -1
-                        End If
+    '                    Dim cmdUpdateQnt = New OracleCommand(sql, conn)
+    '                    Using cmdUpdateQnt    '                        cmdUpdateQnt.ExecuteNonQuery()    '                    End Using
+    '                    If tmpAmount < 0 Then
+    '                        tmpBoxQnt *= -1
+    '                    End If
 
-                        logMsg += ", PrSerno:" + tmpSerno + ", Amt:" + tmpAmount.ToString + ", BoxQnt:" + tmpBoxQnt.ToString + ", NewQnt:" + (currentqnt - tmpBoxQnt).ToString
+    '                    logMsg += ", PrSerno:" + tmpSerno + ", Amt:" + tmpAmount.ToString + ", BoxQnt:" + tmpBoxQnt.ToString + ", NewQnt:" + (currentqnt - tmpBoxQnt).ToString
 
-                        q = "insert into isbox_log (logmsg) values ('" & logMsg & "')"
-                        Dim cmdBoxLog = New OracleCommand(q, conn)
-                        Using cmdBoxLog                            cmdBoxLog.ExecuteNonQuery()                        End Using                    End If
-                End If
-            Next
+    '                    q = "insert into isbox_log (logmsg) values ('" & logMsg & "')"
+    '                    Dim cmdBoxLog = New OracleCommand(q, conn)
+    '                    Using cmdBoxLog    '                        cmdBoxLog.ExecuteNonQuery()    '                    End Using    '                End If
+    '            End If
+    '        Next
 
-            printType = "R"
-            PrintDocument1.PrinterSettings.Copies = 1
-            PrintDocument1.Print()
+    '        printType = "R"
+    '        PrintDocument1.PrinterSettings.Copies = 1
+    '        PrintDocument1.Print()
 
-            If btnHold.Text = RETRIEVE Then
-                btnExit.Enabled = True
-                txtBoxTotalWithDiscount.Text = tmpTrxn.totalWithDiscount
-                txtBoxTotalAmt.Text = tmpTrxn.totalAmt
-                txtBoxDiscount.Text = tmpTrxn.discount
-                txtBoxPaymentAmt.Text = tmpTrxn.paymentAmt
-                txtBoxReturnAmt.Text = tmpTrxn.returnAmt
-                totalAmt19 = tmpTrxn.totalAmt19
-                totalAmt5 = tmpTrxn.totalAmt5
-                totalAmt0 = tmpTrxn.totalAmt0
-                totalAmt3 = tmpTrxn.totalAmt3
-                totalItems = tmpTrxn.totalItems
-                totalAmt = tmpTrxn.dTotalAmt
-                totalWithDiscount = tmpTrxn.dTotalWithDiscount
-                offerXYItems = tmpTrxn.offerXYItems
-                offerDiscAtItems = tmpTrxn.offerDiscAtItems
-                productsAndQuantity = tmpTrxn.productsAndQuantity
+    '        If btnHold.Text = RETRIEVE Then
+    '            btnExit.Enabled = True
+    '            txtBoxTotalWithDiscount.Text = tmpTrxn.totalWithDiscount
+    '            txtBoxTotalAmt.Text = tmpTrxn.totalAmt
+    '            txtBoxDiscount.Text = tmpTrxn.discount
+    '            txtBoxPaymentAmt.Text = tmpTrxn.paymentAmt
+    '            txtBoxReturnAmt.Text = tmpTrxn.returnAmt
+    '            totalAmt19 = tmpTrxn.totalAmt19
+    '            totalAmt5 = tmpTrxn.totalAmt5
+    '            totalAmt0 = tmpTrxn.totalAmt0
+    '            totalAmt3 = tmpTrxn.totalAmt3
+    '            totalItems = tmpTrxn.totalItems
+    '            totalAmt = tmpTrxn.dTotalAmt
+    '            totalWithDiscount = tmpTrxn.dTotalWithDiscount
+    '            offerXYItems = tmpTrxn.offerXYItems
+    '            offerDiscAtItems = tmpTrxn.offerDiscAtItems
+    '            productsAndQuantity = tmpTrxn.productsAndQuantity
 
-                dgvReceipt.Rows.Clear()
+    '            dgvReceipt.Rows.Clear()
 
-                Try
-                    For i As Integer = 0 To tmpTrxn.dgvReceipt.Rows.Count - 1
-                        If tmpTrxn.dgvReceipt.Rows(i).Cells("description").Value() <> String.Empty Then
-                            dgvReceipt.Rows.Add(tmpTrxn.dgvReceipt.Rows(i).Cells("productSerno").Value(), _
-                                        tmpTrxn.dgvReceipt.Rows(i).Cells("serno").Value(), _
-                                        tmpTrxn.dgvReceipt.Rows(i).Cells("description").Value(), _
-                                        tmpTrxn.dgvReceipt.Rows(i).Cells("quantity").Value(), _
-                                        tmpTrxn.dgvReceipt.Rows(i).Cells("unitprice").Value(), _
-                                        tmpTrxn.dgvReceipt.Rows(i).Cells("amount").Value(), _
-                                        tmpTrxn.dgvReceipt.Rows(i).Cells("vat").Value(), _
-                                        tmpTrxn.dgvReceipt.Rows(i).Cells("isKronos").Value(), _
-                                        tmpTrxn.dgvReceipt.Rows(i).Cells("itemCode").Value(), _
-                                        tmpTrxn.dgvReceipt.Rows(i).Cells("issueNumber").Value(), _
-                                        tmpTrxn.dgvReceipt.Rows(i).Cells("deliveryDate").Value() _
-                                        )
-                        End If
-                    Next
-                Catch ex As Exception
-                    createExceptionFile(ex.Message, " ")
-                    MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-                End Try
+    '            Try
+    '                For i As Integer = 0 To tmpTrxn.dgvReceipt.Rows.Count - 1
+    '                    If tmpTrxn.dgvReceipt.Rows(i).Cells("description").Value() <> String.Empty Then
+    '                        dgvReceipt.Rows.Add(tmpTrxn.dgvReceipt.Rows(i).Cells("productSerno").Value(), _
+    '                                    tmpTrxn.dgvReceipt.Rows(i).Cells("serno").Value(), _
+    '                                    tmpTrxn.dgvReceipt.Rows(i).Cells("description").Value(), _
+    '                                    tmpTrxn.dgvReceipt.Rows(i).Cells("quantity").Value(), _
+    '                                    tmpTrxn.dgvReceipt.Rows(i).Cells("unitprice").Value(), _
+    '                                    tmpTrxn.dgvReceipt.Rows(i).Cells("amount").Value(), _
+    '                                    tmpTrxn.dgvReceipt.Rows(i).Cells("vat").Value(), _
+    '                                    tmpTrxn.dgvReceipt.Rows(i).Cells("isKronos").Value(), _
+    '                                    tmpTrxn.dgvReceipt.Rows(i).Cells("itemCode").Value(), _
+    '                                    tmpTrxn.dgvReceipt.Rows(i).Cells("issueNumber").Value(), _
+    '                                    tmpTrxn.dgvReceipt.Rows(i).Cells("deliveryDate").Value() _
+    '                                    )
+    '                    End If
+    '                Next
+    '            Catch ex As Exception
+    '                createExceptionFile(ex.Message, " ")
+    '                MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
+    '            End Try
 
-                tmpTrxn = New tmpTransaction
-                btnHold.Text = HOLD
-                btnHold.BackColor = Color.LightGray
-                txtBoxBarcode.Focus()
-            Else
-                clearScreen()
-            End If
-        Catch ex As Exception
-            createExceptionFile(ex.Message, " " & sql)
-            MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
-            getMinBarcodeLength()
-        End Try
-    End Sub
+    '            tmpTrxn = New tmpTransaction
+    '            btnHold.Text = HOLD
+    '            btnHold.BackColor = Color.LightGray
+    '            txtBoxBarcode.Focus()
+    '        Else
+    '            clearScreen()
+    '        End If
+    '    Catch ex As Exception
+    '        createExceptionFile(ex.Message, " " & sql)
+    '        MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
+    '    Finally
+    '        getMinBarcodeLength()
+    '    End Try
+    'End Sub
 
     Private Function amountFormat(ByVal amount As String) As String
         Dim length As Integer = amount.Length
@@ -1806,9 +1808,9 @@ Public Class frmPOS
         frmReceiptsPOS.ShowDialog()
     End Sub
 
-    Private Sub btnPosBtn_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnPos1.Click, btnPos2.Click, btnPos3.Click, _
-                                        btnPos4.Click, btnPos5.Click, btnPos6.Click, btnPos7.Click, btnPos8.Click, btnPos9.Click, btnPos10.Click, _
-                                        btnPos11.Click, btnPos12.Click, btnPos13.Click, btnPos14.Click, btnPos15.Click, btnPos16.Click, btnPos17.Click, _
+    Private Sub btnPosBtn_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnPos1.Click, btnPos2.Click, btnPos3.Click,
+                                        btnPos4.Click, btnPos5.Click, btnPos6.Click, btnPos7.Click, btnPos8.Click, btnPos9.Click, btnPos10.Click,
+                                        btnPos11.Click, btnPos12.Click, btnPos13.Click, btnPos14.Click, btnPos15.Click, btnPos16.Click, btnPos17.Click,
                                         btnPos18.Click, btnPos19.Click, btnPos20.Click, btnPos21.Click, btnPos22.Click, btnPos23.Click
         If Not isLoggedIn(username) Then
             MessageBox.Show("Ο χρήστης δεν ειναι συνδεμένος", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
@@ -1852,4 +1854,450 @@ Public Class frmPOS
             dynamicProductSerno = -1
         End If
     End Sub
+
+    'Changes advised by chatgpt
+    Private Function GetNextReceiptSerno(transaction As OracleTransaction) As Integer
+        Dim serno As Integer = -1
+        Dim sql As String = "SELECT receiptsSeq.nextVal FROM dual"
+
+        Using cmd As New OracleCommand(sql, conn)
+            ' Assign the transaction to the command
+            cmd.Transaction = transaction
+
+            ' Execute and get the next value
+            serno = Convert.ToInt32(cmd.ExecuteScalar())
+        End Using
+
+        Return serno
+    End Function
+
+    Private Sub ApplyTotalDiscount()
+        Dim remainingDiscount As Double = totalDiscount
+
+        ' Deduct from VAT19
+        If totalAmt19 >= remainingDiscount Then
+            totalAmt19 -= remainingDiscount
+            remainingDiscount = 0
+        Else
+            remainingDiscount -= totalAmt19
+            totalAmt19 = 0
+
+            ' Deduct from VAT5
+            If totalAmt5 >= remainingDiscount Then
+                totalAmt5 -= remainingDiscount
+                remainingDiscount = 0
+            Else
+                remainingDiscount -= totalAmt5
+                totalAmt5 = 0
+
+                ' Deduct from VAT3
+                If totalAmt3 >= remainingDiscount Then
+                    totalAmt3 -= remainingDiscount
+                    remainingDiscount = 0
+                Else
+                    remainingDiscount -= totalAmt3
+                    totalAmt3 = 0
+                End If
+            End If
+        End If
+    End Sub
+
+    Private Sub InsertReceiptHeader(receiptSerno As Integer, transaction As OracleTransaction)
+        Dim sql As String = "INSERT INTO receipts 
+                    (serno, payment_type, total_discount, total_vat19, total_vat5, total_vat0, return_amt, total_amt_with_disc, total_amt, payment_amt, created_on, total_vat3, created_by)
+                    VALUES
+                    (:serno, :payment_type, :total_discount, :vat19, :vat5, :vat0, :return_amt, :amt_with_disc, :total_amt, :payment_amt, SYSTIMESTAMP, :vat3, :created_by)"
+
+        Using cmd As New OracleCommand(sql, conn)
+            ' Assign the transaction to the command
+            cmd.Transaction = transaction
+
+            ' Add parameters
+            cmd.Parameters.Add("serno", receiptSerno)
+            cmd.Parameters.Add("payment_type", paymentMethod)
+            cmd.Parameters.Add("total_discount", totalDiscount)
+            cmd.Parameters.Add("vat19", totalAmt19)
+            cmd.Parameters.Add("vat5", totalAmt5)
+            cmd.Parameters.Add("vat0", totalAmt0)
+            cmd.Parameters.Add("return_amt", returnAmount)
+            cmd.Parameters.Add("amt_with_disc", totalWithDiscount)
+            cmd.Parameters.Add("total_amt", totalAmt)
+            cmd.Parameters.Add("payment_amt", payment)
+            cmd.Parameters.Add("vat3", totalAmt3)
+            cmd.Parameters.Add("created_by", whois)
+
+            ' Execute the command
+            cmd.ExecuteNonQuery()
+        End Using
+    End Sub
+
+    Private Sub InsertReceiptDetailsAndUpdateQuantities(receiptSerno As Integer, transaction As OracleTransaction)
+        Dim productsNotUpdateQuantity As New HashSet(Of String) From {
+        "-313", "-312", "-311", "-310", "-309", "-308", "-307", "-306", "-305", "-304", "-303", "-302", "-301", "-300"
+    }
+
+        For Each row As DataGridViewRow In dgvReceipt.Rows
+            Dim tmpSerno As String = row.Cells("productSerno").Value?.ToString()
+            If String.IsNullOrEmpty(tmpSerno) Then Continue For
+
+            ' Safe conversions
+            Dim tmpQuantity As Integer = 1
+            Integer.TryParse(row.Cells("quantity").Value?.ToString(), tmpQuantity)
+            Dim tmpAmount As Double = 0
+            Double.TryParse(row.Cells("amount").Value?.ToString(), tmpAmount)
+            Dim tmpVat As Integer = 0
+            Integer.TryParse(row.Cells("vat").Value?.ToString(), tmpVat)
+            Dim tmpIsBox As Integer = 0
+            Integer.TryParse(row.Cells("isbox").Value?.ToString(), tmpIsBox)
+            Dim tmpBoxQnt As Integer = 0
+            Integer.TryParse(row.Cells("box_qnt").Value?.ToString(), tmpBoxQnt)
+
+            ' Insert receipt detail
+            Dim sqlDet As String = "INSERT INTO receipts_det 
+                                (receipt_serno, product_serno, quantity, amount, vat, created_on)
+                                VALUES (:receipt_serno, :product_serno, :quantity, :amount, :vat, SYSTIMESTAMP)"
+            Using cmdDet As New OracleCommand(sqlDet, conn)
+                cmdDet.Transaction = transaction
+                cmdDet.Parameters.Add("receipt_serno", receiptSerno)
+                cmdDet.Parameters.Add("product_serno", tmpSerno)
+                cmdDet.Parameters.Add("quantity", tmpQuantity)
+                cmdDet.Parameters.Add("amount", tmpAmount)
+                cmdDet.Parameters.Add("vat", tmpVat)
+                cmdDet.ExecuteNonQuery()
+            End Using
+
+            ' Update product quantity if needed
+            If Not productsNotUpdateQuantity.Contains(tmpSerno) Then
+                UpdateProductQuantity(tmpSerno, tmpQuantity, tmpAmount, tmpIsBox, tmpBoxQnt, transaction)
+            End If
+        Next
+    End Sub
+
+
+    Private Sub UpdateProductQuantity(productSerno As String, quantity As Integer, amount As Double, isBox As Integer, boxQnt As Integer, transaction As OracleTransaction)
+        Dim isBoxFlag As Boolean = (isBox = 1)
+
+        ' For non-box products, verify from DB
+        If Not isBoxFlag Then
+            Dim sqlCheckBox As String = "SELECT NVL(isbox,0) FROM products WHERE serno = :serno"
+            Using cmd As New OracleCommand(sqlCheckBox, conn)
+                cmd.Transaction = transaction
+                cmd.Parameters.Add("serno", productSerno)
+                Dim result = cmd.ExecuteScalar()
+                If Convert.ToInt32(result) > 0 Then isBoxFlag = True
+            End Using
+        End If
+
+        ' Update quantity
+        If Not isBoxFlag Then
+            Dim sqlUpd As String = "UPDATE products SET avail_quantity = avail_quantity + :qtyChange, lastmodifiedscreen = 0 WHERE serno = :serno"
+            Using cmdUpd As New OracleCommand(sqlUpd, conn)
+                cmdUpd.Transaction = transaction
+                cmdUpd.Parameters.Add("qtyChange", If(amount >= 0, -quantity, quantity))
+                cmdUpd.Parameters.Add("serno", productSerno)
+                cmdUpd.ExecuteNonQuery()
+            End Using
+        Else
+            ' Box product update
+            Dim sqlBox As String = "UPDATE products SET avail_quantity = avail_quantity + :qtyChange, lastmodifiedscreen = 0
+                                WHERE serno IN (SELECT product_serno FROM barcodes WHERE UPPER(barcode) IN 
+                                (SELECT UPPER(barcode) FROM boxbarcodes WHERE product_serno = :serno))"
+            Using cmdBox As New OracleCommand(sqlBox, conn)
+                cmdBox.Transaction = transaction
+                cmdBox.Parameters.Add("qtyChange", If(amount >= 0, -(boxQnt * quantity), boxQnt * quantity))
+                cmdBox.Parameters.Add("serno", productSerno)
+                cmdBox.ExecuteNonQuery()
+            End Using
+
+            ' Log box update
+            Dim logMsg As String = $"Product {productSerno}, QtyChange: {If(amount >= 0, -(boxQnt * quantity), boxQnt * quantity)}"
+            Dim sqlLog As String = "INSERT INTO isbox_log (logmsg) VALUES (:logmsg)"
+            Using cmdLog As New OracleCommand(sqlLog, conn)
+                cmdLog.Transaction = transaction
+                cmdLog.Parameters.Add("logmsg", logMsg)
+                cmdLog.ExecuteNonQuery()
+            End Using
+        End If
+    End Sub
+
+    Private Sub PrintReceipt()
+        printType = "R"
+        PrintDocument1.PrinterSettings.Copies = 1
+        PrintDocument1.Print()
+    End Sub
+
+    Private Sub GenerateReceipt()
+        Try
+            ' Begin database transaction
+            Using transaction = conn.BeginTransaction()
+                ' 1. Generate next receipt serial
+                Dim receiptSerno As Integer = GetNextReceiptSerno(transaction)
+
+                ' 2. Apply discounts across VAT categories
+                ApplyTotalDiscount()
+
+                ' 3. Insert receipt header
+                InsertReceiptHeader(receiptSerno, transaction)
+
+                ' 4. Insert receipt details and update product quantities
+                InsertReceiptDetailsAndUpdateQuantities(receiptSerno, transaction)
+
+                ' Commit transaction
+                transaction.Commit()
+            End Using
+
+            ' 5. Print receipt
+            PrintReceipt()
+
+            ' 6. Handle hold/retrieve transaction
+            If btnHold.Text = RETRIEVE Then
+                btnExit.Enabled = True
+                txtBoxTotalWithDiscount.Text = tmpTrxn.totalWithDiscount
+                txtBoxTotalAmt.Text = tmpTrxn.totalAmt
+                txtBoxDiscount.Text = tmpTrxn.discount
+                txtBoxPaymentAmt.Text = tmpTrxn.paymentAmt
+                txtBoxReturnAmt.Text = tmpTrxn.returnAmt
+                totalAmt19 = tmpTrxn.totalAmt19
+                totalAmt5 = tmpTrxn.totalAmt5
+                totalAmt0 = tmpTrxn.totalAmt0
+                totalAmt3 = tmpTrxn.totalAmt3
+                totalItems = tmpTrxn.totalItems
+                totalAmt = tmpTrxn.dTotalAmt
+                totalWithDiscount = tmpTrxn.dTotalWithDiscount
+                offerXYItems = tmpTrxn.offerXYItems
+                offerDiscAtItems = tmpTrxn.offerDiscAtItems
+                productsAndQuantity = tmpTrxn.productsAndQuantity
+
+                dgvReceipt.Rows.Clear()
+
+                Try
+                    For i As Integer = 0 To tmpTrxn.dgvReceipt.Rows.Count - 1
+                        If tmpTrxn.dgvReceipt.Rows(i).Cells("description").Value() <> String.Empty Then
+                            dgvReceipt.Rows.Add(tmpTrxn.dgvReceipt.Rows(i).Cells("productserno").Value(),
+                                        tmpTrxn.dgvReceipt.Rows(i).Cells("serno").Value(),
+                                        tmpTrxn.dgvReceipt.Rows(i).Cells("description").Value(),
+                                        tmpTrxn.dgvReceipt.Rows(i).Cells("quantity").Value(),
+                                        tmpTrxn.dgvReceipt.Rows(i).Cells("unitprice").Value(),
+                                        tmpTrxn.dgvReceipt.Rows(i).Cells("amount").Value(),
+                                        tmpTrxn.dgvReceipt.Rows(i).Cells("vat").Value(),
+                                        tmpTrxn.dgvReceipt.Rows(i).Cells("iskronos").Value(),
+                                        tmpTrxn.dgvReceipt.Rows(i).Cells("itemcode").Value(),
+                                        tmpTrxn.dgvReceipt.Rows(i).Cells("issuenumber").Value(),
+                                        tmpTrxn.dgvReceipt.Rows(i).Cells("deliverydate").Value()
+                                        )
+                        End If
+                    Next
+                Catch ex As Exception
+                    CreateExceptionFile(ex.Message, " ")
+                    MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
+                End Try
+
+                tmpTrxn = New tmpTransaction
+                btnHold.Text = HOLD
+                btnHold.BackColor = Color.LightGray
+                txtBoxBarcode.Focus()
+            Else
+                clearScreen()
+            End If
+
+        Catch ex As Exception
+            CreateExceptionFile(ex.ToString(), "generateReceipt")
+            MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
+        Finally
+            GetMinBarcodeLength()
+        End Try
+    End Sub
+
+    Public Class Product
+        Public Property Serno As Integer
+        Public Property Description As String
+        Public Property SellAmt As Double
+        Public Property Vat As Integer
+        Public Property Offer As Integer
+        Public Property OfferType As Integer
+        Public Property OfferX As Integer
+        Public Property OfferY As Integer
+        Public Property OfferDisc As Double
+        Public Property OfferAt As Integer
+        Public Property IsBox As Integer
+        Public Property BoxQnt As Integer
+        Public Property OfferFromDate As Date
+        Public Property OfferToDate As Date
+    End Class
+
+    Private Sub TxtBoxBarcode_TextChanged(sender As Object, e As EventArgs) Handles txtBoxBarcode.TextChanged
+        If Not isConnOpen() Then
+            MessageBox.Show(CANNOT_ACCESS_DB, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Exit Sub
+        End If
+
+        If txtBoxBarcode.Text.Length < minBarcode Then Exit Sub
+
+        Dim product As Product = GetProductByBarcode(txtBoxBarcode.Text)
+        If product Is Nothing Then Exit Sub
+
+        totalItems += 1
+        Dim quantity As Integer = CInt(txtBoxQuantity.Text)
+        Dim currentAmt As Double = product.SellAmt * quantity * returnProduct
+
+        ' Add to DataGridView
+        Dim row As String() = New String() {
+        product.Serno.ToString(),
+        totalItems.ToString(),
+        product.Description,
+        quantity.ToString(),
+        product.SellAmt.ToString("N2"),
+        currentAmt.ToString("N2"),
+        product.Vat.ToString(), "0",
+        product.IsBox.ToString(),
+        product.BoxQnt.ToString()
+    }
+        dgvReceipt.Rows.Add(row)
+
+        ' Update totals
+        totalAmt += Math.Round(currentAmt, 2)
+        totalWithDiscount += Math.Round(currentAmt, 2)
+        txtBoxTotalAmt.Text = totalAmt.ToString("N2")
+
+        Select Case product.Vat
+            Case 0
+                totalAmt0 += currentAmt
+            Case 3
+                totalAmt3 += currentAmt
+            Case 5
+                totalAmt5 += currentAmt
+            Case 19
+                totalAmt19 += currentAmt
+        End Select
+
+        fillProductsAndQuantity(product.Serno.ToString())
+
+        ' Check offers
+        If product.Offer <> -1 AndAlso product.OfferType = 1 AndAlso
+       DateTime.Now > product.OfferFromDate AndAlso DateTime.Now < product.OfferToDate Then
+            setDiscountOfferType1(product.Serno, product.OfferAt, product.OfferDisc)
+        End If
+
+        ' Reset barcode box
+        txtBoxTotalWithDiscount.Text = totalWithDiscount.ToString("N2")
+        txtBoxQuantity.Text = "1"
+        txtBoxBarcode.Clear()
+        txtBoxBarcode.Focus()
+        chkBoxReturnProduct.Checked = False
+
+        FormatDataGrid()
+    End Sub
+
+    Private Function GetProductByBarcode(barcode As String) As Product
+        Dim sql As String = "
+        SELECT 
+            p.serno AS ""SERNO"",
+            p.description AS ""DESCRIPTION"",
+            p.sell_amt AS ""SELL_AMT"",
+            v.vat AS ""VAT"",
+            NVL(p.offer, -1) AS ""OFFER"",
+            NVL(p.offer_type, -1) AS ""OFFER_TYPE"",
+            NVL(p.offer_x, 0) AS ""OFFER_X"",
+            NVL(p.offer_y, 0) AS ""OFFER_Y"",
+            NVL(p.offer_disc, 0) AS ""OFFER_DISC"",
+            NVL(p.offer_at, 0) AS ""OFFER_AT"",
+            NVL(p.isbox, 0) AS ""ISBOX"",
+            NVL(p.box_qnt, 0) AS ""BOX_QNT"",
+            NVL(p.offerfromdate, SYSDATE) AS ""OFFERFROMDATE"",
+            NVL(p.offertodate, SYSDATE) AS ""OFFERTODATE""
+        FROM products p
+        INNER JOIN vat_types v ON p.vattype_id = v.uuid
+        WHERE p.serno = (
+            SELECT b.product_serno FROM barcodes b WHERE UPPER(b.barcode) = :barcode
+        )
+    "
+
+        Using cmd As New OracleCommand(sql, conn)
+            cmd.Parameters.Add("barcode", barcode.ToUpper())
+
+            Using dr As OracleDataReader = cmd.ExecuteReader()
+                If dr.Read() Then
+                    Return New Product With {
+                    .Serno = Convert.ToInt32(dr("SERNO")),
+                    .Description = dr("DESCRIPTION").ToString(),
+                    .SellAmt = Convert.ToDouble(dr("SELL_AMT")),
+                    .Vat = Convert.ToInt32(dr("VAT")),
+                    .Offer = Convert.ToInt32(dr("OFFER")),
+                    .OfferType = Convert.ToInt32(dr("OFFER_TYPE")),
+                    .OfferX = Convert.ToInt32(dr("OFFER_X")),
+                    .OfferY = Convert.ToInt32(dr("OFFER_Y")),
+                    .OfferDisc = Convert.ToDouble(dr("OFFER_DISC")),
+                    .OfferAt = Convert.ToInt32(dr("OFFER_AT")),
+                    .IsBox = Convert.ToInt32(dr("ISBOX")),
+                    .BoxQnt = Convert.ToInt32(dr("BOX_QNT")),
+                    .OfferFromDate = CDate(dr("OFFERFROMDATE")),
+                    .OfferToDate = CDate(dr("OFFERTODATE"))
+                }
+                End If
+            End Using
+        End Using
+
+        Return Nothing
+    End Function
+
+
+    Private Sub AddProductToReceipt(product As Product)
+        Dim quantity As Integer = CInt(txtBoxQuantity.Text)
+        Dim currentAmt As Double = product.SellAmt * quantity * returnProduct
+
+        ' Add row to DataGridView
+        dgvReceipt.Rows.Add({
+        product.Serno,
+        totalItems + 1,
+        product.Description,
+        quantity,
+        product.SellAmt.ToString("N2"),
+        currentAmt.ToString("N2"),
+        product.Vat,
+        "0",
+        product.IsBox,
+        product.BoxQnt
+    })
+
+        ' Update totals
+        totalItems += 1
+        totalAmt += Math.Round(currentAmt, 2)
+        totalWithDiscount += Math.Round(currentAmt, 2)
+        txtBoxTotalAmt.Text = totalAmt.ToString("N2")
+
+        ' Update VAT subtotals
+        UpdateVatTotals(product.Vat, currentAmt)
+
+        ' Track quantity for products
+        fillProductsAndQuantity(product.Serno.ToString())
+
+        ' Apply offers
+        ApplyOfferIfEligible(product)
+    End Sub
+
+
+    Private Sub UpdateVatTotals(vat As Integer, amount As Double)
+        Select Case vat
+            Case 0 : totalAmt0 += amount
+            Case 3 : totalAmt3 += amount
+            Case 5 : totalAmt5 += amount
+            Case 19 : totalAmt19 += amount
+        End Select
+    End Sub
+    Private Sub ApplyOfferIfEligible(product As Product)
+        If product.Offer <> -1 AndAlso product.OfferType = 1 AndAlso
+       Date.Now >= product.OfferFromDate AndAlso Date.Now <= product.OfferToDate Then
+            setDiscountOfferType1(product.Serno, product.OfferAt, product.OfferDisc)
+        End If
+    End Sub
+
+    Private Sub ResetBarcodeInput()
+        txtBoxQuantity.Text = "1"
+        txtBoxBarcode.Clear()
+        txtBoxBarcode.Focus()
+        chkBoxReturnProduct.Checked = False
+        txtBoxTotalWithDiscount.Text = totalWithDiscount.ToString("N2")
+    End Sub
+
+
 End Class
