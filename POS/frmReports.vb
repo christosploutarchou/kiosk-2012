@@ -1887,7 +1887,7 @@ Public Class frmReports
             End If
             dr.Close()
         Catch ex As Exception
-            createExceptionFile(ex.Message, " " & CHECK_IF_LOGGED_IN)
+            CreateExceptionFile(ex.Message, " ")
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Finally
             cmd.Dispose()

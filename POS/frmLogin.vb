@@ -7,14 +7,14 @@ Imports System.Data.OleDb
 
 Public Class frmLogin
 
-    Private Sub frmLogin_Disposed(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Disposed
+    Private Sub FrmLogin_Disposed(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Disposed
         If (openConn()) Then
-            logoutUser(username)
+            LogoutUser(username)
             closeConn()
         End If
     End Sub
 
-    Private Sub frmLogin_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
+    Private Sub FrmLogin_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
         If (Not openConn()) Then
             Me.Dispose()
         End If
@@ -24,27 +24,32 @@ Public Class frmLogin
         End If
         isPasswordEncrypted()
         getKIOSKParams()
-        fillUsersList()
+        FillUsersList()
         lblLoginTitle1.Text = LOGIN_TITLE1
         lblLoginTitle2.Text = LOGIN_TITLE2
     End Sub
 
-    Private Sub fillUsersList()
-        Dim cmd As New OracleCommand(GET_USERS_ON_LOGIN, conn)
-        Dim counter As Integer = 0
-        Dim dr As OracleDataReader
+    Private Sub FillUsersList()
+        Dim q As String = "SELECT username FROM users WHERE deleted = 0 ORDER BY username"
         Try
-            cmd.CommandType = CommandType.Text
-            dr = cmd.ExecuteReader()
-            While dr.Read()
-                lstboxUsers.Items.Add(dr("username"))
-            End While
-            dr.Close()
+            Using cmd As New OracleCommand(q, conn)
+                cmd.CommandType = CommandType.Text
+
+                Using dr As OracleDataReader = cmd.ExecuteReader()
+                    lstboxUsers.BeginUpdate()
+                    lstboxUsers.Items.Clear()
+
+                    While dr.Read()
+                        lstboxUsers.Items.Add(dr.GetString(dr.GetOrdinal("username")))
+                    End While
+
+                    lstboxUsers.EndUpdate()
+                End Using
+            End Using
+
         Catch ex As Exception
-            createExceptionFile(ex.Message, " " & GET_USERS_ON_LOGIN)
+            createExceptionFile(ex.Message, " " & q)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
-            cmd.Dispose()            
         End Try
     End Sub
 
@@ -53,77 +58,63 @@ Public Class frmLogin
         Me.Dispose()
     End Sub
 
-    Private Sub btnClear_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnClear.Click
-        txtBoxPassword.Clear()
+    'Private Sub btnClear_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnClear.Click
+    '    txtBoxPassword.Clear()
+    'End Sub
+
+    'Private Sub NumberButton_Click(sender As Object, e As EventArgs) _
+    'Handles btn0.Click, btn1.Click, btn2.Click, btn3.Click, btn4.Click, btn5.Click, btn6.Click, btn7.Click, btn8.Click, btn9.Click
+
+    'Dim btn As Button = DirectCast(sender, Button)
+    '   txtBoxPassword.Text &= btn.Text
+    'End Sub
+
+    Private Sub KeypadButton_Click(sender As Object, e As EventArgs) _
+    Handles btn0.Click, btn1.Click, btn2.Click, btn3.Click, btn4.Click, btn5.Click, btn6.Click, btn7.Click, btn8.Click, btn9.Click, btnBack.Click, btnClear.Click
+
+        Dim btn As Button = DirectCast(sender, Button)
+
+        Select Case btn.Name
+            Case "btnBack"
+                If txtBoxPassword.Text.Length > 0 Then
+                    txtBoxPassword.Text = txtBoxPassword.Text.Remove(txtBoxPassword.Text.Length - 1)
+                End If
+
+            Case "btnClear"
+                txtBoxPassword.Clear()
+
+            Case Else
+                txtBoxPassword.Text &= btn.Text
+        End Select
     End Sub
 
-    Private Sub btn7_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btn7.Click
-        txtBoxPassword.Text += "7"
-    End Sub
+    'Private Sub btnBack_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnBack.Click
+    'If txtBoxPassword.Text.Length > 0 Then
+    '       txtBoxPassword.Text = txtBoxPassword.Text.Substring(0, txtBoxPassword.Text.Length - 1)
+    'End If
+    'End Sub
 
-    Private Sub btn8_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btn8.Click
-        txtBoxPassword.Text += "8"
-    End Sub
-
-    Private Sub btn9_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btn9.Click
-        txtBoxPassword.Text += "9"
-    End Sub
-
-    Private Sub btn4_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btn4.Click
-        txtBoxPassword.Text += "4"
-    End Sub
-
-    Private Sub btn5_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btn5.Click
-        txtBoxPassword.Text += "5"
-    End Sub
-
-    Private Sub btn6_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btn6.Click
-        txtBoxPassword.Text += "6"
-    End Sub
-
-    Private Sub btn1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btn1.Click
-        txtBoxPassword.Text += "1"
-    End Sub
-
-    Private Sub btn2_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btn2.Click
-        txtBoxPassword.Text += "2"
-    End Sub
-
-    Private Sub btn3_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btn3.Click
-        txtBoxPassword.Text += "3"
-    End Sub
-
-    Private Sub btn0_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btn0.Click
-        txtBoxPassword.Text += "0"
-    End Sub
-
-    Private Sub btnBack_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnBack.Click
-        If txtBoxPassword.Text.Length > 0 Then
-            txtBoxPassword.Text = txtBoxPassword.Text.Substring(0, txtBoxPassword.Text.Length - 1)
-        End If
-    End Sub
-
-    Private Sub btnLogin_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnLogin.Click
+    Private Sub BtnLogin_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnLogin.Click
 
         'If Not CheckHhdSerial() Then
         'Exit Sub
         'End If
 
         getVat3PercentColumns()
-        isBoxReport()
+        'isBoxReport()
 
         username = lstboxUsers.Text
         whois = ""
         Dim sql As String = ""
 
-        If Not username.Equals("unlock") Then
-            If Not checkIfAllowConnection() Then
-                MessageBox.Show("Έχει ξεπεραστει ο μέγιστος αριθμός σημείων", "Σφάλμα σύνεδης", MessageBoxButtons.OK, MessageBoxIcon.Stop)
-                Exit Sub
-            End If
-        End If
+        'If Not username.Equals("unlock") Then
+        'If Not checkIfAllowConnection() Then
+        'MessageBox.Show("Έχει ξεπεραστει ο μέγιστος αριθμός σημείων", "Σφάλμα σύνεδης", MessageBoxButtons.OK, MessageBoxIcon.Stop)
+        'Exit Sub
+        'End If
+        'End If
 
-        If Not isLoggedIn(username) Then
+        If Not IsLoggedIn(username) Then
             Dim cmd As New OracleCommand
             Try
                 cmd = New OracleCommand(GET_USER_INFO, conn)
@@ -222,7 +213,7 @@ Public Class frmLogin
                     cmd.ExecuteReader()
                 End If
             Catch ex As Exception
-                createExceptionFile(ex.Message, " " & sql)
+                CreateExceptionFile(ex.Message, " " & sql)
                 MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
             Finally
                 cmd.Dispose()
@@ -234,31 +225,31 @@ Public Class frmLogin
         End If
     End Sub
 
-    Private Function checkIfAllowConnection() As Boolean
-        Dim cmd As New OracleCommand("", conn)
-        Dim dr As OracleDataReader
-        Dim currentSessions As Integer = 0
-        Dim maxAllowedSessions As Integer = 1000 'PERIPTERO 130 = 2, XDRIVE=UNLIMITED (1000)
-        Try
-            cmd = New OracleCommand("select count(*) from sessions where is_active=1", conn)
-            cmd.CommandType = CommandType.Text
-            dr = cmd.ExecuteReader()
-            If dr.Read() Then
-                currentSessions = CInt(dr(0))
-            End If
-            dr.Close()
-        Catch ex As Exception
-            createExceptionFile(ex.Message, "")
-            MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
-            cmd.Dispose()
-        End Try
-
-        If currentSessions >= maxAllowedSessions Then
-            Return False
-        End If
-        Return True
-    End Function
+    'Private Function checkIfAllowConnection() As Boolean
+    'Dim cmd As New OracleCommand("", conn)
+    'Dim dr As OracleDataReader
+    'Dim currentSessions As Integer = 0
+    'Dim maxAllowedSessions As Integer = 1000 'PERIPTERO 130 = 2, XDRIVE=UNLIMITED (1000)
+    'Try
+    '       cmd = New OracleCommand("select count(*) from sessions where is_active=1", conn)
+    '      cmd.CommandType = CommandType.Text
+    '     dr = cmd.ExecuteReader()
+    'If dr.Read() Then
+    '           currentSessions = CInt(dr(0))
+    'End If
+    '       dr.Close()
+    'Catch ex As Exception
+    '       createExceptionFile(ex.Message, "")
+    '      MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
+    'Finally
+    '       cmd.Dispose()
+    'End Try
+    '
+    'If currentSessions >= maxAllowedSessions Then
+    'Return False
+    'End If
+    'Return True
+    'End Function
 
     Private Sub lstboxUsers_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles lstboxUsers.SelectedIndexChanged
         txtBoxPassword.Clear()
@@ -275,44 +266,19 @@ Public Class frmLogin
 
     Dim mouseIndex As Integer = -1
 
-    'Private Sub ListBox1_MouseMove(ByVal sender As Object, ByVal e As MouseEventArgs) _
-    '                               Handles lstboxUsers.MouseMove
-    '    Dim index As Integer = lstboxUsers.IndexFromPoint(e.Location)
-    '    If index <> mouseIndex Then
-    '        If mouseIndex > -1 Then
-    '            Dim oldIndex As Integer = mouseIndex
-    '            mouseIndex = -1
-    '            If oldIndex <= lstboxUsers.Items.Count - 1 Then
-    '                lstboxUsers.Invalidate(lstboxUsers.GetItemRectangle(oldIndex))
-    '            End If
-    '        End If
-    '        mouseIndex = index
-    '        If mouseIndex > -1 Then
-    '            lstboxUsers.Invalidate(lstboxUsers.GetItemRectangle(mouseIndex))
-    '        End If
-    '    End If
+    Private Sub Control_MouseEnter(sender As Object, e As EventArgs) _
+        Handles txtBoxPassword.MouseEnter, lstboxUsers.MouseEnter
 
-    '    If mouseIndex > -1 Then
-    '        lstboxUsers.SelectedIndex = mouseIndex
-    '        lstboxUsers_SelectedIndexChanged(sender, e)
-    '    End If
-    'End Sub
-
-    Private Sub txtBoxPassword_MouseEnter(ByVal sender As Object, ByVal e As System.EventArgs) Handles txtBoxPassword.MouseEnter
-        txtBoxPassword.BackColor = Color.Bisque
-        txtBoxPassword.Focus()
+        Dim ctrl As Control = DirectCast(sender, Control)
+        ctrl.BackColor = Color.Bisque
+        ctrl.Focus()
     End Sub
 
-    Private Sub txtBoxPassword_MouseLeave(ByVal sender As Object, ByVal e As System.EventArgs) Handles txtBoxPassword.MouseLeave
-        txtBoxPassword.BackColor = Color.LemonChiffon
+    Private Sub Control_MouseLeave(sender As Object, e As EventArgs) _
+        Handles txtBoxPassword.MouseLeave, lstboxUsers.MouseLeave
+
+        Dim ctrl As Control = DirectCast(sender, Control)
+        ctrl.BackColor = Color.LemonChiffon
     End Sub
 
-    Private Sub lstboxUsers_MouseEnter(ByVal sender As Object, ByVal e As System.EventArgs) Handles lstboxUsers.MouseEnter
-        lstboxUsers.BackColor = Color.Bisque
-        lstboxUsers.Focus()
-    End Sub
-
-    Private Sub lstboxUsers_MouseLeave(ByVal sender As Object, ByVal e As System.EventArgs) Handles lstboxUsers.MouseLeave
-        lstboxUsers.BackColor = Color.LemonChiffon
-    End Sub
 End Class

@@ -1,7 +1,8 @@
-﻿Imports Oracle.DataAccess.Client
-Imports Oracle.DataAccess.Types
+﻿Imports System.Globalization
 Imports System.IO
 Imports System.Text
+Imports Oracle.DataAccess.Client
+Imports Oracle.DataAccess.Types
 
 Module connectionModule
     Public oradb As String 
@@ -43,37 +44,33 @@ Module connectionModule
     Public tmpBarcodeNotFound As String
     Public tmpBarcodeNotFoundExit As Boolean
 
-    Public Sub isBoxReport()
-
-        Dim cmd As New OracleCommand("", conn)
-        Dim dr As OracleDataReader
-        Dim sql As String = ""
-        Try
-            'ISBOX_LOG
-            sql = "select COUNT(*) from ALL_TABLES " & _
-                  "where TABLE_NAME = 'ISBOX_LOG' "
-
-            cmd = New OracleCommand(sql, conn)
-            cmd.CommandType = CommandType.Text
-            dr = cmd.ExecuteReader()
-            If dr.Read Then
-                If (CInt(dr(0)) = 0) Then
-                    sql = "create table ISBOX_LOG (LOGMSG Varchar2(256))"
-                    cmd = New OracleCommand(sql, conn)
-                    cmd.ExecuteReader()
-                End If
-            End If
-            dr.Close()
-        Catch ex As Exception
-            createExceptionFile(ex.Message, " " & sql)
-            MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
-            cmd.Dispose()
-        End Try
-
-
-    End Sub
-
+    'Public Sub isBoxReport()
+    'Dim cmd As New OracleCommand("", conn)
+    'Dim dr As OracleDataReader
+    'Dim sql As String = ""
+    'Try
+    'ISBOX_LOG
+    '       sql = "select COUNT(*) from ALL_TABLES " &
+    '            "where TABLE_NAME = 'ISBOX_LOG' "
+    '
+    'cmd = New OracleCommand(sql, conn)
+    'cmd.CommandType = CommandType.Text
+    'dr = cmd.ExecuteReader()
+    'If dr.Read Then
+    'If (CInt(dr(0)) = 0) Then
+    '               sql = "create table ISBOX_LOG (LOGMSG Varchar2(256))"
+    '              cmd = New OracleCommand(sql, conn)
+    '             cmd.ExecuteReader()
+    'End If
+    'End If
+    '       dr.Close()
+    'Catch ex As Exception
+    '       createExceptionFile(ex.Message, " " & sql)
+    '      MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
+    'Finally
+    '       cmd.Dispose()
+    'End Try
+    'End Sub
 
     Public Sub getVat3PercentColumns()
         Dim cmd As New OracleCommand("", conn)
@@ -142,56 +139,57 @@ Module connectionModule
             End If
             dr.Close()
         Catch ex As Exception
-            createExceptionFile(ex.Message, " " & sql)
+            CreateExceptionFile(ex.Message, " " & sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Finally
             cmd.Dispose()
         End Try
     End Sub
 
-    Public Function TruncateDecimal(ByVal value As Decimal, ByVal precision As Integer) As Decimal
-        Dim stepper As Decimal = Math.Pow(10, precision)
-        Dim tmp As Decimal = Math.Truncate(stepper * value)
-        Return tmp / stepper
-    End Function
-
-
-    Public Function CheckHhdSerial() As Boolean
-        Dim DriveSerial As Integer
-        Dim fso As Object = CreateObject("Scripting.FileSystemObject")
-        Dim Drv As Object = fso.GetDrive(fso.GetDriveName(Application.StartupPath))
-        With Drv
-            If .IsReady Then
-                DriveSerial = .SerialNumber
-            Else    '"Drive Not Ready!"
-                DriveSerial = -1
-            End If
-        End With
-
-        Dim FILE_NAME As String = "C:\Windows\sid.txt"
-        Dim serialFromFile As String
-        If System.IO.File.Exists(FILE_NAME) = True Then
-            Dim objReader As New System.IO.StreamReader(FILE_NAME)
-            serialFromFile = objReader.ReadToEnd
-            objReader.Close()
-            If Not DriveSerial.ToString("X2").Equals(serialFromFile) Then
-                MessageBox.Show("You are not allowed to use this program", "Invalid License", MessageBoxButtons.OK, MessageBoxIcon.Error)
-                Return False
-            End If
-        Else
-            Dim fs As FileStream = File.Create(FILE_NAME)
-            Dim info As Byte() = New UTF8Encoding(True).GetBytes(DriveSerial.ToString("X2"))
-            fs.Write(info, 0, info.Length)
-            File.SetAttributes(FILE_NAME, FileAttributes.Hidden)
-            fs.Close()
+    Public Function TruncateDecimal(value As Decimal, precision As Integer) As Decimal
+        If precision < 0 Then
+            Throw New ArgumentOutOfRangeException(NameOf(precision), "Precision must be zero or positive.")
         End If
-        Return True
+
+        Dim factor As Decimal = CDec(Math.Pow(10, precision))
+        Return Math.Truncate(value * factor) / factor
     End Function
 
+    'Public Function CheckHhdSerial() As Boolean
+    'Dim DriveSerial As Integer
+    'Dim fso As Object = CreateObject("Scripting.FileSystemObject")
+    'Dim Drv As Object = fso.GetDrive(fso.GetDriveName(Application.StartupPath))
+    'With Drv
+    'If .IsReady Then
+    '           DriveSerial = .SerialNumber
+    'Else    '"Drive Not Ready!"
+    '           DriveSerial = -1
+    'End If
+    'End With
 
-    Public Function openConn() As Boolean
+    'Dim FILE_NAME As String = "C:\Windows\sid.txt"
+    'Dim serialFromFile As String
+    'If System.IO.File.Exists(FILE_NAME) = True Then
+    'Dim objReader As New System.IO.StreamReader(FILE_NAME)
+    '       serialFromFile = objReader.ReadToEnd
+    '      objReader.Close()
+    'If Not DriveSerial.ToString("X2").Equals(serialFromFile) Then
+    '           MessageBox.Show("You are not allowed to use this program", "Invalid License", MessageBoxButtons.OK, MessageBoxIcon.Error)
+    'Return False
+    'End If
+    'Else
+    'Dim fs As FileStream = File.Create(FILE_NAME)
+    'Dim info As Byte() = New UTF8Encoding(True).GetBytes(DriveSerial.ToString("X2"))
+    '       fs.Write(info, 0, info.Length)
+    '      File.SetAttributes(FILE_NAME, FileAttributes.Hidden)
+    '     fs.Close()
+    'End If
+    'Return True
+    'End Function
+
+    Public Function OpenConn() As Boolean
         Dim dbHostName As String
-        dbHostName = getDbHostName()
+        dbHostName = GetDbHostName()
         If dbHostName = "" Then
             MessageBox.Show(DB_NOT_ACCESSIBLE, ERROR_MSG, MessageBoxButtons.OK, MessageBoxIcon.Error)
             Exit Function
@@ -203,18 +201,18 @@ Module connectionModule
         Try
             conn.ConnectionString = oradb
             conn.Open()
-            getParams()
-            getMinBarcodeLength()
+            GetParams()
+            GetMinBarcodeLength()
             getStartDate()
             Return True
         Catch ex As Exception
-            createExceptionFile(ex.Message, "")
+            CreateExceptionFile(ex.Message, "")
             If ex.Message.Substring(0, 9).Equals("ORA-12541") Then
                 If dbHostName.Equals("localhost") Then
                     MessageBox.Show("Σφάλμα με την βάση δεδομένων. Πατήστε OK και περιμένετε 45 δευτερόλεπτα", APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
                     Shell("lsnrctl start", AppWinStyle.NormalFocus, True)
                     Threading.Thread.Sleep(45000)
-                    openConn()
+                    OpenConn()
                     Return True
                 Else
                     MessageBox.Show("Σφάλμα με την βάση δεδομένων", APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
@@ -227,55 +225,85 @@ Module connectionModule
         End Try
     End Function
 
-    Public Sub closeConn()
+    Public Sub CloseConn()
         conn.Close()
     End Sub
 
-    Private Function getDbHostName() As String
-        Dim FILE_NAME As String = "C:\dbparams.txt"
-        Dim dbHostName As String
-        If System.IO.File.Exists(FILE_NAME) = True Then
+    Private Function GetDbHostName() As String
+        Const FILE_NAME As String = "C:\dbparams.txt"
 
-            Dim objReader As New System.IO.StreamReader(FILE_NAME)
-            dbHostName = objReader.ReadToEnd
-            objReader.Close()
-            Return dbHostName
-        Else
+        If Not IO.File.Exists(FILE_NAME) Then
             MessageBox.Show(READ_DB_PARAMS, ERROR_MSG, MessageBoxButtons.OK, MessageBoxIcon.Error)
-            Return ""
+            Return String.Empty
         End If
+
+        Try
+            Using reader As New IO.StreamReader(FILE_NAME)
+                ' Read the first non-empty line and trim spaces
+                Dim line As String
+                Do
+                    line = reader.ReadLine()
+                    If line Is Nothing Then Exit Do
+                    line = line.Trim()
+                Loop While String.IsNullOrEmpty(line)
+
+                Return If(String.IsNullOrEmpty(line), String.Empty, line)
+            End Using
+        Catch ex As Exception
+            MessageBox.Show("Error reading DB parameters: " & ex.Message, ERROR_MSG, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Return String.Empty
+        End Try
     End Function
 
-    Public Sub getParams()
-        Dim FILE_NAME As String = "C:\params.txt"
 
-        If Not System.IO.File.Exists(FILE_NAME) Then
+    Public Sub GetParams()
+        Const FILE_NAME As String = "C:\params.txt"
+
+        If Not IO.File.Exists(FILE_NAME) Then
             MessageBox.Show(READ_PARAMS, ERROR_MSG, MessageBoxButtons.OK, MessageBoxIcon.Error)
             computerName = "-1"
             Return
         End If
 
         Try
-            Using objReader As New System.IO.StreamReader(FILE_NAME)
-                Dim tmp As String = objReader.ReadToEnd()
-                Dim params As String() = tmp.Split("~"c)
+            Using reader As New IO.StreamReader(FILE_NAME)
+                Dim content As String = reader.ReadToEnd()
+                Dim params() As String = content.Split("~"c)
 
-                If params.Length >= 5 Then
-                    computerName = params(0)
-                    divideFactor0 = params(1).Replace(",", ".")
-                    divideFactor5 = params(2).Replace(",", ".")
-                    divideFactor19 = params(3).Replace(",", ".")
-                    dualMonitor = (params(4) = "1")
-                Else
+                If params.Length < 5 Then
                     MessageBox.Show("Το αρχείο παραμέτρων είναι κατεστραμμένο ή ελλιπές.", ERROR_MSG, MessageBoxButtons.OK, MessageBoxIcon.Warning)
                     computerName = "-1"
+                    Return
                 End If
+
+                computerName = params(0).Trim()
+
+                ' Parse numeric divide factors safely
+                divideFactor0 = ParseDecimal(params(1))
+                divideFactor5 = ParseDecimal(params(2))
+                divideFactor19 = ParseDecimal(params(3))
+
+                ' Parse boolean
+                dualMonitor = params(4).Trim() = "1"
+
             End Using
+
         Catch ex As Exception
             MessageBox.Show("Σφάλμα κατά την ανάγνωση του αρχείου παραμέτρων: " & ex.Message, ERROR_MSG, MessageBoxButtons.OK, MessageBoxIcon.Error)
             computerName = "-1"
         End Try
     End Sub
+
+    Private Function ParseDecimal(value As String) As Decimal
+        value = value.Trim().Replace(",", ".")
+        Dim result As Decimal
+        If Decimal.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, result) Then
+            Return result
+        Else
+            Return 0D ' fallback default if parsing fails
+        End If
+    End Function
+
 
 
     Public Sub getKIOSKParams()
@@ -315,34 +343,17 @@ Module connectionModule
     End Sub
 
 
+    Private ReadOnly MonthMap As New Dictionary(Of Integer, String) From {
+    {1, "JAN"}, {2, "FEB"}, {3, "MAR"}, {4, "APR"},
+    {5, "MAY"}, {6, "JUN"}, {7, "JUL"}, {8, "AUG"},
+    {9, "SEP"}, {10, "OCT"}, {11, "NOV"}, {12, "DEC"}
+}
 
-    Public Function findMonth(ByVal month As String) As String
-        Select Case month
-            Case "1"
-                Return "JAN"
-            Case "2"
-                Return "FEB"
-            Case "3"
-                Return "MAR"
-            Case "4"
-                Return "APR"
-            Case "5"
-                Return "MAY"
-            Case "6"
-                Return "JUN"
-            Case "7"
-                Return "JUL"
-            Case "8"
-                Return "AUG"
-            Case "9"
-                Return "SEP"
-            Case "10"
-                Return "OCT"
-            Case "11"
-                Return "NOV"
-            Case "12"
-                Return "DEC"
-        End Select
+    Public Function FindMonth(ByVal month As String) As String
+        Dim m As Integer
+        If Integer.TryParse(month, m) AndAlso MonthMap.ContainsKey(m) Then
+            Return MonthMap(m)
+        End If
         Return ""
     End Function
 
@@ -533,60 +544,56 @@ Module connectionModule
     End Function
 
     Public Sub LogoutUser(ByVal username As String)
-        Dim sql As String = "UPDATE sessions " & _
-        "SET is_active = 0, logout_when = (SELECT SYSTIMESTAMP FROM dual) " & _
-        "WHERE user_id = (SELECT uuid FROM users WHERE username = :username) " & _
-        "AND is_active = 1"
+        Const sql As String =
+        "UPDATE sessions s " &
+        "SET s.is_active = 0, s.logout_when = SYSTIMESTAMP " &
+        "WHERE s.is_active = 1 " &
+        "  AND EXISTS (SELECT 1 FROM users u WHERE u.uuid = s.user_id AND u.username = :username)"
 
         Try
-            If conn.State = ConnectionState.Closed Then
+            If conn.State <> ConnectionState.Open Then
                 openConn()
             End If
 
             Using cmd As New OracleCommand(sql, conn)
                 cmd.CommandType = CommandType.Text
-                cmd.Parameters.Add(New OracleParameter("username", username))
-                cmd.ExecuteNonQuery()
+                cmd.Parameters.Add("username", OracleDbType.Varchar2).Value = username
+                Dim rows As Integer = cmd.ExecuteNonQuery()
             End Using
 
         Catch ex As Exception
-            createExceptionFile(ex.Message, sql)
+            CreateExceptionFile(ex.ToString(), sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-
         End Try
     End Sub
 
 
-    Public Function isLoggedIn(ByVal username As String) As Boolean
-        Dim result As Boolean = False
-        Dim cmd As New OracleCommand("", conn)
+    Public Function IsLoggedIn(username As String) As Boolean
+        Const q As String =
+        "SELECT COUNT(*) " &
+        "FROM sessions s " &
+        "WHERE s.is_active = 1 " &
+        "  AND s.user_id = (SELECT u.uuid FROM users u WHERE u.username = :username)"
+
         Try
-            cmd = New OracleCommand(CHECK_IF_LOGGED_IN, conn)
+            Using cmd As New OracleCommand(q, conn)
+                If conn.State <> ConnectionState.Open Then openConn()
 
-            Dim userNameparam As New OracleParameter
-            userNameparam.OracleDbType = OracleDbType.Varchar2
-            userNameparam.Value = username
-            cmd.Parameters.Add(userNameparam)
-            cmd.CommandType = CommandType.Text
+                cmd.CommandType = CommandType.Text
+                cmd.Parameters.Add("username", OracleDbType.Varchar2).Value = username
 
-            Using dr = cmd.ExecuteReader()
-                If dr.Read() Then
-                    If CInt(dr.GetValue(0)) = 0 Then
-                        result = False
-                    Else
-                        result = True
-                    End If
-                End If
-                dr.Close()
+                Dim count As Integer = Convert.ToInt32(cmd.ExecuteScalar())
+
+                Return (count > 0)
             End Using
+
         Catch ex As Exception
-            createExceptionFile(ex.Message, " " & CHECK_IF_LOGGED_IN)
+            CreateExceptionFile(ex.ToString(), q)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
-            cmd.Dispose()
+            Return False
         End Try
-        Return result
     End Function
+
 
 
     Public Sub logoutUserUUID(ByVal uuid As String)
@@ -689,34 +696,49 @@ Module connectionModule
         Public currentDiscount As Double
     End Structure
 
-    Public Sub getMinBarcodeLength()
-        Dim cmd As New OracleCommand("", conn)
+    Public Sub GetMinBarcodeLength()
+        Const q As String = "SELECT NVL(MIN(LENGTH(barcode)), 9999999) FROM barcodes"
         Try
-            cmd = New OracleCommand(GET_MIN_BARCODE, conn)
-            cmd.CommandType = CommandType.Text
-            Using dr = cmd.ExecuteReader()
-                If dr.Read Then
-                    minBarcode = CInt(dr(0))
+            Using cmd As New OracleCommand(q, conn)
+                cmd.CommandType = CommandType.Text
+                Dim result = cmd.ExecuteScalar()
+
+                If result IsNot Nothing AndAlso Not Convert.IsDBNull(result) Then
+                    minBarcode = Convert.ToInt32(result)
                 End If
             End Using
+
         Catch ex As Exception
-            createExceptionFile(ex.Message, " " & GET_MIN_BARCODE)
+            CreateExceptionFile(ex.Message, q)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
-            cmd.Dispose()
         End Try
     End Sub
 
-    Public Sub createExceptionFile(ByVal exception As String, ByVal sql As String)
-        Dim fileName As String = Date.Now.Day.ToString & Date.Now.Month.ToString & Date.Now.Year.ToString & Date.Now.Hour.ToString & Date.Now.Minute.ToString & Date.Now.Millisecond.ToString
-        Dim filepath As String = "C:\exceptions\exception" & fileName & ".txt"
-        If Not System.IO.File.Exists(filepath) Then
-            System.IO.File.Create(filepath).Dispose()
-            Dim objWriter As New System.IO.StreamWriter(filepath)
-            objWriter.Write(exception)
-            objWriter.Write(sql)
-            objWriter.Close()
-        End If
+
+    Public Sub CreateExceptionFile(exception As String, sql As String)
+        Try
+            Dim folder As String = "C:\exceptions"
+            If Not IO.Directory.Exists(folder) Then
+                IO.Directory.CreateDirectory(folder)
+            End If
+
+            Dim fileName As String = DateTime.Now.ToString("yyyyMMdd_HHmmss_fff") & ".txt"
+            Dim filePath As String = IO.Path.Combine(folder, "exception_" & fileName)
+
+            Using writer As New IO.StreamWriter(filePath, False)
+                writer.WriteLine("Timestamp: " & DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"))
+                writer.WriteLine()
+                writer.WriteLine("Exception:")
+                writer.WriteLine(exception)
+                writer.WriteLine()
+                writer.WriteLine("SQL:")
+                writer.WriteLine(sql)
+            End Using
+
+        Catch ex As Exception
+            ' As last fallback, write to Event Viewer
+            Diagnostics.EventLog.WriteEntry("Application", ex.Message, Diagnostics.EventLogEntryType.Error)
+        End Try
     End Sub
 
     Public Sub isPasswordEncrypted()

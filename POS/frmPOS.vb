@@ -102,89 +102,107 @@ Public Class frmPOS
         setAmount(".")
     End Sub
 
-    Private Sub txtBoxBarcode_TextChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles txtBoxBarcode.TextChanged
-        If Not isLoggedIn(username) Then
-            MessageBox.Show("Ο χρήστης δεν ειναι συνδεμένος", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
-            Exit Sub
-        End If
+    Private Sub TxtBoxBarcode_KeyDown(sender As Object, e As KeyEventArgs) Handles txtBoxBarcode.KeyDown
+        ' Trigger only on Enter key
+        If e.KeyCode <> Keys.Enter Then Return
+
+        Dim sql As String = ""
+        Dim barcodeText As String = txtBoxBarcode.Text.Trim().ToUpper()
+        txtBoxBarcode.Clear()
+
+        If String.IsNullOrEmpty(barcodeText) Then Return
+
+        'if not isloggedin(username) then
+        '    messagebox.show("ο χρήστης δεν είναι συνδεμένος", "σφάλμα", messageboxbuttons.ok, messageboxicon.error)
+        '    return
+        'end if
 
         If Not isConnOpen() Then
             MessageBox.Show(CANNOT_ACCESS_DB, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-            Exit Sub
+            Return
         End If
-        Dim productFound As Boolean = False
 
-        Dim sql As String = ""
+        If barcodeText.Length < minBarcode Then Return
+
         Try
-            If txtBoxBarcode.Text.Length >= minBarcode Then
-                sql = "select p.serno, p.description, p.sell_amt, v.vat, " & _
-                      "nvl(offer,-1), nvl(offer_type,-1), nvl(offer_x,0), nvl(offer_y,0), nvl(offer_disc,0), nvl(offer_at,0), " & _
-                      "nvl(isbox,0) isbox,  nvl(box_qnt,0) box_qnt, " & _
-                      "nvl(offerfromdate, sysdate) offerfromdate , nvl(offertodate, sysdate) offertodate " & _
-                      "from products p " & _
-                      "inner join vat_types v on p.vattype_id = v.uuid " & _
-                      "where p.serno = (select b.product_serno from BARCODES b where UPPER(b.barcode) =  '" & txtBoxBarcode.Text.ToUpper & "')"
+            Sql =
+            "SELECT p.serno, p.description, p.sell_amt, v.vat, " &
+            "NVL(p.offer,-1) AS offer, NVL(p.offer_type,-1) AS offer_type, NVL(p.offer_x,0) AS offer_x, NVL(p.offer_y,0) AS offer_y, " &
+            "NVL(p.offer_disc,0) AS offer_disc, NVL(p.offer_at,0) AS offer_at, NVL(p.isbox,0) AS isbox, NVL(p.box_qnt,0) AS box_qnt, " &
+            "NVL(p.offerfromdate,SYSDATE) AS offerfromdate, NVL(p.offertodate,SYSDATE) AS offertodate " &
+            "FROM products p " &
+            "INNER JOIN vat_types v ON p.vattype_id = v.uuid " &
+            "WHERE p.serno = (SELECT b.product_serno FROM barcodes b WHERE UPPER(b.barcode) = :barcode)"
 
+            Using cmd As New OracleCommand(sql, conn)
+                cmd.Parameters.Add("barcode", OracleDbType.Varchar2).Value = barcodeText
 
-                Dim cmdSelectProduct = New OracleCommand(sql, conn)
-                Using dr = cmdSelectProduct.ExecuteReader()
+                Using dr As OracleDataReader = cmd.ExecuteReader()
                     If dr.Read() Then
                         totalItems += 1
-                        productFound = True
-                        Dim sellAmt As Double = CDbl(dr(2))
-                        Dim currentAmt As Double = sellAmt * CInt(txtBoxQuantity.Text)
-                        currentAmt *= returnProduct
+                        Dim sellAmt As Double = CDbl(dr("sell_amt"))
+                        Dim qty As Integer = If(String.IsNullOrEmpty(txtBoxQuantity.Text), 1, CInt(txtBoxQuantity.Text))
+                        Dim currentAmt As Double = sellAmt * qty * returnProduct
 
-                        Dim row As String() = New String() {dr(0), totalItems, dr(1), txtBoxQuantity.Text, sellAmt.ToString("N2"), currentAmt.ToString("N2"), dr(3), "0", CInt(dr("isbox")), CInt(dr("box_qnt"))}
-                        dgvReceipt.Rows.Add(row)
+                        ' Add row to DataGridView
+                        dgvReceipt.Rows.Add({
+                        dr("serno").ToString(),
+                        totalItems,
+                        dr("description").ToString(),
+                        qty,
+                        sellAmt.ToString("N2"),
+                        currentAmt.ToString("N2"),
+                        dr("vat").ToString(),
+                        "0",
+                        CInt(dr("isbox")),
+                        CInt(dr("box_qnt"))
+                    })
+
+                        ' Update totals
                         totalAmt += Math.Round(currentAmt, 2)
                         totalWithDiscount += Math.Round(currentAmt, 2)
                         txtBoxTotalAmt.Text = totalAmt.ToString("N2")
 
-                        Dim tmpVat = CDbl(dr(2)) * returnProduct * CInt(txtBoxQuantity.Text)
+                        ' VAT calculation
+                        Select Case CInt(dr("vat"))
+                            Case 0 : totalAmt0 += currentAmt
+                            Case 3 : totalAmt3 += currentAmt
+                            Case 5 : totalAmt5 += currentAmt
+                            Case 19 : totalAmt19 += currentAmt
+                        End Select
 
-                        If CInt(dr(3)) = 0 Then
-                            totalAmt0 += tmpVat
-                        ElseIf CInt(dr(3)) = 3 Then
-                            totalAmt3 += tmpVat
-                        ElseIf CInt(dr(3)) = 5 Then
-                            totalAmt5 += tmpVat
-                        ElseIf CInt(dr(3)) = 19 Then
-                            totalAmt19 += tmpVat
-                        End If
-                        fillProductsAndQuantity(CStr(dr(0)))
+                        fillProductsAndQuantity(dr("serno").ToString())
 
-                        Dim offer As Integer = CInt(dr(4))
-                        Dim dateOfferFrom As Date = CDate(dr("offerfromdate"))
-                        Dim dateOfferTo As Date = CDate(dr("offertodate"))
+                        ' Offer handling
+                        Dim offer As Integer = CInt(dr("offer"))
                         If offer <> -1 Then
-                            Dim foundProduct As Boolean = False
-                            Dim productSerno As Integer = dr(0)
-                            Dim offerType As Integer = CInt(dr(5))
-                            If offerType = 1 And _
-                            DateTime.Compare(Date.Now, dateOfferFrom) > 0 And _
-                            DateTime.Compare(Date.Now, dateOfferTo) < 0 Then
-                                setDiscountOfferType1(productSerno, CInt(dr(9)), CDbl(dr(8)))
+                            Dim offerType As Integer = CInt(dr("offer_type"))
+                            Dim dateFrom As Date = CDate(dr("offerfromdate"))
+                            Dim dateTo As Date = CDate(dr("offertodate"))
+                            If offerType = 1 AndAlso DateTime.Now > dateFrom AndAlso DateTime.Now < dateTo Then
+                                setDiscountOfferType1(CInt(dr("serno")), CInt(dr("offer_at")), CDbl(dr("offer_disc")))
                             End If
                         End If
+                    Else
+                        MessageBox.Show("Το προϊόν δεν βρέθηκε.", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Warning)
                     End If
                 End Using
-            End If
+            End Using
 
-            If productFound Then
-                txtBoxTotalWithDiscount.Text = totalWithDiscount.ToString("N2")
-                txtBoxQuantity.Text = "1"
-                txtBoxBarcode.Clear()
-                txtBoxBarcode.Focus()
-                chkBoxReturnProduct.Checked = False
-            End If
+            ' Reset UI for next input
+            txtBoxQuantity.Text = "1"
+            txtBoxBarcode.Focus()
+            chkBoxReturnProduct.Checked = False
+            txtBoxTotalWithDiscount.Text = totalWithDiscount.ToString("N2")
+
         Catch ex As Exception
-            createExceptionFile(ex.Message, " " & sql)
+            CreateExceptionFile(ex.ToString(), Sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Finally
             formatDataGrid()
         End Try
     End Sub
+
 
     Private Sub setDiscountOfferType1(ByVal productSerno As Integer, ByVal discountAt As Integer, ByVal discountAmt As Double)
         Dim tmpOfferDiscAtItem As OfferTypeDiscAt
@@ -494,39 +512,64 @@ Public Class frmPOS
         returnProduct = 1
 
         txtBoxBarcode.Focus()
-        formatDataGrid()
+        FormatDataGrid()
     End Sub
 
-    Private Sub formatDataGrid()
-        If dgvReceipt.Rows.Count > 0 Then
-            dgvReceipt.FirstDisplayedScrollingRowIndex = dgvReceipt.Rows.Count - 1
-        End If
+    Private Sub FormatDataGrid()
+        Dim rowCount As Integer = dgvReceipt.Rows.Count
 
-        For i As Integer = 0 To dgvReceipt.Rows.Count - 1
-            If dgvReceipt.Rows(i).Cells("amount").Value() < 0 Then
-                dgvReceipt.Rows(i).DefaultCellStyle.ForeColor = Color.Red
+        If rowCount = 0 Then Return
+
+        ' Scroll to the last row
+        dgvReceipt.FirstDisplayedScrollingRowIndex = rowCount - 1
+
+        ' Set row colors for negative amounts
+        For Each row As DataGridViewRow In dgvReceipt.Rows
+            Dim amountObj = row.Cells("amount").Value
+            Dim amount As Decimal = 0D
+
+            If amountObj IsNot Nothing AndAlso Decimal.TryParse(amountObj.ToString(), amount) Then
+                row.DefaultCellStyle.ForeColor = If(amount < 0D, Color.Red, Color.Black)
+            Else
+                row.DefaultCellStyle.ForeColor = Color.Black
             End If
         Next
 
+        ' Update secondary monitor if enabled
         If dualMonitor Then
-            setDualMonitorContents()
+            SetDualMonitorContents()
         End If
     End Sub
 
-    Private Sub setDualMonitorContents()
+
+    Private Sub SetDualMonitorContents()
+        ' Clear dual monitor grid
         frmDual.dgvReceiptDual.Rows.Clear()
 
-        If dgvReceipt.Rows.Count > 0 Then
-            For i As Integer = 0 To dgvReceipt.Rows.Count - 1
-                Dim dualRow = New String() {dgvReceipt.Rows(i).Cells("serno").Value, dgvReceipt.Rows(i).Cells("description").Value, dgvReceipt.Rows(i).Cells("quantity").Value, dgvReceipt.Rows(i).Cells("unitprice").Value, dgvReceipt.Rows(i).Cells("amount").Value, dgvReceipt.Rows(i).Cells("vat").Value}
-                frmDual.dgvReceiptDual.Rows.Add(dualRow)
-            Next
+        ' Copy rows if any
+        For Each row As DataGridViewRow In dgvReceipt.Rows
+            Dim dualRow As String() = {
+            row.Cells("serno").Value?.ToString(),
+            row.Cells("description").Value?.ToString(),
+            row.Cells("quantity").Value?.ToString(),
+            row.Cells("unitprice").Value?.ToString(),
+            row.Cells("amount").Value?.ToString(),
+            row.Cells("vat").Value?.ToString()
+        }
+            frmDual.dgvReceiptDual.Rows.Add(dualRow)
+        Next
+
+        ' Scroll to last row
+        If frmDual.dgvReceiptDual.Rows.Count > 0 Then
             frmDual.dgvReceiptDual.FirstDisplayedScrollingRowIndex = frmDual.dgvReceiptDual.Rows.Count - 1
         End If
+
+        ' Update totals
         frmDual.txtBoxTotalDual.Text = txtBoxTotalAmt.Text
         frmDual.txtBoxDualDisc.Text = txtBoxDiscount.Text
         frmDual.txtBoxDualFinal.Text = txtBoxTotalWithDiscount.Text
     End Sub
+
 
     Private Sub dgvReceipt_CellClick(ByVal sender As Object, ByVal e As DataGridViewCellEventArgs) Handles dgvReceipt.CellClick
         If e.RowIndex < 0 OrElse Not componentsEnabled Then Exit Sub
