@@ -14,27 +14,27 @@ Public Class frmUnlockUser
         Me.Dispose()
     End Sub
 
-    Private Sub fillLists()
-        Dim cmd As New OracleCommand("", conn)
-        Dim dr As OracleDataReader
+    Private Sub FillLists()
+        lstBoxLockedUsers.Items.Clear()
+        lstBoxUUIDS.Items.Clear()
+
         Try
-            cmd = New OracleCommand(GET_ACTIVE_USERS, conn)
-            cmd.CommandType = CommandType.Text
-            dr = cmd.ExecuteReader()
-            lstBoxLockedUsers.Items.Clear()
-            lstBoxUUIDS.Items.Clear()
-            While dr.Read()
-                lstBoxLockedUsers.Items.Add(dr("username"))
-                lstBoxUUIDS.Items.Add(dr("user_id"))
-            End While
-            dr.Close()
+            Using cmd As New OracleCommand(GET_ACTIVE_USERS, conn)
+                cmd.CommandType = CommandType.Text
+
+                Using dr As OracleDataReader = cmd.ExecuteReader()
+                    While dr.Read()
+                        lstBoxLockedUsers.Items.Add(dr("username").ToString())
+                        lstBoxUUIDS.Items.Add(dr("user_id").ToString())
+                    End While
+                End Using
+            End Using
         Catch ex As Exception
-            createExceptionFile(ex.Message, " " & GET_ACTIVE_USERS)
+            CreateExceptionFile(ex.Message, " " & GET_ACTIVE_USERS)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
-            cmd.Dispose()
         End Try
     End Sub
+
 
     Private Sub frmUnlockUser_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
         fillLists()
