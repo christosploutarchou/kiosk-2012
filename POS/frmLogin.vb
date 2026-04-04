@@ -96,6 +96,8 @@ Public Class frmLogin
 
     Private Sub BtnLogin_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnLogin.Click
 
+        LocalIP = GetLocalIPAddress()
+
         'If Not CheckHhdSerial() Then
         'Exit Sub
         'End If

@@ -59,7 +59,7 @@ Partial Class frmMain
         Me.lblUser.ForeColor = System.Drawing.SystemColors.ControlText
         Me.lblUser.Location = New System.Drawing.Point(18, 9)
         Me.lblUser.Name = "lblUser"
-        Me.lblUser.Size = New System.Drawing.Size(172, 32)
+        Me.lblUser.Size = New System.Drawing.Size(170, 32)
         Me.lblUser.TabIndex = 9
         Me.lblUser.Text = "Welcome User"
         '
@@ -93,7 +93,7 @@ Partial Class frmMain
         Me.Label1.ForeColor = System.Drawing.SystemColors.ControlText
         Me.Label1.Location = New System.Drawing.Point(28, 280)
         Me.Label1.Name = "Label1"
-        Me.Label1.Size = New System.Drawing.Size(154, 25)
+        Me.Label1.Size = New System.Drawing.Size(152, 25)
         Me.Label1.TabIndex = 13
         Me.Label1.Text = "Αρχ. Ποσό Ταμ."
         '
@@ -153,7 +153,7 @@ Partial Class frmMain
         Me.lblVersion.Font = New System.Drawing.Font("Segoe UI", 9.75!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.lblVersion.Location = New System.Drawing.Point(950, 9)
         Me.lblVersion.Name = "lblVersion"
-        Me.lblVersion.Size = New System.Drawing.Size(61, 17)
+        Me.lblVersion.Size = New System.Drawing.Size(60, 17)
         Me.lblVersion.TabIndex = 24
         Me.lblVersion.Text = "v.210925"
         '
@@ -371,7 +371,7 @@ Partial Class frmMain
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
-        Me.ClientSize = New System.Drawing.Size(1014, 739)
+        Me.ClientSize = New System.Drawing.Size(1004, 725)
         Me.Controls.Add(Me.Button2)
         Me.Controls.Add(Me.btnLottery)
         Me.Controls.Add(Me.btnEditPos)

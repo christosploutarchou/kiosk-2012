@@ -111,6 +111,8 @@ Partial Class frmPOS
         Me.btnBackspace = New System.Windows.Forms.Button()
         Me.btnRemoveQuantity = New System.Windows.Forms.Button()
         Me.btnAddQuantity = New System.Windows.Forms.Button()
+        Me.Button1 = New System.Windows.Forms.Button()
+        Me.TextBox1 = New System.Windows.Forms.TextBox()
         CType(Me.dgvReceipt, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.Panel1.SuspendLayout()
         Me.SuspendLayout()
@@ -1060,6 +1062,29 @@ Partial Class frmPOS
         Me.btnAddQuantity.TabIndex = 66
         Me.btnAddQuantity.UseVisualStyleBackColor = True
         '
+        'Button1
+        '
+        Me.Button1.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
+        Me.Button1.Font = New System.Drawing.Font("Segoe UI Semibold", 15.75!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.Button1.ForeColor = System.Drawing.SystemColors.ControlText
+        Me.Button1.Location = New System.Drawing.Point(746, 648)
+        Me.Button1.Name = "Button1"
+        Me.Button1.Size = New System.Drawing.Size(150, 84)
+        Me.Button1.TabIndex = 111
+        Me.Button1.Text = "CI Activate Test"
+        Me.Button1.UseVisualStyleBackColor = False
+        '
+        'TextBox1
+        '
+        Me.TextBox1.BackColor = System.Drawing.Color.White
+        Me.TextBox1.Font = New System.Drawing.Font("Segoe UI", 15.75!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.TextBox1.Location = New System.Drawing.Point(157, 162)
+        Me.TextBox1.Multiline = True
+        Me.TextBox1.Name = "TextBox1"
+        Me.TextBox1.ReadOnly = True
+        Me.TextBox1.Size = New System.Drawing.Size(447, 104)
+        Me.TextBox1.TabIndex = 112
+        '
         'frmPOS
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -1067,6 +1092,8 @@ Partial Class frmPOS
         Me.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
         Me.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
         Me.ClientSize = New System.Drawing.Size(1004, 725)
+        Me.Controls.Add(Me.TextBox1)
+        Me.Controls.Add(Me.Button1)
         Me.Controls.Add(Me.btnPos23)
         Me.Controls.Add(Me.btnPos22)
         Me.Controls.Add(Me.btnPos21)
@@ -1233,4 +1260,6 @@ Partial Class frmPOS
     Friend WithEvents itemCode As System.Windows.Forms.DataGridViewTextBoxColumn
     Friend WithEvents issueNumber As System.Windows.Forms.DataGridViewTextBoxColumn
     Friend WithEvents deliveryDate As System.Windows.Forms.DataGridViewTextBoxColumn
+    Friend WithEvents Button1 As Button
+    Friend WithEvents TextBox1 As TextBox
 End Class

@@ -1,6 +1,9 @@
-﻿Imports Oracle.DataAccess.Client
-
-Imports System.ComponentModel
+﻿Imports System.ComponentModel
+Imports System.Threading.Tasks
+Imports Newtonsoft.Json
+Imports Newtonsoft.Json.Linq
+Imports Oracle.DataAccess.Client
+Imports POS.CIActivateModels
 
 Public Class frmPOS
 
@@ -1365,13 +1368,13 @@ Public Class frmPOS
         txtBoxBarcode.Focus()
     End Sub
 
-    Private Sub btnPayments_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnPayments.Click
+    Private Async Sub BtnPayments_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnPayments.Click
         If Not isConnOpen() Then
             MessageBox.Show("Cannot connect to database, please try again", APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
             Exit Sub
         End If
 
-        If Not isLoggedIn(username) Then
+        If Not IsLoggedIn(username) Then
             MessageBox.Show("Ο χρήστης δεν ειναι συνδεμένος", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Exit Sub
         End If
@@ -1404,10 +1407,14 @@ Public Class frmPOS
             End If
 
             Try
-                sql = "insert into payments (created_by, created_on, amount,vat, amountVAT) " & _
+                sql = "insert into payments (created_by, created_on, amount,vat, amountVAT) " &
                       "values('" & whois & "', (select systimestamp from dual), " & txtBoxManualAmt.Text & ", '" & vat & "', " & amountVAT & ")"
                 cmd = New OracleCommand(sql, conn)
                 Using cmd                    cmd.ExecuteNonQuery()                End Using
+
+                If GLORY_ENABLED.Equals("1") Then
+                    Await CashOut(CDbl(txtBoxPaymentAmt.Text))
+                End If
 
                 If MessageBox.Show("Εκτύπωση Πληρωμής;", "Εκτύπωση Πληρωμής", MessageBoxButtons.YesNo, MessageBoxIcon.Question) = Windows.Forms.DialogResult.Yes Then
                     printType = "P"
@@ -1420,7 +1427,7 @@ Public Class frmPOS
                 txtBoxBarcode.Focus()
 
             Catch ex As Exception
-                createExceptionFile(ex.Message, " " & sql)
+                CreateExceptionFile(ex.Message, " " & sql)
                 MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
             Finally
                 cmd.Dispose()
@@ -2298,6 +2305,134 @@ Public Class frmPOS
         chkBoxReturnProduct.Checked = False
         txtBoxTotalWithDiscount.Text = totalWithDiscount.ToString("N2")
     End Sub
+    Private Async Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
 
+        Dim totalAmount As Double = 5.0
+        Await ExecuteSale(totalAmount)
+        'Button1.Enabled = False
+        'TextBox1.Clear()
+
+        'Try
+        ' 1️⃣ Read the sale amount
+        'Dim totalAmount As Double
+        'If Not Double.TryParse(65, totalAmount) OrElse totalAmount <= 0 Then 'txtAmount.Text
+        'TextBox1.AppendText("Invalid sale amount." & Environment.NewLine)
+        'Return
+        'End If
+
+        'Dim client As New CIActivateClient("http://127.0.0.1:8080/api", "192.168.0.25")
+
+        ' Login
+        'Dim loggedIn As Boolean = Await client.Login("admin", "Admin123!")
+        'If Not loggedIn Then
+        'MessageBox.Show("Login failed")
+        'Return
+        'End If
+
+        ' Get status
+        'Try
+        ' Inside your button click or workflow:
+        'Dim statusJson As String = Await client.GetStatus()
+        'Dim status As StatusResponse = JsonConvert.DeserializeObject(Of StatusResponse)(statusJson)
+
+        'If status.statusTxt <> "Idle" Then
+        'TextBox1.AppendText("Device is busy. Try again later." & Environment.NewLine)
+        'Return
+        'End If
+        'TextBox1.AppendText("Device is ready!" & Environment.NewLine)
+
+        'Catch ex As Exception
+        'MessageBox.Show($"Error: {ex.Message}")
+        'End Try
+
+        ' 3️⃣ Start transaction
+        'Dim txn As New CIActivateTransactionRequest With {
+        '.seqNo = Guid.NewGuid().ToString().Substring(0, 11), ' max 11 chars
+        '.amount = totalAmount,
+        '.async = True ' return immediately
+        '}
+        '   Dim log As CIActivateTransactionLog = Await client.StartTransaction(txn)
+        '  TextBox1.AppendText($"Transaction started: SeqNo={log.seqNo}" & Environment.NewLine)
+
+        ' Later, poll for completion
+        ' Poll until cash is inserted
+        ' Dim finalLog As CIActivateTransactionLog
+        'Do
+        '   finalLog = Await client.WaitTransaction(log.seqNo)
+        '  Await Task.Delay(500) ' 0.5s delay to avoid spamming device
+        'Loop Until finalLog.status = 0 ' 0 = transaction completed
+
+        'TextBox1.AppendText($"Cash In completed. Total received: {finalLog.inTotal}" & Environment.NewLine)
+
+        ' 4️⃣ Cash In
+        'Dim cashLog As CIActivateTransactionLog = Await client.CashIn(txn.seqNo)
+        'TextBox1.AppendText($"Cash In completed. Total received: {cashLog.inTotal}" & Environment.NewLine)
+
+        ' 5️⃣ Check for change
+        'Dim change As Double = cashLog.inTotal - totalAmount
+        'If change > 0 Then
+        '   TextBox1.AppendText($"Change to give: {change}" & Environment.NewLine)
+
+        ' Prepare denominations for change (example: all in 1 EUR coins)
+        '  Dim changeDict As New Dictionary(Of String, Integer)
+        ' changeDict.Add("EUR_1_0_2", CInt(change)) ' adjust if your device uses different denomination keys
+
+        ' Cash Out
+        'Dim changeLog As CIActivateTransactionLog = Await client.CashOut(deviceName, changeDict)
+        'TextBox1.AppendText("Change dispensed." & Environment.NewLine)
+        'Else
+        '   TextBox1.AppendText("No change needed." & Environment.NewLine)
+        'End If
+
+        ' 6️⃣ Transaction complete
+        'TextBox1.AppendText("Sale completed successfully!" & Environment.NewLine)
+        'Catch ex As Exception
+        '   TextBox1.AppendText("Error: " & ex.Message & Environment.NewLine)
+        'Finally
+        '   Button1.Enabled = True
+        'End Try
+
+    End Sub
+
+    Private Async Function CashOut(ByVal CashOutAmount As Double) As Task
+        Try
+            '1. Login
+            Dim client As New CIActivateClient("http://" + GLORY_IP + ":8080/api", "192.168.0.25") '"192.168.0.25"
+            Dim loggedIn As Boolean = Await client.Login(GLORY_ADMIN_USERNAME, GLORY_ADMIN_PASSWORD)
+            If Not loggedIn Then
+                MessageBox.Show("Glory Login failed")
+                Return
+            End If
+
+            '2. Get Status
+            Try
+                Dim statusJson As String = Await client.GetStatus()
+                Dim status As StatusResponse = JsonConvert.DeserializeObject(Of StatusResponse)(statusJson)
+                If status.statusTxt <> "Idle" Then
+                    MessageBox.Show("Glory Box Busy")
+                    Return
+                End If
+            Catch ex As Exception
+            End Try
+
+            '3. Get inventory
+            Dim inv = Await client.GetInventory()
+            Dim inventory As New Dictionary(Of String, Integer)
+
+            For Each d In inv.note.denominations
+                If d.total > 0 Then inventory.Add(d.key, d.total)
+            Next
+
+            For Each d In inv.coin.denominations
+                If d.total > 0 Then inventory.Add(d.key, d.total)
+            Next
+
+            '4. Cah out
+            Dim payout = BuildPayout(CashOutAmount, inventory)
+            Dim result As CIActivateTransactionLog = Await client.CashOut(payout)
+        Catch ex As Exception
+
+        End Try
+    End Function
 
 End Class

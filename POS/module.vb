@@ -1,11 +1,19 @@
 ﻿Imports System.Globalization
 Imports System.IO
+Imports System.Net
+Imports System.Net.Http
+Imports System.Net.Sockets
 Imports System.Text
+Imports System.Threading.Tasks
+Imports Newtonsoft.Json
+Imports Newtonsoft.Json.Linq
 Imports Oracle.DataAccess.Client
 Imports Oracle.DataAccess.Types
+Imports POS.CIActivateModels
 
 Module connectionModule
-    Public oradb As String 
+
+    Public oradb As String
 
     'Button selected to be edited
     Public currentBtnPosEdit As String
@@ -43,6 +51,11 @@ Module connectionModule
 
     Public tmpBarcodeNotFound As String
     Public tmpBarcodeNotFoundExit As Boolean
+
+    'Public client As New CIActivateClient("http://127.0.0.1:8080/api", "192.168.0.25") ' Replace with your device API URL
+    'Public deviceName As String = "RBW200" ' Your device identifier
+
+    Public LocalIP As String = ""
 
     'Public Sub isBoxReport()
     'Dim cmd As New OracleCommand("", conn)
@@ -306,7 +319,7 @@ Module connectionModule
         Dim sql As String = "SELECT paramkey, paramvalue " &
                         "FROM global_params " &
                         "WHERE paramkey IN ('login.title1', 'login.title2', 'kiosk.name', 'company.name', " &
-                        "'kiosk.address1', 'kiosk.address2', 'company.vat')"
+                        "'kiosk.address1', 'kiosk.address2', 'company.vat','glory.enabled','glory.ip','glory.device.name','glory.admin.username','glory.admin.password')"
 
         Try
             Using cmd As New OracleCommand(sql, conn)
@@ -320,7 +333,12 @@ Module connectionModule
                     {"company.name", Sub(val) COMPANY_NAME = val},
                     {"kiosk.address1", Sub(val) KIOSK_ADDRESS1 = val},
                     {"kiosk.address2", Sub(val) KIOSK_ADDRESS2 = val},
-                    {"company.vat", Sub(val) COMPANY_VAT = val}
+                    {"company.vat", Sub(val) COMPANY_VAT = val},
+                    {"glory.enabled", Sub(val) GLORY_ENABLED = val},
+                    {"glory.ip", Sub(val) GLORY_IP = val},
+                    {"glory.device.name", Sub(val) GLORY_DEVICE_NAME = val},
+                    {"glory.admin.username", Sub(val) GLORY_ADMIN_USERNAME = val},
+                    {"glory.admin.password", Sub(val) GLORY_ADMIN_PASSWORD = val}
                 }
 
                     While dr.Read()
@@ -708,7 +726,7 @@ Module connectionModule
 
         Try
             If conn.State = ConnectionState.Closed Then
-                openConn()
+                OpenConn()
             End If
 
             Using cmd As New OracleCommand(sql, conn)
@@ -723,7 +741,7 @@ Module connectionModule
             End Using
 
         Catch ex As Exception
-            createExceptionFile(ex.Message, sql)
+            CreateExceptionFile(ex.Message, sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
 
@@ -736,7 +754,7 @@ Module connectionModule
         Dim cmd As New OracleCommand("", conn)
         Dim sql As String = ""
         Try
-            sql = "select username from users " & _
+            sql = "select username from users " &
                   "where uuid = (select uuid from users where username = '" & username & "')"
 
             cmd = New OracleCommand(sql, conn)
@@ -747,7 +765,7 @@ Module connectionModule
             End Using
 
         Catch ex As Exception
-            createExceptionFile(ex.Message, sql)
+            CreateExceptionFile(ex.Message, sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Finally
             cmd.Dispose()
@@ -764,7 +782,7 @@ Module connectionModule
 
         Try
             If conn.State <> ConnectionState.Open Then
-                openConn()
+                OpenConn()
             End If
 
             Using cmd As New OracleCommand(sql, conn)
@@ -789,7 +807,7 @@ Module connectionModule
 
         Try
             Using cmd As New OracleCommand(q, conn)
-                If conn.State <> ConnectionState.Open Then openConn()
+                If conn.State <> ConnectionState.Open Then OpenConn()
 
                 cmd.CommandType = CommandType.Text
                 cmd.Parameters.Add("username", OracleDbType.Varchar2).Value = username
@@ -805,8 +823,6 @@ Module connectionModule
             Return False
         End Try
     End Function
-
-
 
     Public Sub LogoutUserUUID(ByVal uuid As String)
         Dim WhoAmI As String = "LogoutUserUUID"
@@ -869,7 +885,7 @@ Module connectionModule
     Public Function isConnOpen() As Boolean
         Dim connectionRetries As Integer = 0
         While conn.State = ConnectionState.Closed And connectionRetries < 200
-            openConn()
+            OpenConn()
             connectionRetries += 1
         End While
         If conn.State = ConnectionState.Closed Then
@@ -974,7 +990,7 @@ Module connectionModule
                 End Using
             End Using
         Catch ex As Exception
-            createExceptionFile(ex.Message, " " & GET_ALL_PASS_ENCRYPTED)
+            CreateExceptionFile(ex.Message, " " & GET_ALL_PASS_ENCRYPTED)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
@@ -1022,7 +1038,7 @@ Module connectionModule
             End Using
 
         Catch ex As Exception
-            createExceptionFile(ex.Message, GET_ALL_USERS_AND_PASS)
+            CreateExceptionFile(ex.Message, GET_ALL_USERS_AND_PASS)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
@@ -1053,7 +1069,7 @@ Module connectionModule
             End Using
 
         Catch ex As Exception
-            createExceptionFile(ex.Message, sql)
+            CreateExceptionFile(ex.Message, sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
@@ -1102,4 +1118,173 @@ Module connectionModule
         dynamicProductIsBox = tmpBtnItem.LinkedItemsDetails.Item(index).IsBox
         dynamicProductBoxQnt = tmpBtnItem.LinkedItemsDetails.Item(index).BoxQnt
     End Sub
+
+    Public Async Function ExecuteSale(totalAmount As Double) As Task
+        Try
+            Dim baseUrl As String = "http://127.0.0.1:8080/api"
+            Dim client As New CIActivateClient("http://127.0.0.1:8080/api", "192.168.0.25")
+            ' 0️⃣ Login
+            Dim loggedIn As Boolean = Await client.Login("admin", "Admin123!")
+            If Not loggedIn Then
+                MessageBox.Show("Login failed")
+                Return
+            End If
+
+            Try
+                ' Inside your button click or workflow:
+                Dim statusJson As String = Await client.GetStatus()
+                Dim status As StatusResponse = JsonConvert.DeserializeObject(Of StatusResponse)(statusJson)
+
+                If status.statusTxt <> "Idle" Then
+
+                    Return
+                End If
+            Catch ex As Exception
+                MessageBox.Show($"Error: {ex.Message}")
+            End Try
+
+            ' 3️⃣ Start transaction (async)
+            Dim txn As New CIActivateTransactionRequest With {
+            .seqNo = Guid.NewGuid().ToString().Substring(0, 11),
+            .amount = totalAmount,
+            .async = True
+        }
+
+            Dim log As CIActivateTransactionLog = Await client.StartTransaction(txn)
+
+            ' 4️⃣ Poll / wait for cash in
+            Dim finalLog As CIActivateTransactionLog
+            Do
+                finalLog = Await client.WaitTransaction(log.seqNo)
+                Await Task.Delay(500) ' avoid spamming device
+            Loop Until finalLog.status = 0
+
+            ' 5️⃣ Check for change
+            Dim change As Double = finalLog.inTotal - totalAmount
+            If change > 0 Then
+
+                Dim changeDict As New Dictionary(Of String, Integer)
+                changeDict.Add("EUR_1_0_2", CInt(change)) ' example
+                'Dim changeLog As CIActivateTransactionLog = Await client.CashOut(deviceName, changeDict)
+                Dim changeLog As CIActivateTransactionLog = Await client.CashOut(changeDict)
+
+            Else
+
+            End If
+        Catch ex As Exception
+
+        End Try
+    End Function
+
+    Public Function GetLocalIPAddress() As String
+        Dim host = Dns.GetHostEntry(Dns.GetHostName())
+        For Each ip In host.AddressList
+            If ip.AddressFamily = AddressFamily.InterNetwork Then
+                Return ip.ToString()
+            End If
+        Next
+        Return ""
+    End Function
+
+    Public Function BuildPayoutDictionary(amount As Double) As Dictionary(Of String, Integer)
+
+        Dim payout As New Dictionary(Of String, Integer)
+
+        Dim denominations As New Dictionary(Of String, Double) From {
+            {"EUR_200_0_2", 200},
+            {"EUR_100_0_2", 100},
+            {"EUR_50_0_2", 50},
+            {"EUR_20_0_2", 20},
+            {"EUR_10_0_2", 10},
+            {"EUR_5_0_2", 5},
+            {"EUR_2_0_2", 2},
+            {"EUR_1_0_2", 1},
+            {"EUR_0_50_2", 0.5},
+            {"EUR_0_20_2", 0.2},
+            {"EUR_0_10_2", 0.1}
+        }
+
+        Dim remaining As Double = amount
+
+        For Each denom In denominations
+            Dim count As Integer = CInt(Math.Floor(remaining / denom.Value))
+            If count > 0 Then
+                payout.Add(denom.Key, count)
+                remaining -= count * denom.Value
+                remaining = Math.Round(remaining, 2)
+            End If
+        Next
+
+        Return payout
+    End Function
+
+    Public Function DenominationValue(key As String) As Double
+        Dim parts() As String = key.Split("_"c)
+        Dim euros As Double = Double.Parse(parts(1))
+        Dim cents As Double = Double.Parse(parts(2))
+        Return euros + (cents / 100)
+    End Function
+
+    Public Function BuildPayoutFromInventory(amount As Double,
+                                         inventory As Dictionary(Of String, Integer)) _
+                                         As Dictionary(Of String, Integer)
+
+        Dim payout As New Dictionary(Of String, Integer)
+        Dim remaining As Double = amount
+
+        ' Sort denominations from highest to lowest value
+        Dim sortedDenoms = inventory _
+            .OrderByDescending(Function(d) DenominationValue(d.Key))
+
+        For Each denom In sortedDenoms
+            Dim value As Double = DenominationValue(denom.Key)
+            Dim availableQty As Integer = denom.Value
+
+            Dim neededQty As Integer = CInt(Math.Floor(remaining / value))
+            Dim qtyToUse As Integer = Math.Min(neededQty, availableQty)
+
+            If qtyToUse > 0 Then
+                payout.Add(denom.Key, qtyToUse)
+                remaining -= qtyToUse * value
+                remaining = Math.Round(remaining, 2)
+            End If
+        Next
+
+        If remaining > 0 Then
+            Throw New Exception("Not enough cash in machine to pay this amount.")
+        End If
+
+        Return payout
+    End Function
+
+    Public Function BuildPayout(amount As Decimal, inventory As Dictionary(Of String, Integer)) _
+    As Dictionary(Of String, Integer)
+
+        Dim payout As New Dictionary(Of String, Integer)
+
+        ' Sort denominations by value descending
+        Dim sorted = inventory.Keys _
+            .Select(Function(k) New With {
+                .Key = k,
+                .Value = Decimal.Parse(k.Split("_"c)(1)) / 100
+            }) _
+            .OrderByDescending(Function(x) x.Value)
+
+        Dim remaining = amount
+
+        For Each d In sorted
+            Dim denomValue = d.Value
+            Dim available = inventory(d.Key)
+
+            Dim needed = Math.Floor(remaining / denomValue)
+
+            If needed > 0 Then
+                Dim useCount = Math.Min(needed, available)
+                payout.Add(d.Key, CInt(useCount))
+                remaining -= useCount * denomValue
+            End If
+        Next
+
+        Return payout
+    End Function
 End Module
