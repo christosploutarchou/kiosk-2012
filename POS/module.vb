@@ -52,11 +52,6 @@ Module connectionModule
     Public tmpBarcodeNotFound As String
     Public tmpBarcodeNotFoundExit As Boolean
 
-    'Public client As New CIActivateClient("http://127.0.0.1:8080/api", "192.168.0.25") ' Replace with your device API URL
-    'Public deviceName As String = "RBW200" ' Your device identifier
-
-    Public LocalIP As String = ""
-
     'Public Sub isBoxReport()
     'Dim cmd As New OracleCommand("", conn)
     'Dim dr As OracleDataReader
@@ -319,7 +314,8 @@ Module connectionModule
         Dim sql As String = "SELECT paramkey, paramvalue " &
                         "FROM global_params " &
                         "WHERE paramkey IN ('login.title1', 'login.title2', 'kiosk.name', 'company.name', " &
-                        "'kiosk.address1', 'kiosk.address2', 'company.vat','glory.enabled','glory.ip','glory.device.name','glory.admin.username','glory.admin.password')"
+                        "'kiosk.address1', 'kiosk.address2', 'company.vat', " &
+                        "'glory.enabled','glory.ip','glory.device.name','glory.admin.username','glory.admin.password','glory.local.ip')"
 
         Try
             Using cmd As New OracleCommand(sql, conn)
@@ -338,7 +334,8 @@ Module connectionModule
                     {"glory.ip", Sub(val) GLORY_IP = val},
                     {"glory.device.name", Sub(val) GLORY_DEVICE_NAME = val},
                     {"glory.admin.username", Sub(val) GLORY_ADMIN_USERNAME = val},
-                    {"glory.admin.password", Sub(val) GLORY_ADMIN_PASSWORD = val}
+                    {"glory.admin.password", Sub(val) GLORY_ADMIN_PASSWORD = val},
+                    {"glory.local.ip", Sub(val) GLORY_LOCAL_IP = val}
                 }
 
                     While dr.Read()
@@ -1286,5 +1283,25 @@ Module connectionModule
         Next
 
         Return payout
+    End Function
+
+    Public Async Function FindCIMachine() As Task(Of String)
+        Dim baseNetwork As String = "192.168.0."
+        Dim http As New HttpClient()
+        http.Timeout = TimeSpan.FromMilliseconds(300)
+
+        For i As Integer = 1 To 254
+            Dim ip As String = baseNetwork & i.ToString()
+            Try
+                Dim response = Await http.GetAsync($"http://{ip}/api/ping")
+                If response.IsSuccessStatusCode Then
+                    Return ip
+                End If
+            Catch
+                ' ignore timeouts
+            End Try
+        Next
+
+        Return Nothing
     End Function
 End Module

@@ -11,5 +11,6 @@
     Public GLORY_DEVICE_NAME As String = ""
     Public GLORY_ADMIN_USERNAME As String = ""
     Public GLORY_ADMIN_PASSWORD As String = ""
+    Public GLORY_LOCAL_IP As String = ""
 End Module
 

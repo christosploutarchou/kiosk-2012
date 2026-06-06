@@ -7,7 +7,6 @@ Imports System.Threading.Tasks
 Imports Newtonsoft.Json
 Imports POS.CIActivateModels
 
-
 Public Class CIActivateClient
     Private ReadOnly client As HttpClient
     Private ReadOnly handler As HttpClientHandler
@@ -101,8 +100,7 @@ Public Class CIActivateClient
     End Function
 
     ' --- Refund Transaction ---
-    Public Async Function RefundTransaction(device As String, request As CIActivateTransactionRequest) _
-        As Task(Of CIActivateTransactionLog)
+    Public Async Function RefundTransaction(request As CIActivateTransactionRequest) As Task(Of CIActivateTransactionLog)
 
         Dim json = JsonConvert.SerializeObject(request)
         Dim content = New StringContent(json, Encoding.UTF8, "application/json")
@@ -121,8 +119,7 @@ Public Class CIActivateClient
     End Function
 
     ' --- Cash In ---
-    Public Async Function CashIn(seqNo As String) _
-        As Task(Of CIActivateTransactionLog)
+    Public Async Function CashIn(seqNo As String) As Task(Of CIActivateTransactionLog)
 
         Dim body = New With {Key .seqNo = seqNo}
         Dim json = JsonConvert.SerializeObject(body)
@@ -187,7 +184,7 @@ Public Class CIActivateClient
     End Function
 
     ' --- Unlock Device ---
-    Public Async Function UnlockDevice(device As String, seqNo As String, typeId As Integer) As Task(Of Boolean)
+    Public Async Function UnlockDevice(seqNo As String, typeId As Integer) As Task(Of Boolean)
         Dim body = New With {Key .seqNo = seqNo, Key .type = typeId}
         Dim json = JsonConvert.SerializeObject(body)
         Dim content = New StringContent(json, Encoding.UTF8, "application/json")
@@ -205,7 +202,7 @@ Public Class CIActivateClient
     End Function
 
     ' --- Get History ---
-    Public Async Function GetHistory(device As String, Optional dateStr As String = Nothing) As Task(Of List(Of History))
+    Public Async Function GetHistory(Optional dateStr As String = Nothing) As Task(Of List(Of History))
         Dim url = $"{baseUrl}/history"
         If dateStr IsNot Nothing Then url &= $"&date={dateStr}"
         Dim response = Await client.GetStringAsync(url)
@@ -213,7 +210,7 @@ Public Class CIActivateClient
     End Function
 
     ' --- Start Replenishment ---
-    Public Async Function StartReplenishment(device As String, seqNo As String, type As String) As Task(Of Boolean)
+    Public Async Function StartReplenishment(seqNo As String, type As String) As Task(Of Boolean)
         Dim body = New With {Key .seqNo = seqNo, Key .type = type} ' type = "entrance" or "cassette"
         Dim json = JsonConvert.SerializeObject(body)
         Dim content = New StringContent(json, Encoding.UTF8, "application/json")
@@ -223,7 +220,7 @@ Public Class CIActivateClient
     End Function
 
     ' --- End Replenishment ---
-    Public Async Function EndReplenishment(device As String) As Task(Of Dictionary(Of String, Integer))
+    Public Async Function EndReplenishment() As Task(Of Dictionary(Of String, Integer))
         Dim response = Await client.DeleteAsync($"{baseUrl}/replenish")
         response.EnsureSuccessStatusCode()
         Dim json = Await response.Content.ReadAsStringAsync()
@@ -231,7 +228,7 @@ Public Class CIActivateClient
     End Function
 
     ' --- Start Collection ---
-    Public Async Function StartCollection(device As String, collect As CollectRequest) As Task(Of Dictionary(Of String, Integer))
+    Public Async Function StartCollection(collect As CollectRequest) As Task(Of Dictionary(Of String, Integer))
         Dim json = JsonConvert.SerializeObject(collect)
         Dim content = New StringContent(json, Encoding.UTF8, "application/json")
         Dim response = Await client.PostAsync($"{baseUrl}/collect", content)

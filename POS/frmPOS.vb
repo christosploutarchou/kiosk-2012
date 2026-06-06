@@ -1384,7 +1384,7 @@ Public Class frmPOS
             Exit Sub
         End If
 
-        If MessageBox.Show("Έκδωση Πληρωμής " & txtBoxManualAmt.Text & " ευρώ;", "Πληρωμή", MessageBoxButtons.YesNo, MessageBoxIcon.Question) = Windows.Forms.DialogResult.Yes Then
+        If MessageBox.Show("Έκδοση Πληρωμής " & txtBoxManualAmt.Text & " ευρώ;", "Πληρωμή", MessageBoxButtons.YesNo, MessageBoxIcon.Question) = Windows.Forms.DialogResult.Yes Then
 
             frmPaymentInfo.ShowDialog()
 
@@ -1413,7 +1413,7 @@ Public Class frmPOS
                 Using cmd                    cmd.ExecuteNonQuery()                End Using
 
                 If GLORY_ENABLED.Equals("1") Then
-                    Await CashOut(CDbl(txtBoxPaymentAmt.Text))
+                    Await CashOut(CDbl(txtBoxManualAmt.Text))
                 End If
 
                 If MessageBox.Show("Εκτύπωση Πληρωμής;", "Εκτύπωση Πληρωμής", MessageBoxButtons.YesNo, MessageBoxIcon.Question) = Windows.Forms.DialogResult.Yes Then
@@ -2307,7 +2307,7 @@ Public Class frmPOS
     End Sub
     Private Async Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
 
-        Dim totalAmount As Double = 5.0
+        Dim totalAmount As Double = 11.5
         Await ExecuteSale(totalAmount)
         'Button1.Enabled = False
         'TextBox1.Clear()
@@ -2397,7 +2397,7 @@ Public Class frmPOS
     Private Async Function CashOut(ByVal CashOutAmount As Double) As Task
         Try
             '1. Login
-            Dim client As New CIActivateClient("http://" + GLORY_IP + ":8080/api", "192.168.0.25") '"192.168.0.25"
+            Dim client As New CIActivateClient("http://" + GLORY_IP + ":8080/api", GLORY_LOCAL_IP) '"192.168.0.25"
             Dim loggedIn As Boolean = Await client.Login(GLORY_ADMIN_USERNAME, GLORY_ADMIN_PASSWORD)
             If Not loggedIn Then
                 MessageBox.Show("Glory Login failed")

@@ -95,8 +95,7 @@ Public Class frmLogin
     'End Sub
 
     Private Sub BtnLogin_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnLogin.Click
-
-        LocalIP = GetLocalIPAddress()
+        Dim WhoAmI As String = "BtnLogin_Click"
 
         'If Not CheckHhdSerial() Then
         'Exit Sub
