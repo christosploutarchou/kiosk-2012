@@ -49,3 +49,6 @@ ADD (
 
 ALTER TABLE GLOBAL_PARAMS
 ADD UPDATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+
+
+-- TODO: Consider kioskid in the query, read parameters from sqlite instead of oracle
