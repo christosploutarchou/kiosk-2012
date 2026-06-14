@@ -15,9 +15,26 @@ Public Class frmLogin
     End Sub
 
     Private Sub FrmLogin_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
-        If (Not openConn()) Then
+        GetParams()
+        If (Not OpenConn()) Then
             Me.Dispose()
         End If
+
+        'If C:/sqlite.txt exists, create the datbase and set the flag to use sqlite instead of oracle
+        If SqlLiteEnabled() Then
+            SqlLite = True
+            CreateSqliteDB()
+
+            Dim sync As New SyncTables()
+            Try
+                sync.SyncGlobalParams()
+            Catch ex As Exception
+                ' Oracle unavailable
+                ' Continue with local SQLite
+            End Try
+
+        End If
+
 
         If computerName = "-1" Then
             Me.Dispose()

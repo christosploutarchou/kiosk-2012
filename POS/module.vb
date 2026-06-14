@@ -208,7 +208,6 @@ Module connectionModule
         Try
             conn.ConnectionString = oradb
             conn.Open()
-            GetParams()
             GetMinBarcodeLength()
             getStartDate()
             Return True
@@ -261,7 +260,6 @@ Module connectionModule
             Return String.Empty
         End Try
     End Function
-
 
     Public Sub GetParams()
         Const FILE_NAME As String = "C:\params.txt"
