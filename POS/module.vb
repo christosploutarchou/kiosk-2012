@@ -1,4 +1,5 @@
-﻿Imports System.Globalization
+﻿Imports System.Data.SQLite
+Imports System.Globalization
 Imports System.IO
 Imports System.Net
 Imports System.Net.Http
@@ -10,6 +11,7 @@ Imports Newtonsoft.Json.Linq
 Imports Oracle.DataAccess.Client
 Imports Oracle.DataAccess.Types
 Imports POS.CIActivateModels
+Imports SQLitePCL
 
 Module connectionModule
 
@@ -52,41 +54,16 @@ Module connectionModule
     Public tmpBarcodeNotFound As String
     Public tmpBarcodeNotFoundExit As Boolean
 
-    'Public Sub isBoxReport()
-    'Dim cmd As New OracleCommand("", conn)
-    'Dim dr As OracleDataReader
-    'Dim sql As String = ""
-    'Try
-    'ISBOX_LOG
-    '       sql = "select COUNT(*) from ALL_TABLES " &
-    '            "where TABLE_NAME = 'ISBOX_LOG' "
-    '
-    'cmd = New OracleCommand(sql, conn)
-    'cmd.CommandType = CommandType.Text
-    'dr = cmd.ExecuteReader()
-    'If dr.Read Then
-    'If (CInt(dr(0)) = 0) Then
-    '               sql = "create table ISBOX_LOG (LOGMSG Varchar2(256))"
-    '              cmd = New OracleCommand(sql, conn)
-    '             cmd.ExecuteReader()
-    'End If
-    'End If
-    '       dr.Close()
-    'Catch ex As Exception
-    '       createExceptionFile(ex.Message, " " & sql)
-    '      MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-    'Finally
-    '       cmd.Dispose()
-    'End Try
-    'End Sub
-
-    Public Sub getVat3PercentColumns()
+    Public Sub GetVat3PercentColumns()
         Dim cmd As New OracleCommand("", conn)
         Dim dr As OracleDataReader
         Dim sql As String = ""
         Try
             'VAT_TYPES
-            sql = "select count(*) from vat_types where vat=3"
+            sql = "select count(*) from vat_types where vat=3 "
+            If SqlLite Then
+                sql += " AND KIOSKID = :KIOSKID"
+            End If
             cmd = New OracleCommand(sql, conn)
             cmd.CommandType = CommandType.Text
             dr = cmd.ExecuteReader()
@@ -308,49 +285,72 @@ Module connectionModule
             Return 0D ' fallback default if parsing fails
         End If
     End Function
-    Public Sub getKIOSKParams()
-        Dim sql As String = "SELECT paramkey, paramvalue " &
-                        "FROM global_params " &
-                        "WHERE paramkey IN ('login.title1', 'login.title2', 'kiosk.name', 'company.name', " &
-                        "'kiosk.address1', 'kiosk.address2', 'company.vat', " &
-                        "'glory.enabled','glory.ip','glory.device.name','glory.admin.username','glory.admin.password','glory.local.ip')"
+    Public Sub GetKIOSKParams()
+        Dim WhoAmI As String = "GetKIOSKParams"
+        Dim sql As String =
+            "SELECT paramkey, paramvalue " &
+            "FROM global_params " &
+            "WHERE paramkey IN ('login.title1', 'login.title2', 'kiosk.name', 'company.name', " &
+            "'kiosk.address1', 'kiosk.address2', 'company.vat', " &
+            "'glory.enabled','glory.ip','glory.device.name','glory.admin.username'," &
+            "'glory.admin.password','glory.local.ip') "
+
+        If SqlLite Then
+            sql &= " AND kioskid = @KIOSKID"
+        End If
+
+        Dim paramMap As New Dictionary(Of String, Action(Of String)) From {
+            {"login.title1", Sub(val) LOGIN_TITLE1 = val},
+            {"login.title2", Sub(val) LOGIN_TITLE2 = val},
+            {"kiosk.name", Sub(val) KIOSK_NAME = val},
+            {"company.name", Sub(val) COMPANY_NAME = val},
+            {"kiosk.address1", Sub(val) KIOSK_ADDRESS1 = val},
+            {"kiosk.address2", Sub(val) KIOSK_ADDRESS2 = val},
+            {"company.vat", Sub(val) COMPANY_VAT = val},
+            {"glory.enabled", Sub(val) GLORY_ENABLED = val},
+            {"glory.ip", Sub(val) GLORY_IP = val},
+            {"glory.device.name", Sub(val) GLORY_DEVICE_NAME = val},
+            {"glory.admin.username", Sub(val) GLORY_ADMIN_USERNAME = val},
+            {"glory.admin.password", Sub(val) GLORY_ADMIN_PASSWORD = val},
+            {"glory.local.ip", Sub(val) GLORY_LOCAL_IP = val}
+        }
 
         Try
-            Using cmd As New OracleCommand(sql, conn)
-                cmd.CommandType = CommandType.Text
-                Using dr As OracleDataReader = cmd.ExecuteReader()
-                    ' Map keys to variables using a dictionary
-                    Dim paramMap As New Dictionary(Of String, Action(Of String)) From {
-                    {"login.title1", Sub(val) LOGIN_TITLE1 = val},
-                    {"login.title2", Sub(val) LOGIN_TITLE2 = val},
-                    {"kiosk.name", Sub(val) KIOSK_NAME = val},
-                    {"company.name", Sub(val) COMPANY_NAME = val},
-                    {"kiosk.address1", Sub(val) KIOSK_ADDRESS1 = val},
-                    {"kiosk.address2", Sub(val) KIOSK_ADDRESS2 = val},
-                    {"company.vat", Sub(val) COMPANY_VAT = val},
-                    {"glory.enabled", Sub(val) GLORY_ENABLED = val},
-                    {"glory.ip", Sub(val) GLORY_IP = val},
-                    {"glory.device.name", Sub(val) GLORY_DEVICE_NAME = val},
-                    {"glory.admin.username", Sub(val) GLORY_ADMIN_USERNAME = val},
-                    {"glory.admin.password", Sub(val) GLORY_ADMIN_PASSWORD = val},
-                    {"glory.local.ip", Sub(val) GLORY_LOCAL_IP = val}
-                }
-
-                    While dr.Read()
-                        Dim key As String = dr("paramkey").ToString()
-                        Dim value As String = dr("paramvalue").ToString()
-                        If paramMap.ContainsKey(key) Then
-                            paramMap(key)(value)
-                        End If
-                    End While
+            If SqlLite Then
+                Using conn As New SQLiteConnection("Data Source=kiosk.db")
+                    conn.Open()
+                    Using cmd As New SQLiteCommand(sql, conn)
+                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                        Using dr As SQLiteDataReader = cmd.ExecuteReader()
+                            While dr.Read()
+                                Dim key As String = dr("paramkey").ToString()
+                                Dim value As String = If(IsDBNull(dr("paramvalue")), "", dr("paramvalue").ToString())
+                                If paramMap.ContainsKey(key) Then
+                                    paramMap(key)(value)
+                                End If
+                            End While
+                        End Using
+                    End Using
                 End Using
-            End Using
+            Else
+                Using cmd As New OracleCommand(sql, conn)
+                    cmd.CommandType = CommandType.Text
+                    Using dr As OracleDataReader = cmd.ExecuteReader()
+                        While dr.Read()
+                            Dim key As String = dr("paramkey").ToString()
+                            Dim value As String = If(IsDBNull(dr("paramvalue")), "", dr("paramvalue").ToString())
+                            If paramMap.ContainsKey(key) Then
+                                paramMap(key)(value)
+                            End If
+                        End While
+                    End Using
+                End Using
+            End If
         Catch ex As Exception
-            CreateExceptionFile(ex.Message, " " & sql)
+            CreateExceptionFile(ex.ToString(), sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
-
 
     Private ReadOnly MonthMap As New Dictionary(Of Integer, String) From {
     {1, "JAN"}, {2, "FEB"}, {3, "MAR"}, {4, "APR"},
@@ -769,7 +769,7 @@ Module connectionModule
     End Function
 
     Public Sub LogoutUser(ByVal username As String)
-        Const sql As String =
+        Dim sql As String =
         "UPDATE sessions s " &
         "SET s.is_active = 0, s.logout_when = SYSTIMESTAMP " &
         "WHERE s.is_active = 1 " &
@@ -794,14 +794,21 @@ Module connectionModule
 
 
     Public Function IsLoggedIn(username As String) As Boolean
-        Const q As String =
+        Dim WhoAmI As String = "IsLoggedIn"
+
+        Dim sql As String =
         "SELECT COUNT(*) " &
         "FROM sessions s " &
         "WHERE s.is_active = 1 " &
-        "  AND s.user_id = (SELECT u.uuid FROM users u WHERE u.username = :username)"
+        "  AND s.user_id = (SELECT u.uuid FROM users u WHERE u.username = :username) "
+
+        'TODO: kiosk id for the subquery, split from the where clause
+        'If SqlLite Then
+        'sql += " AND KIOSKID = :KIOSKID"
+        'End If
 
         Try
-            Using cmd As New OracleCommand(q, conn)
+            Using cmd As New OracleCommand(sql, conn)
                 If conn.State <> ConnectionState.Open Then OpenConn()
 
                 cmd.CommandType = CommandType.Text
@@ -813,7 +820,7 @@ Module connectionModule
             End Using
 
         Catch ex As Exception
-            CreateExceptionFile(ex.ToString(), q)
+            CreateExceptionFile(WhoAmI + " " + ex.ToString(), " " + sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
             Return False
         End Try
@@ -969,28 +976,49 @@ Module connectionModule
         End Try
     End Sub
 
-    Public Sub isPasswordEncrypted()
-        If Not isConnOpen() Then
-            MessageBox.Show(CANNOT_ACCESS_DB, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-            Exit Sub
-        End If
+    Public Sub IsPasswordEncrypted()
+        If SqlLite Then
+            Dim sql As String = "
+                            SELECT PARAMVALUE 
+                            FROM GLOBAL_PARAMS
+                            WHERE PARAMKEY='all.pass.encrypted' 
+                            AND KIOSKID=:KIOSKID "
 
-        Try
-            Using cmd As New OracleCommand(GET_ALL_PASS_ENCRYPTED, conn)
-                cmd.CommandType = CommandType.Text
-                Using dr As OracleDataReader = cmd.ExecuteReader()
-                    If dr.Read() AndAlso Convert.ToInt32(dr(0)) = 0 Then
-                        encryptPassword("all")
-                    End If
+            Using conn As New SQLiteConnection("Data Source=kiosk.db")
+                conn.Open()
+                Using cmd As New SQLiteCommand(sql, conn)
+                    cmd.Parameters.Add("KIOSKID", OracleDbType.Varchar2).Value = kioskId
+                    Using reader = cmd.ExecuteReader()
+                        If reader.Read() AndAlso Convert.ToInt32(reader(0)) = 0 Then
+                            EncryptPassword("all")
+                        End If
+                    End Using
                 End Using
             End Using
-        Catch ex As Exception
-            CreateExceptionFile(ex.Message, " " & GET_ALL_PASS_ENCRYPTED)
-            MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        End Try
+        Else
+            If Not isConnOpen() Then
+                MessageBox.Show(CANNOT_ACCESS_DB, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
+                Exit Sub
+            End If
+
+            Try
+                Using cmd As New OracleCommand("select paramvalue from global_params where paramkey='all.pass.encrypted'", conn)
+                    cmd.CommandType = CommandType.Text
+                    Using dr As OracleDataReader = cmd.ExecuteReader()
+                        If dr.Read() AndAlso Convert.ToInt32(dr(0)) = 0 Then
+                            encryptPassword("all")
+                        End If
+                    End Using
+                End Using
+            Catch ex As Exception
+                CreateExceptionFile(ex.Message, " " & "select paramvalue from global_params where paramkey='all.pass.encrypted'")
+                MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            End Try
+        End If
     End Sub
 
-    Public Sub encryptPassword(ByVal username As String)
+    Public Sub EncryptPassword(ByVal username As String)
+        'TODO: 15/06 Revisit (might not needed - all passwords are already encrypted in the DB)
         If Not isConnOpen() Then
             MessageBox.Show(CANNOT_ACCESS_DB, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
             Exit Sub

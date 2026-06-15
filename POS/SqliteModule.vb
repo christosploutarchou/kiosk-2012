@@ -73,7 +73,30 @@ Module SqliteModule
                         KIOSKID TEXT,
                         UPDATED_AT TEXT,
                         FOREIGN KEY (KIOSKID) REFERENCES KIOSK(KIOSKID)
-                    );"
+                    );
+
+                    -- USERS
+                    CREATE TABLE IF NOT EXISTS USERS (
+                        UUID TEXT PRIMARY KEY,
+                        USERNAME TEXT,
+                        DELETED INTEGER,
+                        ACCESS_LEVEL INTEGER,
+                        IS_UNLOCK INTEGER,
+                        PASS TEXT,
+                        FULLNAME TEXT,
+                        PHONE TEXT,
+                        ADDRESS TEXT,
+                        ID_NUM TEXT,
+                        DELETED_BY TEXT,
+                        CREATED_BY TEXT,
+                        VIEW_REPORTS INTEGER,
+                        EDIT_PROD INTEGER,
+                        EDIT_PROD_FULL INTEGER,
+                        KIOSKID TEXT,
+                        UPDATED_AT TEXT DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (KIOSKID) REFERENCES KIOSK(KIOSKID)
+                    );
+                    "
 
                 Using cmd As New SQLiteCommand(sql, conn)
                     cmd.ExecuteNonQuery()
@@ -133,6 +156,183 @@ Module SqliteModule
                         SaveLastSync(sqliteConn, newestTimestamp, "GLOBAL_PARAMS")
                     End Using
                 End Using
+            End Using
+        End Sub
+
+        'USERS
+        Public Sub SyncUsers()
+            Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                sqliteConn.Open()
+                EnableForeignKeys(sqliteConn)
+
+                Dim lastSync As DateTime = GetLastSync(sqliteConn, "USERS")
+                Dim sql As String =
+                                    "
+                                    SELECT
+                                        UUID,
+                                        USERNAME,
+                                        DELETED,
+                                        ACCESS_LEVEL,
+                                        IS_UNLOCK,
+                                        PASS,
+                                        FULLNAME,
+                                        PHONE,
+                                        ADDRESS,
+                                        ID_NUM,
+                                        DELETED_BY,
+                                        CREATED_BY,
+                                        VIEW_REPORTS,
+                                        EDIT_PROD,
+                                        EDIT_PROD_FULL,
+                                        KIOSKID,
+                                        UPDATED_AT
+                                    FROM USERS
+                                    WHERE KIOSKID = :KIOSKID
+                                    AND (UPDATED_AT IS NULL OR UPDATED_AT > :LASTSYNC)
+                                    ORDER BY UPDATED_AT
+                                    "
+
+                Using cmd As New OracleCommand(sql, conn)
+                    cmd.BindByName = True
+                    cmd.Parameters.Add("KIOSKID", OracleDbType.Varchar2).Value = kioskId
+                    cmd.Parameters.Add("LASTSYNC", OracleDbType.TimeStamp).Value = lastSync
+                    Using reader = cmd.ExecuteReader()
+                        Dim newestTimestamp As DateTime = lastSync
+                        While reader.Read()
+                            Dim updatedAt As DateTime = If(IsDBNull(reader("UPDATED_AT")), New DateTime(1900, 1, 1), Convert.ToDateTime(reader("UPDATED_AT")))
+
+                            UpsertUser(
+                                    sqliteConn,
+                                    reader("UUID").ToString(),
+                                    If(IsDBNull(reader("USERNAME")), Nothing, reader("USERNAME").ToString()),
+                                    If(IsDBNull(reader("DELETED")), 0, Convert.ToInt32(reader("DELETED"))),
+                                    If(IsDBNull(reader("ACCESS_LEVEL")), 0, Convert.ToInt32(reader("ACCESS_LEVEL"))),
+                                    If(IsDBNull(reader("IS_UNLOCK")), 0, Convert.ToInt32(reader("IS_UNLOCK"))),
+                                    If(IsDBNull(reader("PASS")), Nothing, reader("PASS").ToString()),
+                                    If(IsDBNull(reader("FULLNAME")), Nothing, reader("FULLNAME").ToString()),
+                                    If(IsDBNull(reader("PHONE")), Nothing, reader("PHONE").ToString()),
+                                    If(IsDBNull(reader("ADDRESS")), Nothing, reader("ADDRESS").ToString()),
+                                    If(IsDBNull(reader("ID_NUM")), Nothing, reader("ID_NUM").ToString()),
+                                    If(IsDBNull(reader("DELETED_BY")), Nothing, reader("DELETED_BY").ToString()),
+                                    If(IsDBNull(reader("CREATED_BY")), Nothing, reader("CREATED_BY").ToString()),
+                                    If(IsDBNull(reader("VIEW_REPORTS")), 0, Convert.ToInt32(reader("VIEW_REPORTS"))),
+                                    If(IsDBNull(reader("EDIT_PROD")), 0, Convert.ToInt32(reader("EDIT_PROD"))),
+                                    If(IsDBNull(reader("EDIT_PROD_FULL")), 0, Convert.ToInt32(reader("EDIT_PROD_FULL"))),
+                                    If(IsDBNull(reader("KIOSKID")), Nothing, reader("KIOSKID").ToString()),
+                                    updatedAt)
+
+                            If updatedAt > newestTimestamp Then
+                                newestTimestamp = updatedAt
+                            End If
+                        End While
+
+                        SaveLastSync(sqliteConn, newestTimestamp, "USERS")
+                    End Using
+                End Using
+            End Using
+        End Sub
+
+        Private Sub UpsertUser(
+                                conn As SQLiteConnection,
+                                uuid As String,
+                                username As String,
+                                deleted As Integer,
+                                accessLevel As Integer,
+                                isUnlock As Integer,
+                                pass As String,
+                                fullName As String,
+                                phone As String,
+                                address As String,
+                                idNum As String,
+                                deletedBy As String,
+                                createdBy As String,
+                                viewReports As Integer,
+                                editProd As Integer,
+                                editProdFull As Integer,
+                                kioskId As String,
+                                updatedAt As DateTime)
+
+            Dim sql As String =
+                                "
+                                INSERT INTO USERS
+                                (
+                                    UUID,
+                                    USERNAME,
+                                    DELETED,
+                                    ACCESS_LEVEL,
+                                    IS_UNLOCK,
+                                    PASS,
+                                    FULLNAME,
+                                    PHONE,
+                                    ADDRESS,
+                                    ID_NUM,
+                                    DELETED_BY,
+                                    CREATED_BY,
+                                    VIEW_REPORTS,
+                                    EDIT_PROD,
+                                    EDIT_PROD_FULL,
+                                    KIOSKID,
+                                    UPDATED_AT
+                                )
+                                VALUES
+                                (
+                                    @UUID,
+                                    @USERNAME,
+                                    @DELETED,
+                                    @ACCESS_LEVEL,
+                                    @IS_UNLOCK,
+                                    @PASS,
+                                    @FULLNAME,
+                                    @PHONE,
+                                    @ADDRESS,
+                                    @ID_NUM,
+                                    @DELETED_BY,
+                                    @CREATED_BY,
+                                    @VIEW_REPORTS,
+                                    @EDIT_PROD,
+                                    @EDIT_PROD_FULL,
+                                    @KIOSKID,
+                                    @UPDATED_AT
+                                )
+                                ON CONFLICT(UUID)
+                                DO UPDATE SET
+                                    USERNAME = excluded.USERNAME,
+                                    DELETED = excluded.DELETED,
+                                    ACCESS_LEVEL = excluded.ACCESS_LEVEL,
+                                    IS_UNLOCK = excluded.IS_UNLOCK,
+                                    PASS = excluded.PASS,
+                                    FULLNAME = excluded.FULLNAME,
+                                    PHONE = excluded.PHONE,
+                                    ADDRESS = excluded.ADDRESS,
+                                    ID_NUM = excluded.ID_NUM,
+                                    DELETED_BY = excluded.DELETED_BY,
+                                    CREATED_BY = excluded.CREATED_BY,
+                                    VIEW_REPORTS = excluded.VIEW_REPORTS,
+                                    EDIT_PROD = excluded.EDIT_PROD,
+                                    EDIT_PROD_FULL = excluded.EDIT_PROD_FULL,
+                                    KIOSKID = excluded.KIOSKID,
+                                    UPDATED_AT = excluded.UPDATED_AT
+                                "
+
+            Using cmd As New SQLiteCommand(sql, conn)
+                cmd.Parameters.AddWithValue("@UUID", uuid)
+                cmd.Parameters.AddWithValue("@USERNAME", If(username, DBNull.Value))
+                cmd.Parameters.AddWithValue("@DELETED", deleted)
+                cmd.Parameters.AddWithValue("@ACCESS_LEVEL", accessLevel)
+                cmd.Parameters.AddWithValue("@IS_UNLOCK", isUnlock)
+                cmd.Parameters.AddWithValue("@PASS", If(pass, DBNull.Value))
+                cmd.Parameters.AddWithValue("@FULLNAME", If(fullName, DBNull.Value))
+                cmd.Parameters.AddWithValue("@PHONE", If(phone, DBNull.Value))
+                cmd.Parameters.AddWithValue("@ADDRESS", If(address, DBNull.Value))
+                cmd.Parameters.AddWithValue("@ID_NUM", If(idNum, DBNull.Value))
+                cmd.Parameters.AddWithValue("@DELETED_BY", If(deletedBy, DBNull.Value))
+                cmd.Parameters.AddWithValue("@CREATED_BY", If(createdBy, DBNull.Value))
+                cmd.Parameters.AddWithValue("@VIEW_REPORTS", viewReports)
+                cmd.Parameters.AddWithValue("@EDIT_PROD", editProd)
+                cmd.Parameters.AddWithValue("@EDIT_PROD_FULL", editProdFull)
+                cmd.Parameters.AddWithValue("@KIOSKID", If(kioskId, DBNull.Value))
+                cmd.Parameters.AddWithValue("@UPDATED_AT", updatedAt.ToString("yyyy-MM-dd HH:mm:ss"))
+                cmd.ExecuteNonQuery()
             End Using
         End Sub
 

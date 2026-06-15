@@ -1,16 +1,19 @@
-﻿Imports Oracle.DataAccess.Client
-Imports Oracle.DataAccess.Types
-Imports System
+﻿Imports System
 Imports System.Data
-Imports System.Data.SqlClient
 Imports System.Data.OleDb
+Imports System.Data.SqlClient
+Imports System.Data.SQLite
+Imports Microsoft.Office.Interop.Excel
+Imports Oracle.DataAccess.Client
+Imports Oracle.DataAccess.Types
 
 Public Class frmLogin
 
     Private Sub FrmLogin_Disposed(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Disposed
-        If (openConn()) Then
+        '15/06 - TODO
+        If (OpenConn()) Then
             LogoutUser(username)
-            closeConn()
+            CloseConn()
         End If
     End Sub
 
@@ -23,11 +26,11 @@ Public Class frmLogin
         'If C:/sqlite.txt exists, create the datbase and set the flag to use sqlite instead of oracle
         If SqlLiteEnabled() Then
             SqlLite = True
-            CreateSqliteTableStructure()
-
             Dim sync As New SyncTables()
             Try
+                CreateSqliteTableStructure()
                 sync.SyncGlobalParams()
+                sync.SyncUsers()
             Catch ex As Exception
                 MessageBox.Show(ex.Message)
                 ' Oracle unavailable
@@ -36,56 +39,68 @@ Public Class frmLogin
 
         End If
 
-
         If computerName = "-1" Then
             Me.Dispose()
         End If
-        isPasswordEncrypted()
-        getKIOSKParams()
+        IsPasswordEncrypted()
+        GetKIOSKParams()
         FillUsersList()
         lblLoginTitle1.Text = LOGIN_TITLE1
         lblLoginTitle2.Text = LOGIN_TITLE2
     End Sub
 
     Private Sub FillUsersList()
-        Dim q As String = "SELECT username FROM users WHERE deleted = 0 ORDER BY username"
+        Dim WhoAmI As String = "FillUsersList"
+        Dim sql As String = "SELECT username FROM users WHERE deleted = 0 "
         Try
-            Using cmd As New OracleCommand(q, conn)
-                cmd.CommandType = CommandType.Text
+            If SqlLite Then
+                sql += "AND KIOSKID = :KIOSKID "
+            End If
+            sql += "ORDER BY username"
 
-                Using dr As OracleDataReader = cmd.ExecuteReader()
-                    lstboxUsers.BeginUpdate()
-                    lstboxUsers.Items.Clear()
+            If SqlLite Then
+                Using conn As New SQLiteConnection("Data Source=kiosk.db")
+                    conn.Open()
+                    Using cmd As New SQLiteCommand(sql, conn)
+                        cmd.Parameters.AddWithValue(":KIOSKID", kioskId)
+                        Using dr As SQLiteDataReader = cmd.ExecuteReader()
+                            lstboxUsers.BeginUpdate()
+                            lstboxUsers.Items.Clear()
 
-                    While dr.Read()
-                        lstboxUsers.Items.Add(dr.GetString(dr.GetOrdinal("username")))
-                    End While
-
-                    lstboxUsers.EndUpdate()
+                            While dr.Read()
+                                lstboxUsers.Items.Add(dr.GetString(dr.GetOrdinal("username")))
+                            End While
+                            lstboxUsers.EndUpdate()
+                        End Using
+                    End Using
                 End Using
-            End Using
+            Else
+                Using cmd As New OracleCommand(sql, conn)
+                    cmd.CommandType = CommandType.Text
 
+                    Using dr As OracleDataReader = cmd.ExecuteReader()
+                        lstboxUsers.BeginUpdate()
+                        lstboxUsers.Items.Clear()
+
+                        While dr.Read()
+                            lstboxUsers.Items.Add(dr.GetString(dr.GetOrdinal("username")))
+                        End While
+
+                        lstboxUsers.EndUpdate()
+                    End Using
+                End Using
+            End If
         Catch ex As Exception
-            createExceptionFile(ex.Message, " " & q)
+            CreateExceptionFile(WhoAmI + " " + ex.Message, " " & sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
-    Private Sub btnExit_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnExit.Click
-        closeConn()
+    Private Sub BtnExit_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnExit.Click
+        '15/06 - TODO
+        CloseConn()
         Me.Dispose()
     End Sub
-
-    'Private Sub btnClear_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnClear.Click
-    '    txtBoxPassword.Clear()
-    'End Sub
-
-    'Private Sub NumberButton_Click(sender As Object, e As EventArgs) _
-    'Handles btn0.Click, btn1.Click, btn2.Click, btn3.Click, btn4.Click, btn5.Click, btn6.Click, btn7.Click, btn8.Click, btn9.Click
-
-    'Dim btn As Button = DirectCast(sender, Button)
-    '   txtBoxPassword.Text &= btn.Text
-    'End Sub
 
     Private Sub KeypadButton_Click(sender As Object, e As EventArgs) _
     Handles btn0.Click, btn1.Click, btn2.Click, btn3.Click, btn4.Click, btn5.Click, btn6.Click, btn7.Click, btn8.Click, btn9.Click, btnBack.Click, btnClear.Click
@@ -106,20 +121,17 @@ Public Class frmLogin
         End Select
     End Sub
 
-    'Private Sub btnBack_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnBack.Click
-    'If txtBoxPassword.Text.Length > 0 Then
-    '       txtBoxPassword.Text = txtBoxPassword.Text.Substring(0, txtBoxPassword.Text.Length - 1)
-    'End If
-    'End Sub
-
     Private Sub BtnLogin_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnLogin.Click
+        '15/06 - TODO
         Dim WhoAmI As String = "BtnLogin_Click"
 
         'If Not CheckHhdSerial() Then
         'Exit Sub
         'End If
 
-        getVat3PercentColumns()
+        '3% VAT is already part of the tables, no need to execute
+        'GetVat3PercentColumns()
+
         'isBoxReport()
 
         username = lstboxUsers.Text

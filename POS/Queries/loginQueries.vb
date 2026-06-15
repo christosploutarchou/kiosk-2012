@@ -6,7 +6,5 @@
                                    "values (sys_guid(), (select systimestamp from dual), 1, :1, " & _
                                    "       (select uuid from users where username = :2), :3)"
 
-    Public GET_ALL_PASS_ENCRYPTED As String = "select paramvalue from global_params where paramkey='all.pass.encrypted'"
-
     Public GET_ALL_USERS_AND_PASS As String = "select username, pass from users"
 End Module
