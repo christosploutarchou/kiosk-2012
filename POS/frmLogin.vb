@@ -23,12 +23,13 @@ Public Class frmLogin
         'If C:/sqlite.txt exists, create the datbase and set the flag to use sqlite instead of oracle
         If SqlLiteEnabled() Then
             SqlLite = True
-            CreateSqliteDB()
+            CreateSqliteTableStructure()
 
             Dim sync As New SyncTables()
             Try
                 sync.SyncGlobalParams()
             Catch ex As Exception
+                MessageBox.Show(ex.Message)
                 ' Oracle unavailable
                 ' Continue with local SQLite
             End Try
