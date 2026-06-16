@@ -3,7 +3,7 @@ Imports System.Data
 Imports System.Data.OleDb
 Imports System.Data.SqlClient
 Imports System.Data.SQLite
-Imports Microsoft.Office.Interop.Excel
+'Imports Microsoft.Office.Interop.Excel
 Imports Oracle.DataAccess.Client
 Imports Oracle.DataAccess.Types
 
@@ -31,6 +31,12 @@ Public Class frmLogin
                 CreateSqliteTableStructure()
                 sync.SyncGlobalParams()
                 sync.SyncUsers()
+                sync.SyncLottery()
+                sync.SyncVatTypes()
+                sync.SyncSuppliers()
+                sync.syncCategories()
+                sync.SyncBarcodes()
+                sync.SyncProducts()
             Catch ex As Exception
                 MessageBox.Show(ex.Message)
                 ' Oracle unavailable
@@ -146,78 +152,147 @@ Public Class frmLogin
         'End If
 
         If Not IsLoggedIn(username) Then
-            Dim cmd As New OracleCommand
+            'Dim cmd As New OracleCommand
             Try
-                cmd = New OracleCommand(GET_USER_INFO, conn)
-                sql = GET_USER_INFO
-                Dim userNameparam As New OracleParameter
-                userNameparam.OracleDbType = OracleDbType.Varchar2
-                userNameparam.Value = username
+                If SqlLite Then
+                    sql =
+                        "SELECT " &
+                        "UUID, " &
+                        "ACCESS_LEVEL, " &
+                        "IFNULL(IS_UNLOCK,0) IS_UNLOCK, " &
+                        "IFNULL(VIEW_REPORTS,0) VIEW_REPORTS, " &
+                        "IFNULL(EDIT_PROD,0) EDIT_PROD, " &
+                        "IFNULL(EDIT_PROD_FULL,0) EDIT_PROD_FULL " &
+                        "FROM USERS " &
+                        "WHERE KIOSKID = :KIOSKID " &
+                        "AND USERNAME = :USERNAME " &
+                        "AND PASS = :PASS"
+                Else
+                    sql =
+                        "SELECT " &
+                        "UUID, " &
+                        "ACCESS_LEVEL, " &
+                        "NVL(IS_UNLOCK,0), " &
+                        "NVL(VIEW_REPORTS,0), " &
+                        "NVL(EDIT_PROD,0), " &
+                        "NVL(EDIT_PROD_FULL,0) " &
+                        "FROM USERS " &
+                        "WHERE USERNAME = :USERNAME " &
+                        "AND PASS = :PASS"
+                End If
 
-                Dim passparam As New OracleParameter
-                passparam.OracleDbType = OracleDbType.Varchar2
-                passparam.Value = getEncryptedValue(txtBoxPassword.Text)
-
-                cmd.Parameters.Add(userNameparam)
-                cmd.Parameters.Add(passparam)
-
-                cmd.CommandType = CommandType.Text
                 Dim isUnlock As Boolean = False
-                Using drLogged = cmd.ExecuteReader()
-                    If drLogged.Read() Then
-                        If CInt(drLogged.GetValue(3)) = 1 Then
-                            canViewReports = True
-                        Else
-                            canViewReports = False
-                        End If
+                If SqlLite Then
+                    Using conn As New SQLiteConnection("Data Source=kiosk.db")
+                        conn.Open()
 
-                        If CInt(drLogged.GetValue(4)) = 1 Then
-                            canEditProducts = True
-                        Else
-                            canEditProducts = False
-                        End If
+                        Using cmd As New SQLiteCommand(sql, conn)
+                            cmd.Parameters.AddWithValue(":KIOSKID", kioskId)
+                            cmd.Parameters.AddWithValue(":USERNAME", username)
+                            cmd.Parameters.AddWithValue(":PASS", getEncryptedValue(txtBoxPassword.Text))
 
-                        If CInt(drLogged.GetValue(5)) = 1 Then
-                            canEditProductsFull = True
-                        Else
-                            canEditProductsFull = False
-                        End If
+                            Using drLogged As SQLiteDataReader = cmd.ExecuteReader()
+                                If drLogged.Read() Then
+                                    canViewReports = Convert.ToInt32(drLogged("VIEW_REPORTS")) = 1
+                                    canEditProducts = Convert.ToInt32(drLogged("EDIT_PROD")) = 1
+                                    canEditProductsFull = Convert.ToInt32(drLogged("EDIT_PROD_FULL")) = 1
+                                    isAdmin = Convert.ToInt32(drLogged("ACCESS_LEVEL")) = 1
+                                    isUnlock = Convert.ToInt32(drLogged("IS_UNLOCK")) = 1
+                                    whois = drLogged("UUID").ToString()
 
-                        If CInt(drLogged.GetValue(1)) = 1 Then
-                            isAdmin = True
-                        Else
-                            isAdmin = False
-                        End If
+                                    Me.Hide()
+                                    txtBoxPassword.Clear()
 
-                        whois = drLogged.GetValue(0)
-                        Me.Hide()
-                        txtBoxPassword.Clear()
-                        If CInt(drLogged.GetValue(2)) = 1 Then
-                            isUnlock = True
-                            frmUnlockUser.Show()
-                            'ElseIf Not isAdmin And Not canEditProducts And Not canEditProductsFull Then
-                        Else
-                            If Not isAdmin Then
-                                frmPOS.Show()
+                                    If isUnlock Then
+                                        frmUnlockUser.Show()
+                                    Else
+                                        If Not isAdmin Then
+                                            frmPOS.Show()
+                                        Else
+                                            frmMain.Show()
+                                        End If
+
+                                        If dualMonitor Then
+                                            frmDual.Show()
+                                        End If
+                                    End If
+                                Else
+                                    MessageBox.Show(INVALID_LOGIN, ERROR_MSG, MessageBoxButtons.OK, MessageBoxIcon.Error)
+                                    Exit Sub
+                                End If
+                            End Using
+                        End Using
+                    End Using
+                Else
+                    Dim cmd = New OracleCommand(sql, conn)
+
+                    Dim userNameparam As New OracleParameter
+                    userNameparam.OracleDbType = OracleDbType.Varchar2
+                    userNameparam.Value = username
+
+                    Dim passparam As New OracleParameter
+                    passparam.OracleDbType = OracleDbType.Varchar2
+                    passparam.Value = getEncryptedValue(txtBoxPassword.Text)
+
+                    cmd.Parameters.Add(userNameparam)
+                    cmd.Parameters.Add(passparam)
+
+                    cmd.CommandType = CommandType.Text
+
+                    Using drLogged = cmd.ExecuteReader()
+                        If drLogged.Read() Then
+                            If CInt(drLogged.GetValue(3)) = 1 Then
+                                canViewReports = True
                             Else
-                                frmMain.Show()
+                                canViewReports = False
                             End If
 
-                            If dualMonitor Then
-                                frmDual.Show()
+                            If CInt(drLogged.GetValue(4)) = 1 Then
+                                canEditProducts = True
+                            Else
+                                canEditProducts = False
                             End If
-                            'Else
-                            'frmMain.Show()
+
+                            If CInt(drLogged.GetValue(5)) = 1 Then
+                                canEditProductsFull = True
+                            Else
+                                canEditProductsFull = False
+                            End If
+
+                            If CInt(drLogged.GetValue(1)) = 1 Then
+                                isAdmin = True
+                            Else
+                                isAdmin = False
+                            End If
+
+                            whois = drLogged.GetValue(0)
+                            Me.Hide()
+                            txtBoxPassword.Clear()
+                            If CInt(drLogged.GetValue(2)) = 1 Then
+                                isUnlock = True
+                                frmUnlockUser.Show()
+                            Else
+                                If Not isAdmin Then
+                                    frmPOS.Show()
+                                Else
+                                    frmMain.Show()
+                                End If
+
+                                If dualMonitor Then
+                                    frmDual.Show()
+                                End If
+                            End If
+                        Else
+                            MessageBox.Show(INVALID_LOGIN, ERROR_MSG, MessageBoxButtons.OK, MessageBoxIcon.Error)
+                            drLogged.Close()
+                            cmd.Dispose()
+                            Exit Sub
                         End If
-                    Else
-                        MessageBox.Show(INVALID_LOGIN, ERROR_MSG, MessageBoxButtons.OK, MessageBoxIcon.Error)
-                        drLogged.Close()
                         cmd.Dispose()
-                        Exit Sub
-                    End If
-                    cmd.Dispose()
-                End Using
+                    End Using
+                End If
 
+                'TODO 
                 If Not isUnlock Then
                     Dim amountLaxeia As Double = 0
                     amountLaxeia = getAmountLaxeia()
@@ -233,8 +308,8 @@ Public Class frmLogin
                     Dim amountLaxeiaParam As New OracleParameter
                     amountLaxeiaParam.OracleDbType = OracleDbType.Decimal
                     amountLaxeiaParam.Value = amountLaxeia
-
-                    cmd = New OracleCommand(NEW_SESSION, conn)
+                    'TODO
+                    Dim cmd = New OracleCommand(NEW_SESSION, conn)
                     sql = NEW_SESSION
                     cmd.Parameters.Add(computerNameparam)
                     cmd.Parameters.Add(userNameInsert)
@@ -247,7 +322,7 @@ Public Class frmLogin
                 CreateExceptionFile(ex.Message, " " & sql)
                 MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
             Finally
-                cmd.Dispose()
+                'cmd.Dispose()
             End Try
         Else
             MessageBox.Show(USER_ALREADY_LOGGED_IN, ERROR_MSG, MessageBoxButtons.OK, MessageBoxIcon.Error)

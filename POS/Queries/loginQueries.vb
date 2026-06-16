@@ -1,9 +1,7 @@
 ﻿Module loginQueries
     'Login Screen
-    Public GET_USER_INFO As String = "select uuid, access_level, NVL(is_unlock,0), NVL(view_reports,0), NVL(edit_prod,0), NVL(edit_prod_full,0) from users where username = :1 and pass = :2 "
-
-    Public NEW_SESSION As String = "insert into sessions (uuid, login_when, is_active, machine_name, user_id, amountLaxeiaOnLogin) " & _
-                                   "values (sys_guid(), (select systimestamp from dual), 1, :1, " & _
+    Public NEW_SESSION As String = "insert into sessions (uuid, login_when, is_active, machine_name, user_id, amountLaxeiaOnLogin) " &
+                                   "values (sys_guid(), (select systimestamp from dual), 1, :1, " &
                                    "       (select uuid from users where username = :2), :3)"
 
     Public GET_ALL_USERS_AND_PASS As String = "select username, pass from users"

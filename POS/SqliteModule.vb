@@ -96,6 +96,190 @@ Module SqliteModule
                         UPDATED_AT TEXT DEFAULT CURRENT_TIMESTAMP,
                         FOREIGN KEY (KIOSKID) REFERENCES KIOSK(KIOSKID)
                     );
+
+                    -- SESSIONS
+                    CREATE TABLE IF NOT EXISTS SESSIONS (
+                        UUID TEXT PRIMARY KEY,
+                        LOGIN_WHEN TEXT,
+                        IS_ACTIVE INTEGER,
+                        MACHINE_NAME TEXT,
+                        USER_ID TEXT,
+                        LOGOUT_WHEN TEXT,
+                        AMOUNTLAXEIAONLOGIN REAL,
+                        KIOSKID TEXT,
+                        UPDATED_AT TEXT DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (USER_ID) REFERENCES USERS(UUID),
+                        FOREIGN KEY (KIOSKID) REFERENCES KIOSK(KIOSKID)
+                    );
+
+                    CREATE INDEX IF NOT EXISTS IDX_SESSIONS_USER_ID ON SESSIONS(USER_ID);
+                    CREATE INDEX IF NOT EXISTS IDX_SESSIONS_UPDATED_AT ON SESSIONS(UPDATED_AT);
+                    CREATE INDEX IF NOT EXISTS IDX_SESSIONS_KIOSKID ON SESSIONS(KIOSKID);
+
+                    -- LOTTERY
+                    CREATE TABLE IF NOT EXISTS LOTTERY (
+                        BARCODE TEXT,
+                        KIOSKID TEXT,
+                        UPDATED_AT TEXT DEFAULT CURRENT_TIMESTAMP,
+                        PRIMARY KEY (BARCODE, KIOSKID),
+                        FOREIGN KEY (KIOSKID) REFERENCES KIOSK(KIOSKID)
+                    );
+
+                    CREATE UNIQUE INDEX IF NOT EXISTS IDX_LOTTERY_BARCODE ON LOTTERY(BARCODE);
+
+                    -- BARCODES
+                    CREATE TABLE IF NOT EXISTS BARCODES (
+                        BARCODE TEXT PRIMARY KEY,
+                        PRODUCT_SERNO INTEGER,
+                        KIOSKID TEXT,
+                        UPDATED_AT TEXT DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (KIOSKID) REFERENCES KIOSK(KIOSKID)
+                    );
+    
+                    CREATE INDEX IF NOT EXISTS IDX_BARCODES_KIOSKID ON BARCODES(KIOSKID);
+                    CREATE INDEX IF NOT EXISTS IDX_BARCODES_UPDATED_AT ON BARCODES(UPDATED_AT);
+                    CREATE INDEX IF NOT EXISTS IDX_BARCODES_PRODUCT_SERNO ON BARCODES(PRODUCT_SERNO);
+
+                    -- PRODUCTS
+                    CREATE TABLE IF NOT EXISTS PRODUCTS (
+                        DESCRIPTION TEXT,
+                        MIN_QUANTITY INTEGER,
+                        AVAIL_QUANTITY INTEGER NOT NULL,
+                        ALERT_ON_MIN INTEGER,
+                        EXPIRY_DATE TEXT,
+                        ALERT_ON_EXPIRY INTEGER,
+                        ALERT_DATE TEXT,
+                        SERNO INTEGER PRIMARY KEY,
+                        BUY_AMT REAL,
+                        SELL_AMT REAL,
+                        CATEGORY_ID TEXT,
+                        SUPPLIER_ID TEXT,
+                        NOTES TEXT,
+                        STOCK_QUANTITY INTEGER,
+                        PROFIT_PERCENT REAL,
+                        AMT_PROFIT REAL,
+                        OFFER INTEGER,
+                        OFFER_TYPE INTEGER,
+                        OFFER_X INTEGER,
+                        OFFER_Y INTEGER,
+                        OFFER_DISC REAL,
+                        OFFER_AT INTEGER,
+                        LASTMODIFIEDBY TEXT,
+                        LASTMODIFIEDSCREEN INTEGER,
+                        VATTYPE_ID TEXT,
+                        ISBOX INTEGER,
+                        BOX_QNT INTEGER,
+                        OFFERFROMDATE TEXT,
+                        OFFERTODATE TEXT,
+                        BUY_AMT_NO_VAT REAL,
+                        BUY_AMT_NEW REAL,
+                        KIOSKID TEXT,
+                        UPDATED_AT TEXT DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (CATEGORY_ID) REFERENCES CATEGORIES(UUID),
+                        FOREIGN KEY (SUPPLIER_ID) REFERENCES SUPPLIERS(UUID),
+                        FOREIGN KEY (VATTYPE_ID) REFERENCES VAT_TYPES(UUID),
+                        FOREIGN KEY (KIOSKID) REFERENCES KIOSK(KIOSKID)
+                    );
+
+                    CREATE INDEX IF NOT EXISTS IDX_PRODUCTS_SYNC ON PRODUCTS(KIOSKID, UPDATED_AT);
+                    CREATE INDEX IF NOT EXISTS IDX_PRODUCTS_CATEGORY ON PRODUCTS(CATEGORY_ID);
+                    CREATE INDEX IF NOT EXISTS IDX_PRODUCTS_SUPPLIER ON PRODUCTS(SUPPLIER_ID);
+                    CREATE INDEX IF NOT EXISTS IDX_PRODUCTS_DESCRIPTION ON PRODUCTS(DESCRIPTION);
+                    CREATE INDEX IF NOT EXISTS IDX_PRODUCTS_SERNO ON PRODUCTS(SERNO);
+
+                    CREATE TABLE IF NOT EXISTS PRODUCTS_AUDIT (
+                        ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                        PRODUCT_SERNO INTEGER,
+                        PREV_QUANTITY INTEGER,
+                        NEW_QUANTITY INTEGER,
+                        MODIFIED_BY TEXT,
+                        MODIFIED_WHEN TEXT,
+                        PREV_ST_QNT INTEGER,
+                        NEW_ST_QNT INTEGER,
+                        OLD_PRICE REAL,
+                        NEW_PRICE REAL
+                    );
+
+                    CREATE TRIGGER IF NOT EXISTS PRODUCTS_BEFORE_UPDATE
+                    BEFORE UPDATE ON PRODUCTS
+                    FOR EACH ROW
+                    WHEN NEW.LASTMODIFIEDSCREEN = 1
+                    BEGIN
+
+                        INSERT INTO PRODUCTS_AUDIT
+                        (
+                            PRODUCT_SERNO,
+                            PREV_QUANTITY,
+                            NEW_QUANTITY,
+                            MODIFIED_BY,
+                            MODIFIED_WHEN,
+                            PREV_ST_QNT,
+                            NEW_ST_QNT,
+                            OLD_PRICE,
+                            NEW_PRICE
+                        )
+                        VALUES
+                        (
+                            OLD.SERNO,
+                            OLD.AVAIL_QUANTITY,
+                            NEW.AVAIL_QUANTITY,
+                            NEW.LASTMODIFIEDBY,
+                            CURRENT_TIMESTAMP,
+                            OLD.STOCK_QUANTITY,
+                            NEW.STOCK_QUANTITY,
+                            OLD.SELL_AMT,
+                            NEW.SELL_AMT
+                        );
+                    END;
+
+                    -- VAT_TYPES
+                    CREATE TABLE IF NOT EXISTS VAT_TYPES (
+                        UUID TEXT PRIMARY KEY,
+                        DESCRIPTION TEXT,
+                        VAT INTEGER,
+                        KIOSKID TEXT,
+                        UPDATED_AT TEXT DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (KIOSKID) REFERENCES KIOSK(KIOSKID)
+                    );
+
+                    CREATE INDEX IF NOT EXISTS IDX_VAT_TYPES_SYNC ON VAT_TYPES(KIOSKID, UPDATED_AT);
+
+                    -- SUPPLIERS
+                    CREATE TABLE IF NOT EXISTS SUPPLIERS (
+                        UUID TEXT PRIMARY KEY,
+                        S_NAME TEXT,
+                        PHONE_1 TEXT,
+                        PHONE_2 TEXT,
+                        EMAIL TEXT,
+                        CONTACT_NAME TEXT,
+                        MON INTEGER,
+                        TUE INTEGER,
+                        WED INTEGER,
+                        THU INTEGER,
+                        FRI INTEGER,
+                        NOTES TEXT,
+                        WEB INTEGER,
+                        ISDEFAULT INTEGER,
+                        KIOSKID TEXT,
+                        UPDATED_AT TEXT DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (KIOSKID) REFERENCES KIOSK(KIOSKID)
+                    );
+
+                    CREATE INDEX IF NOT EXISTS IDX_SUPPLIERS_SYNC ON SUPPLIERS(KIOSKID, UPDATED_AT);
+                    CREATE INDEX IF NOT EXISTS IDX_SUPPLIERS_NAME ON SUPPLIERS(S_NAME);
+
+                    -- CATEGORIES
+                    CREATE TABLE IF NOT EXISTS CATEGORIES (
+                        UUID TEXT PRIMARY KEY,
+                        DESCRIPTION TEXT,
+                        VAT INTEGER,
+                        KIOSKID TEXT,
+                        UPDATED_AT TEXT DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (KIOSKID) REFERENCES KIOSK(KIOSKID)
+                    );
+
+                    CREATE INDEX IF NOT EXISTS IDX_CATEGORIES_SYNC ON CATEGORIES(KIOSKID, UPDATED_AT);
+                    CREATE INDEX IF NOT EXISTS IDX_CATEGORIES_DESCRIPTION ON CATEGORIES(DESCRIPTION);
                     "
 
                 Using cmd As New SQLiteCommand(sql, conn)
@@ -110,7 +294,263 @@ Module SqliteModule
     End Sub
 
     Public Class SyncTables
-        'GLOBAL_PARAMS
+        Private Function CreateCategoryUpsertCommand(conn As SQLiteConnection) As SQLiteCommand
+            Dim sql As String =
+                                "
+                                INSERT INTO CATEGORIES
+                                (
+                                    UUID,
+                                    DESCRIPTION,
+                                    VAT,
+                                    KIOSKID,
+                                    UPDATED_AT
+                                )
+                                VALUES
+                                (
+                                    @UUID,
+                                    @DESCRIPTION,
+                                    @VAT,
+                                    @KIOSKID,
+                                    @UPDATED_AT
+                                )
+                                ON CONFLICT(UUID)
+                                DO UPDATE SET
+                                    DESCRIPTION = excluded.DESCRIPTION,
+                                    VAT = excluded.VAT,
+                                    KIOSKID = excluded.KIOSKID,
+                                    UPDATED_AT = excluded.UPDATED_AT
+                                "
+
+            Dim cmd As New SQLiteCommand(sql, conn)
+
+            cmd.Parameters.Add("@UUID", DbType.String)
+            cmd.Parameters.Add("@DESCRIPTION", DbType.String)
+            cmd.Parameters.Add("@VAT", DbType.Int32)
+            cmd.Parameters.Add("@KIOSKID", DbType.String)
+            cmd.Parameters.Add("@UPDATED_AT", DbType.String)
+            Return cmd
+        End Function
+
+        Private Sub ExecuteCategoryUpsert(cmd As SQLiteCommand, dr As OracleDataReader)
+            cmd.Parameters("@UUID").Value = If(IsDBNull(dr("UUID")), DBNull.Value, dr("UUID"))
+            cmd.Parameters("@DESCRIPTION").Value = If(IsDBNull(dr("DESCRIPTION")), DBNull.Value, dr("DESCRIPTION"))
+            cmd.Parameters("@VAT").Value = If(IsDBNull(dr("VAT")), DBNull.Value, dr("VAT"))
+            cmd.Parameters("@KIOSKID").Value = If(IsDBNull(dr("KIOSKID")), DBNull.Value, dr("KIOSKID"))
+            cmd.Parameters("@UPDATED_AT").Value = If(IsDBNull(dr("UPDATED_AT")), DBNull.Value, Convert.ToDateTime(dr("UPDATED_AT")).ToString("yyyy-MM-dd HH:mm:ss"))
+            cmd.ExecuteNonQuery()
+        End Sub
+
+        Public Sub SyncCategories()
+            Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                sqliteConn.Open()
+                EnableForeignKeys(sqliteConn)
+                Dim lastSync As DateTime = GetLastSync(sqliteConn, "CATEGORIES")
+
+                Dim sql As String =
+                                    "
+                                    SELECT
+                                        UUID,
+                                        DESCRIPTION,
+                                        VAT,
+                                        KIOSKID,
+                                        UPDATED_AT
+                                    FROM CATEGORIES
+                                    WHERE KIOSKID = :KIOSKID
+                                    AND (UPDATED_AT IS NULL OR UPDATED_AT > :LASTSYNC)
+                                    ORDER BY UPDATED_AT
+                                    "
+
+                Using oracleCmd As New OracleCommand(sql, conn)
+                    oracleCmd.BindByName = True
+                    oracleCmd.Parameters.Add("KIOSKID", OracleDbType.Varchar2).Value = kioskId
+                    oracleCmd.Parameters.Add("LASTSYNC", OracleDbType.TimeStamp).Value = lastSync
+
+                    Using reader = oracleCmd.ExecuteReader()
+                        Dim newestTimestamp As DateTime = lastSync
+                        Using trans = sqliteConn.BeginTransaction()
+
+                            Dim upsertCmd = CreateCategoryUpsertCommand(sqliteConn)
+
+                            While reader.Read()
+                                ExecuteCategoryUpsert(upsertCmd, reader)
+
+                                If Not IsDBNull(reader("UPDATED_AT")) Then
+                                    Dim updatedAt As DateTime = Convert.ToDateTime(reader("UPDATED_AT"))
+                                    If updatedAt > newestTimestamp Then
+                                        newestTimestamp = updatedAt
+                                    End If
+                                End If
+                            End While
+                            trans.Commit()
+                        End Using
+
+                        SaveLastSync(sqliteConn, newestTimestamp, "CATEGORIES")
+                    End Using
+                End Using
+            End Using
+        End Sub
+
+        Private Function CreateSupplierUpsertCommand(conn As SQLiteConnection) As SQLiteCommand
+            Dim sql As String =
+                                "
+                                INSERT INTO SUPPLIERS
+                                (
+                                    UUID,
+                                    S_NAME,
+                                    PHONE_1,
+                                    PHONE_2,
+                                    EMAIL,
+                                    CONTACT_NAME,
+                                    MON,
+                                    TUE,
+                                    WED,
+                                    THU,
+                                    FRI,
+                                    NOTES,
+                                    WEB,
+                                    ISDEFAULT,
+                                    KIOSKID,
+                                    UPDATED_AT
+                                )
+                                VALUES
+                                (
+                                    @UUID,
+                                    @S_NAME,
+                                    @PHONE_1,
+                                    @PHONE_2,
+                                    @EMAIL,
+                                    @CONTACT_NAME,
+                                    @MON,
+                                    @TUE,
+                                    @WED,
+                                    @THU,
+                                    @FRI,
+                                    @NOTES,
+                                    @WEB,
+                                    @ISDEFAULT,
+                                    @KIOSKID,
+                                    @UPDATED_AT
+                                )
+                                ON CONFLICT(UUID)
+                                DO UPDATE SET
+                                    S_NAME = excluded.S_NAME,
+                                    PHONE_1 = excluded.PHONE_1,
+                                    PHONE_2 = excluded.PHONE_2,
+                                    EMAIL = excluded.EMAIL,
+                                    CONTACT_NAME = excluded.CONTACT_NAME,
+                                    MON = excluded.MON,
+                                    TUE = excluded.TUE,
+                                    WED = excluded.WED,
+                                    THU = excluded.THU,
+                                    FRI = excluded.FRI,
+                                    NOTES = excluded.NOTES,
+                                    WEB = excluded.WEB,
+                                    ISDEFAULT = excluded.ISDEFAULT,
+                                    KIOSKID = excluded.KIOSKID,
+                                    UPDATED_AT = excluded.UPDATED_AT
+                                "
+
+            Dim cmd As New SQLiteCommand(sql, conn)
+
+            cmd.Parameters.Add("@UUID", DbType.String)
+            cmd.Parameters.Add("@S_NAME", DbType.String)
+            cmd.Parameters.Add("@PHONE_1", DbType.String)
+            cmd.Parameters.Add("@PHONE_2", DbType.String)
+            cmd.Parameters.Add("@EMAIL", DbType.String)
+            cmd.Parameters.Add("@CONTACT_NAME", DbType.String)
+            cmd.Parameters.Add("@MON", DbType.Int32)
+            cmd.Parameters.Add("@TUE", DbType.Int32)
+            cmd.Parameters.Add("@WED", DbType.Int32)
+            cmd.Parameters.Add("@THU", DbType.Int32)
+            cmd.Parameters.Add("@FRI", DbType.Int32)
+            cmd.Parameters.Add("@NOTES", DbType.String)
+            cmd.Parameters.Add("@WEB", DbType.Int32)
+            cmd.Parameters.Add("@ISDEFAULT", DbType.Int32)
+            cmd.Parameters.Add("@KIOSKID", DbType.String)
+            cmd.Parameters.Add("@UPDATED_AT", DbType.String)
+            Return cmd
+        End Function
+
+        Private Sub ExecuteSupplierUpsert(cmd As SQLiteCommand, dr As OracleDataReader)
+            cmd.Parameters("@UUID").Value = If(IsDBNull(dr("UUID")), DBNull.Value, dr("UUID"))
+            cmd.Parameters("@S_NAME").Value = If(IsDBNull(dr("S_NAME")), DBNull.Value, dr("S_NAME"))
+            cmd.Parameters("@PHONE_1").Value = If(IsDBNull(dr("PHONE_1")), DBNull.Value, dr("PHONE_1"))
+            cmd.Parameters("@PHONE_2").Value = If(IsDBNull(dr("PHONE_2")), DBNull.Value, dr("PHONE_2"))
+            cmd.Parameters("@EMAIL").Value = If(IsDBNull(dr("EMAIL")), DBNull.Value, dr("EMAIL"))
+            cmd.Parameters("@CONTACT_NAME").Value = If(IsDBNull(dr("CONTACT_NAME")), DBNull.Value, dr("CONTACT_NAME"))
+            cmd.Parameters("@MON").Value = If(IsDBNull(dr("MON")), DBNull.Value, dr("MON"))
+            cmd.Parameters("@TUE").Value = If(IsDBNull(dr("TUE")), DBNull.Value, dr("TUE"))
+            cmd.Parameters("@WED").Value = If(IsDBNull(dr("WED")), DBNull.Value, dr("WED"))
+            cmd.Parameters("@THU").Value = If(IsDBNull(dr("THU")), DBNull.Value, dr("THU"))
+            cmd.Parameters("@FRI").Value = If(IsDBNull(dr("FRI")), DBNull.Value, dr("FRI"))
+            cmd.Parameters("@NOTES").Value = If(IsDBNull(dr("NOTES")), DBNull.Value, dr("NOTES"))
+            cmd.Parameters("@WEB").Value = If(IsDBNull(dr("WEB")), DBNull.Value, dr("WEB"))
+            cmd.Parameters("@ISDEFAULT").Value = If(IsDBNull(dr("ISDEFAULT")), DBNull.Value, dr("ISDEFAULT"))
+            cmd.Parameters("@KIOSKID").Value = If(IsDBNull(dr("KIOSKID")), DBNull.Value, dr("KIOSKID"))
+            cmd.Parameters("@UPDATED_AT").Value = If(IsDBNull(dr("UPDATED_AT")), DBNull.Value, Convert.ToDateTime(dr("UPDATED_AT")).ToString("yyyy-MM-dd HH:mm:ss"))
+            cmd.ExecuteNonQuery()
+        End Sub
+
+        Public Sub SyncSuppliers()
+            Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                sqliteConn.Open()
+                EnableForeignKeys(sqliteConn)
+                Dim lastSync As DateTime = GetLastSync(sqliteConn, "SUPPLIERS")
+
+                Dim sql As String =
+                                    "
+                                    SELECT
+                                        UUID,
+                                        S_NAME,
+                                        PHONE_1,
+                                        PHONE_2,
+                                        EMAIL,
+                                        CONTACT_NAME,
+                                        MON,
+                                        TUE,
+                                        WED,
+                                        THU,
+                                        FRI,
+                                        NOTES,
+                                        WEB,
+                                        ISDEFAULT,
+                                        KIOSKID,
+                                        UPDATED_AT
+                                    FROM SUPPLIERS
+                                    WHERE KIOSKID = :KIOSKID
+                                    AND (UPDATED_AT IS NULL OR UPDATED_AT > :LASTSYNC)
+                                    ORDER BY UPDATED_AT
+                                    "
+
+                Using oracleCmd As New OracleCommand(sql, conn)
+                    oracleCmd.BindByName = True
+                    oracleCmd.Parameters.Add("KIOSKID", OracleDbType.Varchar2).Value = kioskId
+                    oracleCmd.Parameters.Add("LASTSYNC", OracleDbType.TimeStamp).Value = lastSync
+
+                    Using reader = oracleCmd.ExecuteReader()
+                        Dim newestTimestamp As DateTime = lastSync
+                        Using trans = sqliteConn.BeginTransaction()
+                            Dim upsertCmd = CreateSupplierUpsertCommand(sqliteConn)
+
+                            While reader.Read()
+                                ExecuteSupplierUpsert(upsertCmd, reader)
+
+                                If Not IsDBNull(reader("UPDATED_AT")) Then
+                                    Dim updatedAt As DateTime = Convert.ToDateTime(reader("UPDATED_AT"))
+                                    If updatedAt > newestTimestamp Then
+                                        newestTimestamp = updatedAt
+                                    End If
+                                End If
+                            End While
+                            trans.Commit()
+                        End Using
+
+                        SaveLastSync(sqliteConn, newestTimestamp, "SUPPLIERS")
+                    End Using
+                End Using
+            End Using
+        End Sub
+
         Public Sub SyncGlobalParams()
             Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
                 sqliteConn.Open()
@@ -159,7 +599,99 @@ Module SqliteModule
             End Using
         End Sub
 
-        'USERS
+        Private Function CreateVatTypeUpsertCommand(conn As SQLiteConnection) As SQLiteCommand
+            Dim sql As String =
+                                "
+                                INSERT INTO VAT_TYPES
+                                (
+                                    UUID,
+                                    DESCRIPTION,
+                                    VAT,
+                                    KIOSKID,
+                                    UPDATED_AT
+                                )
+                                VALUES
+                                (
+                                    @UUID,
+                                    @DESCRIPTION,
+                                    @VAT,
+                                    @KIOSKID,
+                                    @UPDATED_AT
+                                )
+                                ON CONFLICT(UUID)
+                                DO UPDATE SET
+                                    DESCRIPTION = excluded.DESCRIPTION,
+                                    VAT = excluded.VAT,
+                                    KIOSKID = excluded.KIOSKID,
+                                    UPDATED_AT = excluded.UPDATED_AT
+                                "
+
+            Dim cmd As New SQLiteCommand(sql, conn)
+            cmd.Parameters.Add("@UUID", DbType.String)
+            cmd.Parameters.Add("@DESCRIPTION", DbType.String)
+            cmd.Parameters.Add("@VAT", DbType.Int32)
+            cmd.Parameters.Add("@KIOSKID", DbType.String)
+            cmd.Parameters.Add("@UPDATED_AT", DbType.String)
+            Return cmd
+        End Function
+
+        Private Sub ExecuteVatTypeUpsert(cmd As SQLiteCommand, dr As OracleDataReader)
+            cmd.Parameters("@UUID").Value = If(IsDBNull(dr("UUID")), DBNull.Value, dr("UUID"))
+            cmd.Parameters("@DESCRIPTION").Value = If(IsDBNull(dr("DESCRIPTION")), DBNull.Value, dr("DESCRIPTION"))
+            cmd.Parameters("@VAT").Value = If(IsDBNull(dr("VAT")), DBNull.Value, dr("VAT"))
+            cmd.Parameters("@KIOSKID").Value = If(IsDBNull(dr("KIOSKID")), DBNull.Value, dr("KIOSKID"))
+            cmd.Parameters("@UPDATED_AT").Value = If(IsDBNull(dr("UPDATED_AT")), DBNull.Value, Convert.ToDateTime(dr("UPDATED_AT")).ToString("yyyy-MM-dd HH:mm:ss"))
+            cmd.ExecuteNonQuery()
+        End Sub
+
+        Public Sub SyncVatTypes()
+            Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                sqliteConn.Open()
+                EnableForeignKeys(sqliteConn)
+                Dim lastSync As DateTime = GetLastSync(sqliteConn, "VAT_TYPES")
+
+                Dim sql As String =
+                                    "
+                                    SELECT
+                                        UUID,
+                                        DESCRIPTION,
+                                        VAT,
+                                        KIOSKID,
+                                        UPDATED_AT
+                                    FROM VAT_TYPES
+                                    WHERE KIOSKID = :KIOSKID
+                                    AND (UPDATED_AT IS NULL OR UPDATED_AT > :LASTSYNC)
+                                    ORDER BY UPDATED_AT
+                                    "
+
+                Using oracleCmd As New OracleCommand(sql, conn)
+                    oracleCmd.BindByName = True
+                    oracleCmd.Parameters.Add("KIOSKID", OracleDbType.Varchar2).Value = kioskId
+                    oracleCmd.Parameters.Add("LASTSYNC", OracleDbType.TimeStamp).Value = lastSync
+                    Using reader = oracleCmd.ExecuteReader()
+                        Dim newestTimestamp As DateTime = lastSync
+                        Using trans = sqliteConn.BeginTransaction()
+                            Dim upsertCmd = CreateVatTypeUpsertCommand(sqliteConn)
+                            While reader.Read()
+                                ExecuteVatTypeUpsert(upsertCmd, reader)
+
+                                If Not IsDBNull(reader("UPDATED_AT")) Then
+                                    Dim updatedAt As DateTime = Convert.ToDateTime(reader("UPDATED_AT"))
+
+                                    If updatedAt > newestTimestamp Then
+                                        newestTimestamp = updatedAt
+                                    End If
+                                End If
+                            End While
+                            trans.Commit()
+                        End Using
+
+                        SaveLastSync(sqliteConn, newestTimestamp, "VAT_TYPES")
+                    End Using
+                End Using
+            End Using
+        End Sub
+
         Public Sub SyncUsers()
             Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
                 sqliteConn.Open()
@@ -365,6 +897,417 @@ Module SqliteModule
                 cmd.Parameters.AddWithValue("@KIOSKID", If(kioskId, DBNull.Value))
                 cmd.Parameters.AddWithValue("@UPDATED_AT", updatedAt.ToString("yyyy-MM-dd HH:mm:ss"))
                 cmd.ExecuteNonQuery()
+            End Using
+        End Sub
+
+        Public Sub SyncLottery()
+            Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                sqliteConn.Open()
+                EnableForeignKeys(sqliteConn)
+                Dim lastSync As DateTime = GetLastSync(sqliteConn, "LOTTERY")
+                Dim sql As String =
+                                    "
+                                    SELECT
+                                        BARCODE,
+                                        KIOSKID,
+                                        UPDATED_AT
+                                    FROM LOTTERY
+                                    WHERE KIOSKID = :KIOSKID
+                                    AND (UPDATED_AT IS NULL OR UPDATED_AT > :LASTSYNC)
+                                    ORDER BY UPDATED_AT
+                                    "
+
+                Using cmd As New OracleCommand(sql, conn)
+                    cmd.BindByName = True
+                    cmd.Parameters.Add("KIOSKID", OracleDbType.Varchar2).Value = kioskId
+                    cmd.Parameters.Add("LASTSYNC", OracleDbType.TimeStamp).Value = lastSync
+                    Using reader = cmd.ExecuteReader()
+                        Dim newestTimestamp As DateTime = lastSync
+                        While reader.Read()
+                            Dim updatedAt As DateTime = If(IsDBNull(reader("UPDATED_AT")), New DateTime(1900, 1, 1), Convert.ToDateTime(reader("UPDATED_AT")))
+
+                            UpsertLottery(
+                                        sqliteConn,
+                                        reader("BARCODE").ToString(),
+                                        If(IsDBNull(reader("KIOSKID")),
+                                           Nothing,
+                                           reader("KIOSKID").ToString()),
+                                        updatedAt
+                                         )
+
+                            If updatedAt > newestTimestamp Then
+                                newestTimestamp = updatedAt
+                            End If
+                        End While
+                        SaveLastSync(sqliteConn, newestTimestamp, "LOTTERY")
+                    End Using
+                End Using
+            End Using
+        End Sub
+
+        Private Sub UpsertLottery(conn As SQLiteConnection, barcode As String, kioskId As String, updatedAt As DateTime)
+            Dim sql As String =
+                                "
+                                INSERT INTO LOTTERY
+                                (
+                                    BARCODE,
+                                    KIOSKID,
+                                    UPDATED_AT
+                                )
+                                VALUES
+                                (
+                                    @BARCODE,
+                                    @KIOSKID,
+                                    @UPDATED_AT
+                                )
+                                ON CONFLICT(BARCODE)
+                                DO UPDATE SET
+                                    KIOSKID = excluded.KIOSKID,
+                                    UPDATED_AT = excluded.UPDATED_AT
+                                "
+
+            Using cmd As New SQLiteCommand(sql, conn)
+                cmd.Parameters.AddWithValue("@BARCODE", barcode)
+                If kioskId Is Nothing Then
+                    cmd.Parameters.AddWithValue("@KIOSKID", DBNull.Value)
+                Else
+                    cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                End If
+                cmd.Parameters.AddWithValue("@UPDATED_AT", updatedAt.ToString("yyyy-MM-dd HH:mm:ss"))
+                cmd.ExecuteNonQuery()
+            End Using
+        End Sub
+
+        Public Sub SyncBarcodes()
+            Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                sqliteConn.Open()
+                EnableForeignKeys(sqliteConn)
+                Dim lastSync As DateTime = GetLastSync(sqliteConn, "BARCODES")
+
+                Dim sql As String =
+                                    "
+                                    SELECT
+                                        BARCODE,
+                                        PRODUCT_SERNO,
+                                        KIOSKID,
+                                        UPDATED_AT
+                                    FROM BARCODES
+                                    WHERE KIOSKID = :KIOSKID
+                                    AND (UPDATED_AT IS NULL OR UPDATED_AT > :LASTSYNC)
+                                    ORDER BY UPDATED_AT
+                                    "
+
+                Using oracleCmd As New OracleCommand(sql, conn)
+                    oracleCmd.BindByName = True
+                    oracleCmd.Parameters.Add("KIOSKID", OracleDbType.Varchar2).Value = kioskId
+                    oracleCmd.Parameters.Add("LASTSYNC", OracleDbType.TimeStamp).Value = lastSync
+
+                    Using reader = oracleCmd.ExecuteReader()
+                        Dim newestTimestamp As DateTime = lastSync
+                        Using trans = sqliteConn.BeginTransaction()
+                            Dim sqliteCmd = CreateBarcodeUpsertCommand(sqliteConn)
+
+                            While reader.Read()
+                                Dim updatedAt As DateTime = If(IsDBNull(reader("UPDATED_AT")), New DateTime(1900, 1, 1), Convert.ToDateTime(reader("UPDATED_AT")))
+
+                                ExecuteBarcodeUpsert(
+                                                    sqliteCmd,
+                                                    reader("BARCODE").ToString(),
+                                                    If(IsDBNull(reader("PRODUCT_SERNO")),
+                                                       0,
+                                                       Convert.ToInt64(reader("PRODUCT_SERNO"))),
+                                                    If(IsDBNull(reader("KIOSKID")),
+                                                       Nothing,
+                                                       reader("KIOSKID").ToString()),
+                                                    updatedAt)
+
+                                If updatedAt > newestTimestamp Then
+                                    newestTimestamp = updatedAt
+                                End If
+                            End While
+                            trans.Commit()
+                        End Using
+
+                        SaveLastSync(sqliteConn, newestTimestamp, "BARCODES")
+                    End Using
+                End Using
+            End Using
+        End Sub
+
+        Private Function CreateBarcodeUpsertCommand(conn As SQLiteConnection) As SQLiteCommand
+            Dim sql As String =
+                                "
+                                INSERT INTO BARCODES
+                                (
+                                    BARCODE,
+                                    PRODUCT_SERNO,
+                                    KIOSKID,
+                                    UPDATED_AT
+                                )
+                                VALUES
+                                (
+                                    @BARCODE,
+                                    @PRODUCT_SERNO,
+                                    @KIOSKID,
+                                    @UPDATED_AT
+                                )
+                                ON CONFLICT(BARCODE)
+                                DO UPDATE SET
+                                    PRODUCT_SERNO = excluded.PRODUCT_SERNO,
+                                    KIOSKID = excluded.KIOSKID,
+                                    UPDATED_AT = excluded.UPDATED_AT
+                                "
+
+            Dim cmd As New SQLiteCommand(sql, conn)
+            cmd.Parameters.Add("@BARCODE", DbType.String)
+            cmd.Parameters.Add("@PRODUCT_SERNO", DbType.Int64)
+            cmd.Parameters.Add("@KIOSKID", DbType.String)
+            cmd.Parameters.Add("@UPDATED_AT", DbType.String)
+            Return cmd
+        End Function
+
+        Private Sub ExecuteBarcodeUpsert(cmd As SQLiteCommand, barcode As String, productSerno As Long, kioskId As String, updatedAt As DateTime)
+            cmd.Parameters("@BARCODE").Value = barcode
+            cmd.Parameters("@PRODUCT_SERNO").Value = productSerno
+
+            If kioskId Is Nothing Then
+                cmd.Parameters("@KIOSKID").Value = DBNull.Value
+            Else
+                cmd.Parameters("@KIOSKID").Value = kioskId
+            End If
+
+            cmd.Parameters("@UPDATED_AT").Value = updatedAt.ToString("yyyy-MM-dd HH:mm:ss")
+            cmd.ExecuteNonQuery()
+        End Sub
+
+        Private Function CreateProductUpsertCommand(conn As SQLiteConnection) As SQLiteCommand
+
+            Dim sql As String =
+                                "
+                                INSERT INTO PRODUCTS
+                                (
+                                DESCRIPTION,
+                                MIN_QUANTITY,
+                                AVAIL_QUANTITY,
+                                ALERT_ON_MIN,
+                                EXPIRY_DATE,
+                                ALERT_ON_EXPIRY,
+                                ALERT_DATE,
+                                SERNO,
+                                BUY_AMT,
+                                SELL_AMT,
+                                CATEGORY_ID,
+                                SUPPLIER_ID,
+                                NOTES,
+                                STOCK_QUANTITY,
+                                PROFIT_PERCENT,
+                                AMT_PROFIT,
+                                OFFER,
+                                OFFER_TYPE,
+                                OFFER_X,
+                                OFFER_Y,
+                                OFFER_DISC,
+                                OFFER_AT,
+                                LASTMODIFIEDBY,
+                                LASTMODIFIEDSCREEN,
+                                VATTYPE_ID,
+                                ISBOX,
+                                BOX_QNT,
+                                OFFERFROMDATE,
+                                OFFERTODATE,
+                                BUY_AMT_NO_VAT,
+                                BUY_AMT_NEW,
+                                KIOSKID,
+                                UPDATED_AT
+                                )
+                                VALUES
+                                (
+                                @DESCRIPTION,
+                                @MIN_QUANTITY,
+                                @AVAIL_QUANTITY,
+                                @ALERT_ON_MIN,
+                                @EXPIRY_DATE,
+                                @ALERT_ON_EXPIRY,
+                                @ALERT_DATE,
+                                @SERNO,
+                                @BUY_AMT,
+                                @SELL_AMT,
+                                @CATEGORY_ID,
+                                @SUPPLIER_ID,
+                                @NOTES,
+                                @STOCK_QUANTITY,
+                                @PROFIT_PERCENT,
+                                @AMT_PROFIT,
+                                @OFFER,
+                                @OFFER_TYPE,
+                                @OFFER_X,
+                                @OFFER_Y,
+                                @OFFER_DISC,
+                                @OFFER_AT,
+                                @LASTMODIFIEDBY,
+                                @LASTMODIFIEDSCREEN,
+                                @VATTYPE_ID,
+                                @ISBOX,
+                                @BOX_QNT,
+                                @OFFERFROMDATE,
+                                @OFFERTODATE,
+                                @BUY_AMT_NO_VAT,
+                                @BUY_AMT_NEW,
+                                @KIOSKID,
+                                @UPDATED_AT
+                                )
+                                ON CONFLICT(SERNO)
+                                DO UPDATE SET
+
+                                DESCRIPTION=excluded.DESCRIPTION,
+                                MIN_QUANTITY=excluded.MIN_QUANTITY,
+                                AVAIL_QUANTITY=excluded.AVAIL_QUANTITY,
+                                ALERT_ON_MIN=excluded.ALERT_ON_MIN,
+                                EXPIRY_DATE=excluded.EXPIRY_DATE,
+                                ALERT_ON_EXPIRY=excluded.ALERT_ON_EXPIRY,
+                                ALERT_DATE=excluded.ALERT_DATE,
+                                BUY_AMT=excluded.BUY_AMT,
+                                SELL_AMT=excluded.SELL_AMT,
+                                CATEGORY_ID=excluded.CATEGORY_ID,
+                                SUPPLIER_ID=excluded.SUPPLIER_ID,
+                                NOTES=excluded.NOTES,
+                                STOCK_QUANTITY=excluded.STOCK_QUANTITY,
+                                PROFIT_PERCENT=excluded.PROFIT_PERCENT,
+                                AMT_PROFIT=excluded.AMT_PROFIT,
+                                OFFER=excluded.OFFER,
+                                OFFER_TYPE=excluded.OFFER_TYPE,
+                                OFFER_X=excluded.OFFER_X,
+                                OFFER_Y=excluded.OFFER_Y,
+                                OFFER_DISC=excluded.OFFER_DISC,
+                                OFFER_AT=excluded.OFFER_AT,
+                                LASTMODIFIEDBY=excluded.LASTMODIFIEDBY,
+                                LASTMODIFIEDSCREEN=excluded.LASTMODIFIEDSCREEN,
+                                VATTYPE_ID=excluded.VATTYPE_ID,
+                                ISBOX=excluded.ISBOX,
+                                BOX_QNT=excluded.BOX_QNT,
+                                OFFERFROMDATE=excluded.OFFERFROMDATE,
+                                OFFERTODATE=excluded.OFFERTODATE,
+                                BUY_AMT_NO_VAT=excluded.BUY_AMT_NO_VAT,
+                                BUY_AMT_NEW=excluded.BUY_AMT_NEW,
+                                KIOSKID=excluded.KIOSKID,
+                                UPDATED_AT=excluded.UPDATED_AT
+                                "
+
+            Dim cmd As New SQLiteCommand(sql, conn)
+            cmd.Parameters.Add("@DESCRIPTION", DbType.String)
+            cmd.Parameters.Add("@MIN_QUANTITY", DbType.Int32)
+            cmd.Parameters.Add("@AVAIL_QUANTITY", DbType.Int32)
+            cmd.Parameters.Add("@ALERT_ON_MIN", DbType.Int32)
+            cmd.Parameters.Add("@EXPIRY_DATE", DbType.String)
+            cmd.Parameters.Add("@ALERT_ON_EXPIRY", DbType.Int32)
+            cmd.Parameters.Add("@ALERT_DATE", DbType.String)
+            cmd.Parameters.Add("@SERNO", DbType.Int64)
+            cmd.Parameters.Add("@BUY_AMT", DbType.Decimal)
+            cmd.Parameters.Add("@SELL_AMT", DbType.Decimal)
+            cmd.Parameters.Add("@CATEGORY_ID", DbType.String)
+            cmd.Parameters.Add("@SUPPLIER_ID", DbType.String)
+            cmd.Parameters.Add("@NOTES", DbType.String)
+            cmd.Parameters.Add("@STOCK_QUANTITY", DbType.Int32)
+            cmd.Parameters.Add("@PROFIT_PERCENT", DbType.Decimal)
+            cmd.Parameters.Add("@AMT_PROFIT", DbType.Decimal)
+            cmd.Parameters.Add("@OFFER", DbType.Int32)
+            cmd.Parameters.Add("@OFFER_TYPE", DbType.Int32)
+            cmd.Parameters.Add("@OFFER_X", DbType.Int32)
+            cmd.Parameters.Add("@OFFER_Y", DbType.Int32)
+            cmd.Parameters.Add("@OFFER_DISC", DbType.Decimal)
+            cmd.Parameters.Add("@OFFER_AT", DbType.Int32)
+            cmd.Parameters.Add("@LASTMODIFIEDBY", DbType.String)
+            cmd.Parameters.Add("@LASTMODIFIEDSCREEN", DbType.Int32)
+            cmd.Parameters.Add("@VATTYPE_ID", DbType.String)
+            cmd.Parameters.Add("@ISBOX", DbType.Int32)
+            cmd.Parameters.Add("@BOX_QNT", DbType.Int32)
+            cmd.Parameters.Add("@OFFERFROMDATE", DbType.String)
+            cmd.Parameters.Add("@OFFERTODATE", DbType.String)
+            cmd.Parameters.Add("@BUY_AMT_NO_VAT", DbType.Decimal)
+            cmd.Parameters.Add("@BUY_AMT_NEW", DbType.Decimal)
+            cmd.Parameters.Add("@KIOSKID", DbType.String)
+            cmd.Parameters.Add("@UPDATED_AT", DbType.String)
+            Return cmd
+        End Function
+
+        Private Sub ExecuteProductUpsert(cmd As SQLiteCommand, dr As OracleDataReader)
+            cmd.Parameters("@DESCRIPTION").Value = If(IsDBNull(dr("DESCRIPTION")), DBNull.Value, dr("DESCRIPTION"))
+            cmd.Parameters("@MIN_QUANTITY").Value = If(IsDBNull(dr("MIN_QUANTITY")), DBNull.Value, dr("MIN_QUANTITY"))
+            cmd.Parameters("@AVAIL_QUANTITY").Value = If(IsDBNull(dr("AVAIL_QUANTITY")), 0, dr("AVAIL_QUANTITY"))
+            cmd.Parameters("@ALERT_ON_MIN").Value = If(IsDBNull(dr("ALERT_ON_MIN")), DBNull.Value, dr("ALERT_ON_MIN"))
+            cmd.Parameters("@EXPIRY_DATE").Value = If(IsDBNull(dr("EXPIRY_DATE")), DBNull.Value, Convert.ToDateTime(dr("EXPIRY_DATE")).ToString("yyyy-MM-dd"))
+            cmd.Parameters("@ALERT_ON_EXPIRY").Value = If(IsDBNull(dr("ALERT_ON_EXPIRY")), DBNull.Value, dr("ALERT_ON_EXPIRY"))
+            cmd.Parameters("@ALERT_DATE").Value = If(IsDBNull(dr("ALERT_DATE")), DBNull.Value, Convert.ToDateTime(dr("ALERT_DATE")).ToString("yyyy-MM-dd"))
+            cmd.Parameters("@SERNO").Value = dr("SERNO")
+            cmd.Parameters("@BUY_AMT").Value = If(IsDBNull(dr("BUY_AMT")), DBNull.Value, dr("BUY_AMT"))
+            cmd.Parameters("@SELL_AMT").Value = If(IsDBNull(dr("SELL_AMT")), DBNull.Value, dr("SELL_AMT"))
+            cmd.Parameters("@CATEGORY_ID").Value = If(IsDBNull(dr("CATEGORY_ID")), DBNull.Value, dr("CATEGORY_ID"))
+            cmd.Parameters("@SUPPLIER_ID").Value = If(IsDBNull(dr("SUPPLIER_ID")), DBNull.Value, dr("SUPPLIER_ID"))
+            cmd.Parameters("@NOTES").Value = If(IsDBNull(dr("NOTES")), DBNull.Value, dr("NOTES"))
+            cmd.Parameters("@STOCK_QUANTITY").Value = If(IsDBNull(dr("STOCK_QUANTITY")), DBNull.Value, dr("STOCK_QUANTITY"))
+            cmd.Parameters("@PROFIT_PERCENT").Value = If(IsDBNull(dr("PROFIT_PERCENT")), DBNull.Value, dr("PROFIT_PERCENT"))
+            cmd.Parameters("@AMT_PROFIT").Value = If(IsDBNull(dr("AMT_PROFIT")), DBNull.Value, dr("AMT_PROFIT"))
+            cmd.Parameters("@OFFER").Value = If(IsDBNull(dr("OFFER")), DBNull.Value, dr("OFFER"))
+            cmd.Parameters("@OFFER_TYPE").Value = If(IsDBNull(dr("OFFER_TYPE")), DBNull.Value, dr("OFFER_TYPE"))
+            cmd.Parameters("@OFFER_X").Value = If(IsDBNull(dr("OFFER_X")), DBNull.Value, dr("OFFER_X"))
+            cmd.Parameters("@OFFER_Y").Value = If(IsDBNull(dr("OFFER_Y")), DBNull.Value, dr("OFFER_Y"))
+            cmd.Parameters("@OFFER_DISC").Value = If(IsDBNull(dr("OFFER_DISC")), DBNull.Value, dr("OFFER_DISC"))
+            cmd.Parameters("@OFFER_AT").Value = If(IsDBNull(dr("OFFER_AT")), DBNull.Value, dr("OFFER_AT"))
+            cmd.Parameters("@LASTMODIFIEDBY").Value = If(IsDBNull(dr("LASTMODIFIEDBY")), DBNull.Value, dr("LASTMODIFIEDBY"))
+            cmd.Parameters("@LASTMODIFIEDSCREEN").Value = If(IsDBNull(dr("LASTMODIFIEDSCREEN")), DBNull.Value, dr("LASTMODIFIEDSCREEN"))
+            cmd.Parameters("@VATTYPE_ID").Value = If(IsDBNull(dr("VATTYPE_ID")), DBNull.Value, dr("VATTYPE_ID"))
+            cmd.Parameters("@ISBOX").Value = If(IsDBNull(dr("ISBOX")), DBNull.Value, dr("ISBOX"))
+            cmd.Parameters("@BOX_QNT").Value = If(IsDBNull(dr("BOX_QNT")), DBNull.Value, dr("BOX_QNT"))
+            cmd.Parameters("@OFFERFROMDATE").Value = If(IsDBNull(dr("OFFERFROMDATE")), DBNull.Value, Convert.ToDateTime(dr("OFFERFROMDATE")).ToString("yyyy-MM-dd"))
+            cmd.Parameters("@OFFERTODATE").Value = If(IsDBNull(dr("OFFERTODATE")), DBNull.Value, Convert.ToDateTime(dr("OFFERTODATE")).ToString("yyyy-MM-dd"))
+            cmd.Parameters("@BUY_AMT_NO_VAT").Value = If(IsDBNull(dr("BUY_AMT_NO_VAT")), DBNull.Value, dr("BUY_AMT_NO_VAT"))
+            cmd.Parameters("@BUY_AMT_NEW").Value = If(IsDBNull(dr("BUY_AMT_NEW")), DBNull.Value, dr("BUY_AMT_NEW"))
+            cmd.Parameters("@KIOSKID").Value = If(IsDBNull(dr("KIOSKID")), DBNull.Value, dr("KIOSKID"))
+            cmd.Parameters("@UPDATED_AT").Value = If(IsDBNull(dr("UPDATED_AT")), DBNull.Value, Convert.ToDateTime(dr("UPDATED_AT")).ToString("yyyy-MM-dd HH:mm:ss"))
+            cmd.ExecuteNonQuery()
+        End Sub
+
+        Public Sub SyncProducts()
+            Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                sqliteConn.Open()
+                EnableForeignKeys(sqliteConn)
+                Dim lastSync As DateTime = GetLastSync(sqliteConn, "PRODUCTS")
+
+                Dim sql As String =
+                                "
+                                SELECT *
+                                FROM PRODUCTS
+                                WHERE KIOSKID = :KIOSKID
+                                AND (UPDATED_AT IS NULL OR UPDATED_AT > :LASTSYNC)
+                                ORDER BY UPDATED_AT
+                                "
+
+                Using oracleCmd As New OracleCommand(sql, conn)
+                    oracleCmd.BindByName = True
+                    oracleCmd.Parameters.Add("KIOSKID", OracleDbType.Varchar2).Value = kioskId
+                    oracleCmd.Parameters.Add("LASTSYNC", OracleDbType.TimeStamp).Value = lastSync
+
+                    Using reader = oracleCmd.ExecuteReader()
+                        Dim newestTimestamp As DateTime = lastSync
+                        Using trans = sqliteConn.BeginTransaction()
+                            Dim upsertCmd = CreateProductUpsertCommand(sqliteConn)
+
+                            While reader.Read()
+                                ExecuteProductUpsert(upsertCmd, reader)
+                                If Not IsDBNull(reader("UPDATED_AT")) Then
+                                    Dim updatedAt As DateTime = Convert.ToDateTime(reader("UPDATED_AT"))
+
+                                    If updatedAt > newestTimestamp Then
+                                        newestTimestamp = updatedAt
+                                    End If
+                                End If
+                            End While
+                            trans.Commit()
+                        End Using
+
+                        SaveLastSync(sqliteConn, newestTimestamp, "PRODUCTS")
+                    End Using
+                End Using
             End Using
         End Sub
 

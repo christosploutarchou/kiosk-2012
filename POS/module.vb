@@ -796,29 +796,53 @@ Module connectionModule
     Public Function IsLoggedIn(username As String) As Boolean
         Dim WhoAmI As String = "IsLoggedIn"
 
-        Dim sql As String =
-        "SELECT COUNT(*) " &
-        "FROM sessions s " &
-        "WHERE s.is_active = 1 " &
-        "  AND s.user_id = (SELECT u.uuid FROM users u WHERE u.username = :username) "
+        Dim sql As String = "SELECT COUNT(*) " &
+                            "FROM sessions s " &
+                            "WHERE "
 
-        'TODO: kiosk id for the subquery, split from the where clause
-        'If SqlLite Then
-        'sql += " AND KIOSKID = :KIOSKID"
-        'End If
+        If SqlLite Then
+            sql += " KIOSKID = :KIOSKID AND "
+        End If
+
+        sql += "s.is_active = 1 " &
+        "  AND s.user_id = (
+                            SELECT 
+                                u.uuid 
+                            FROM users u 
+                            WHERE " 
+        
+        If SqlLite Then
+            sql += " KIOSKID = :KIOSKID AND "
+        End If
+
+        sql += "u.username = :username) "
 
         Try
-            Using cmd As New OracleCommand(sql, conn)
-                If conn.State <> ConnectionState.Open Then OpenConn()
+            If SqlLite Then
+                Using conn As New SQLiteConnection("Data Source=kiosk.db")
+                    conn.Open()
+                    Using cmd As New SQLiteCommand(sql, conn)
 
-                cmd.CommandType = CommandType.Text
-                cmd.Parameters.Add("username", OracleDbType.Varchar2).Value = username
+                        cmd.Parameters.Add("KIOSKID", OracleDbType.Varchar2).Value = kioskId
+                        cmd.Parameters.Add("username", OracleDbType.Varchar2).Value = username
 
-                Dim count As Integer = Convert.ToInt32(cmd.ExecuteScalar())
+                        Dim count As Integer = Convert.ToInt32(cmd.ExecuteScalar())
 
-                Return (count > 0)
-            End Using
+                        Return (count > 0)
+                    End Using
+                End Using
+            Else
+                Using cmd As New OracleCommand(sql, conn)
+                    If conn.State <> ConnectionState.Open Then OpenConn()
 
+                    cmd.CommandType = CommandType.Text
+                    cmd.Parameters.Add("username", OracleDbType.Varchar2).Value = username
+
+                    Dim count As Integer = Convert.ToInt32(cmd.ExecuteScalar())
+
+                    Return (count > 0)
+                End Using
+            End If
         Catch ex As Exception
             CreateExceptionFile(WhoAmI + " " + ex.ToString(), " " + sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
@@ -855,7 +879,8 @@ Module connectionModule
         End Try
     End Sub
 
-    Public Function getAmountLaxeia() As Double
+    Public Function GetAmountLaxeia() As Double
+        'TODO
         Dim sql As String = "SELECT NVL(SUM(sell_amt * avail_quantity),0) " &
                         "FROM lottery l " &
                         "INNER JOIN barcodes b ON b.barcode = l.barcode " &
