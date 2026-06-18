@@ -7,14 +7,18 @@ Imports System.Data.SQLite
 Imports Oracle.DataAccess.Client
 Imports Oracle.DataAccess.Types
 
-Public Class frmLogin
 
+Public Class frmLogin
     Private Sub FrmLogin_Disposed(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Disposed
-        '15/06 - TODO
-        If (OpenConn()) Then
+        If SqlLite Then
             LogoutUser(username)
-            CloseConn()
+        Else
+            If (OpenConn()) Then
+                LogoutUser(username)
+                CloseConn()
+            End If
         End If
+
     End Sub
 
     Private Sub FrmLogin_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
@@ -34,9 +38,13 @@ Public Class frmLogin
                 sync.SyncLottery()
                 sync.SyncVatTypes()
                 sync.SyncSuppliers()
-                sync.syncCategories()
-                sync.SyncBarcodes()
+                sync.SyncCategories()
                 sync.SyncProducts()
+                sync.SyncBarcodes()
+                'drop primary key once all references to product serno removed (other tables)
+
+                StartSyncService()
+
             Catch ex As Exception
                 MessageBox.Show(ex.Message)
                 ' Oracle unavailable
@@ -292,10 +300,10 @@ Public Class frmLogin
                     End Using
                 End If
 
-                'TODO 
+
                 If Not isUnlock Then
                     Dim amountLaxeia As Double = 0
-                    amountLaxeia = getAmountLaxeia()
+                    amountLaxeia = GetAmountLaxeia()
 
                     Dim computerNameparam As New OracleParameter
                     computerNameparam.OracleDbType = OracleDbType.Varchar2
@@ -308,21 +316,68 @@ Public Class frmLogin
                     Dim amountLaxeiaParam As New OracleParameter
                     amountLaxeiaParam.OracleDbType = OracleDbType.Decimal
                     amountLaxeiaParam.Value = amountLaxeia
-                    'TODO
-                    Dim cmd = New OracleCommand(NEW_SESSION, conn)
-                    sql = NEW_SESSION
-                    cmd.Parameters.Add(computerNameparam)
-                    cmd.Parameters.Add(userNameInsert)
-                    cmd.Parameters.Add(amountLaxeiaParam)
 
-                    cmd.CommandType = CommandType.Text
-                    cmd.ExecuteReader()
+                    If SqlLite Then
+                        sql =
+                            "INSERT INTO SESSIONS
+                            (
+                                UUID,
+                                LOGIN_WHEN,
+                                IS_ACTIVE,
+                                MACHINE_NAME,
+                                USER_ID,
+                                AMOUNTLAXEIAONLOGIN,
+                                KIOSKID
+                            )
+                            VALUES
+                            (
+                                @UUID,
+                                CURRENT_TIMESTAMP,
+                                1,
+                                @MACHINE_NAME,
+                                (
+                                    SELECT UUID
+                                    FROM USERS
+                                    WHERE USERNAME = @USERNAME
+                                    AND KIOSKID = @KIOSKID
+                                ),
+                                @AMOUNT,
+                                @KIOSKID
+                            )"
+
+                        Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                            sqliteConn.Open()
+                            Using cmd As New SQLiteCommand(sql, sqliteConn)
+                                cmd.Parameters.AddWithValue("@UUID", Guid.NewGuid().ToString("N").ToUpper())
+                                cmd.Parameters.AddWithValue("@MACHINE_NAME", computerName)
+                                cmd.Parameters.AddWithValue("@USERNAME", username)
+                                cmd.Parameters.AddWithValue("@AMOUNT", amountLaxeia)
+                                cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                                cmd.ExecuteNonQuery()
+                            End Using
+                        End Using
+                    Else
+                        sql = "insert into sessions
+                               (uuid, login_when, is_active, machine_name, user_id, amountLaxeiaOnLogin)
+                               values
+                               (sys_guid(),
+                                (Select systimestamp from dual),
+                                1,
+                                :1,
+                                (select uuid from users where username = :2),
+                                :3)"
+
+                        Dim cmd = New OracleCommand(sql, conn)
+                        cmd.Parameters.Add(computerNameparam)
+                        cmd.Parameters.Add(userNameInsert)
+                        cmd.Parameters.Add(amountLaxeiaParam)
+                        cmd.CommandType = CommandType.Text
+                        cmd.ExecuteNonQuery()
+                    End If
                 End If
             Catch ex As Exception
-                CreateExceptionFile(ex.Message, " " & sql)
+                CreateExceptionFile(WhoAmI + " " + ex.Message, " " & sql)
                 MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-            Finally
-                'cmd.Dispose()
             End Try
         Else
             MessageBox.Show(USER_ALREADY_LOGGED_IN, ERROR_MSG, MessageBoxButtons.OK, MessageBoxIcon.Error)

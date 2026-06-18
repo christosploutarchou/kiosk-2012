@@ -15,6 +15,9 @@ Imports SQLitePCL
 
 Module connectionModule
 
+    Public WithEvents SyncTimer As New System.Windows.Forms.Timer()
+    Public SyncRunning As Boolean = False
+
     Public oradb As String
 
     'Button selected to be edited
@@ -53,6 +56,42 @@ Module connectionModule
 
     Public tmpBarcodeNotFound As String
     Public tmpBarcodeNotFoundExit As Boolean
+
+    Public Sub StartSyncService()
+        SyncTimer.Interval = 300000   '5 minutes
+        SyncTimer.Start()
+    End Sub
+
+    Public Sub StopSyncService()
+        SyncTimer.Stop()
+    End Sub
+
+    Private Sub SyncTimer_Tick(sender As Object, e As EventArgs) Handles SyncTimer.Tick
+        Dim WhoAmI As String = "SyncTimer_Tick"
+        If SyncRunning Then
+            Exit Sub
+        End If
+        SyncRunning = True
+        Try
+            If Not isConnOpen() Then
+                Exit Sub
+            End If
+            Dim sync As New SyncTables()
+
+            sync.UploadGlobalParams()
+            'TODO
+            'sync.UploadSessions()
+            'UploadProducts()
+            'UploadUsers()
+
+            'SyncProducts()
+            'SyncUsers()
+        Catch ex As Exception
+            CreateExceptionFile(SyncTimer_Tick() + " " + ex.ToString(), "SyncTimer")
+        Finally
+            SyncRunning = False
+        End Try
+    End Sub
 
     Public Sub GetVat3PercentColumns()
         Dim cmd As New OracleCommand("", conn)
@@ -551,17 +590,19 @@ Module connectionModule
     End Sub
 
     Public Function GenerateXreport(ByVal userid As String) As Boolean
+        'TODO
         Dim WhoAmI As String = "GenerateXreport"
         Try
             Dim totals = GetReceiptTotals(userid)
             Dim totalPayments = GetTotalPayments(userid)
             totals.TotalAmt -= totalPayments
 
+            'TODO
             Dim salesDescription = GetSalesDescription(userid)
             Dim amountLaxeia = GetAmountLaxeia(userid)
             Dim amountVisa = GetAmountVisa(userid)
             Dim finalAmountLaxeia = getAmountLaxeia()
-
+            'TODO
             InsertXReport(userid, totals, totalPayments, amountLaxeia, amountVisa, finalAmountLaxeia)
 
             Return True
@@ -744,51 +785,107 @@ Module connectionModule
     End Function
 
 
-    Public Function getUserByUsername(ByVal username As String) As String
-        Dim result = ""
-        Dim cmd As New OracleCommand("", conn)
-        Dim sql As String = ""
+    Public Function GetUserByUsername(ByVal username As String) As String
+        Dim WhoAmI As String = "GetUserByUsername"
+        Dim result As String = ""
+        Dim sql As String
+
         Try
-            sql = "select username from users " &
-                  "where uuid = (select uuid from users where username = '" & username & "')"
+            If SqlLite Then
+                sql =
+                    "SELECT USERNAME
+                     FROM USERS
+                     WHERE USERNAME = @USERNAME
+                     AND KIOSKID = @KIOSKID"
 
-            cmd = New OracleCommand(sql, conn)
-            Using dr = cmd.ExecuteReader()
-                If dr.Read Then
-                    result = CStr(dr(0))
-                End If
-            End Using
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
+                    Using cmd As New SQLiteCommand(sql, sqliteConn)
+                        cmd.Parameters.AddWithValue("@USERNAME", username)
+                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                        Dim value = cmd.ExecuteScalar()
+                        If value IsNot Nothing AndAlso value IsNot DBNull.Value Then
+                            result = value.ToString()
+                        End If
+                    End Using
+                End Using
+            Else
+                sql =
+                    "SELECT USERNAME
+                     FROM USERS
+                     WHERE USERNAME = :USERNAME"
 
+                Using cmd As New OracleCommand(sql, conn)
+                    cmd.BindByName = True
+                    cmd.Parameters.Add("USERNAME", OracleDbType.Varchar2).Value = username
+                    Dim value = cmd.ExecuteScalar()
+
+                    If value IsNot Nothing AndAlso value IsNot DBNull.Value Then
+                        result = value.ToString()
+                    End If
+                End Using
+            End If
         Catch ex As Exception
-            CreateExceptionFile(ex.Message, sql)
+            CreateExceptionFile(WhoAmI + " " + ex.Message, sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
-            cmd.Dispose()
         End Try
         Return result
     End Function
 
     Public Sub LogoutUser(ByVal username As String)
-        Dim sql As String =
-        "UPDATE sessions s " &
-        "SET s.is_active = 0, s.logout_when = SYSTIMESTAMP " &
-        "WHERE s.is_active = 1 " &
-        "  AND EXISTS (SELECT 1 FROM users u WHERE u.uuid = s.user_id AND u.username = :username)"
-
+        Dim WhoAmI As String = "LogoutUser"
+        Dim sql As String = ""
         Try
-            If conn.State <> ConnectionState.Open Then
-                OpenConn()
+            If SqlLite Then
+                sql =
+                    "UPDATE SESSIONS
+                     SET IS_ACTIVE = 0,
+                         LOGOUT_WHEN = CURRENT_TIMESTAMP
+                     WHERE IS_ACTIVE = 1
+                     AND KIOSKID = @KIOSKID
+                     AND USER_ID = (
+                            SELECT UUID
+                            FROM USERS
+                            WHERE USERNAME = @USERNAME
+                            AND KIOSKID = @KIOSKID
+                     )"
+
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
+                    Using cmd As New SQLiteCommand(sql, sqliteConn)
+                        cmd.Parameters.AddWithValue("@USERNAME", username)
+                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                        cmd.ExecuteNonQuery()
+                    End Using
+                End Using
+            Else
+                sql =
+                    "UPDATE sessions s
+                     SET s.is_active = 0,
+                         s.logout_when = SYSTIMESTAMP
+                     WHERE s.is_active = 1
+                     AND EXISTS
+                     (
+                         SELECT 1
+                         FROM users u
+                         WHERE u.uuid = s.user_id
+                         AND u.username = :username
+                     )"
+
+                If conn.State <> ConnectionState.Open Then
+                    OpenConn()
+                End If
+
+                Using cmd As New OracleCommand(sql, conn)
+                    cmd.CommandType = CommandType.Text
+                    cmd.BindByName = True
+                    cmd.Parameters.Add("username", OracleDbType.Varchar2).Value = username
+                    cmd.ExecuteNonQuery()
+                End Using
             End If
-
-            Using cmd As New OracleCommand(sql, conn)
-                cmd.CommandType = CommandType.Text
-                cmd.Parameters.Add("username", OracleDbType.Varchar2).Value = username
-                Dim rows As Integer = cmd.ExecuteNonQuery()
-            End Using
-
         Catch ex As Exception
             CreateExceptionFile(ex.ToString(), sql)
-            MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            MessageBox.Show(WhoAmI + " " + ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -852,59 +949,97 @@ Module connectionModule
 
     Public Sub LogoutUserUUID(ByVal uuid As String)
         Dim WhoAmI As String = "LogoutUserUUID"
-        Dim connectionRetries As Integer = 0
-        While conn.State = ConnectionState.Closed And connectionRetries < 10
-            OpenConn()
-            connectionRetries += 1
-        End While
-        If conn.State = ConnectionState.Closed Then
-            MessageBox.Show(CANNOT_ACCESS_DB, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-            Exit Sub
-        End If
+        Dim sql As String = ""
 
-        Dim sql As String = "update sessions set is_active = 0, logout_when = (select systimestamp from dual) " &
-                            "where user_id = '" & uuid & "' and is_active = 1"
-        Dim cmd As New OracleCommand(sql, conn)
         Try
-            While conn.State = ConnectionState.Closed
-                OpenConn()
-            End While
-            cmd.CommandType = CommandType.Text
-            cmd.ExecuteNonQuery()
+            If SqlLite Then
+                sql =
+                    "UPDATE SESSIONS
+                     SET IS_ACTIVE = 0,
+                         LOGOUT_WHEN = CURRENT_TIMESTAMP
+                     WHERE USER_ID = @USER_ID
+                     AND KIOSKID = @KIOSKID
+                     AND IS_ACTIVE = 1"
+
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
+                    Using cmd As New SQLiteCommand(sql, sqliteConn)
+                        cmd.Parameters.AddWithValue("@USER_ID", uuid)
+                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                        cmd.ExecuteNonQuery()
+                    End Using
+                End Using
+            Else
+                While conn.State = ConnectionState.Closed
+                    OpenConn()
+                End While
+
+                sql =
+                        "UPDATE SESSIONS
+                         SET IS_ACTIVE = 0,
+                             LOGOUT_WHEN = SYSTIMESTAMP
+                         WHERE USER_ID = :USER_ID
+                         AND IS_ACTIVE = 1"
+
+                Using cmd As New OracleCommand(sql, conn)
+                    cmd.BindByName = True
+                    cmd.Parameters.Add("USER_ID", OracleDbType.Varchar2).Value = uuid
+                    cmd.ExecuteNonQuery()
+                End Using
+            End If
         Catch ex As Exception
-            CreateExceptionFile(WhoAmI + ": " + ex.Message, sql)
+            CreateExceptionFile(WhoAmI & ": " & ex.Message, sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
-            cmd.Dispose()
         End Try
     End Sub
 
     Public Function GetAmountLaxeia() As Double
-        'TODO
-        Dim sql As String = "SELECT NVL(SUM(sell_amt * avail_quantity),0) " &
+        Dim WhoAmI As String = "GetAmountLaxeia"
+        Dim sql As String
+        Dim amountLaxeia As Double = 0
+        If SqlLite Then
+            sql = "SELECT IFNULL(SUM(p.sell_amt * p.avail_quantity),0)
+                     FROM lottery l
+                     INNER JOIN barcodes b
+                         ON b.barcode = l.barcode
+                     INNER JOIN products p
+                         ON p.uuid = b.product_uuid
+                     WHERE l.kioskid = @KIOSKID"
+        Else
+            sql = "SELECT NVL(SUM(sell_amt * avail_quantity),0) " &
                         "FROM lottery l " &
                         "INNER JOIN barcodes b ON b.barcode = l.barcode " &
                         "INNER JOIN products p ON p.serno = b.product_serno"
-
-        Dim amountLaxeia As Double = 0
+        End If
 
         Try
-            Using cmd As New OracleCommand(sql, conn)
-                cmd.CommandType = CommandType.Text
-
-                Using dr As OracleDataReader = cmd.ExecuteReader()
-                    If dr.Read() Then
-                        ' Safe conversion even if Oracle returns Decimal
-                        amountLaxeia = Convert.ToDouble(dr(0))
-                    End If
+            If SqlLite Then
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
+                    Using cmd As New SQLiteCommand(sql, sqliteConn)
+                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                        Dim result = cmd.ExecuteScalar()
+                        If result IsNot Nothing AndAlso result IsNot DBNull.Value Then
+                            amountLaxeia = Convert.ToDouble(result)
+                        End If
+                    End Using
                 End Using
-            End Using
+            Else
+                Using cmd As New OracleCommand(sql, conn)
+                    cmd.CommandType = CommandType.Text
 
+                    Using dr As OracleDataReader = cmd.ExecuteReader()
+                        If dr.Read() Then
+                            ' Safe conversion even if Oracle returns Decimal
+                            amountLaxeia = Convert.ToDouble(dr(0))
+                        End If
+                    End Using
+                End Using
+            End If
         Catch ex As Exception
-            CreateExceptionFile(ex.Message, sql)
+            CreateExceptionFile(WhoAmI + " " + ex.Message, sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
-
         Return amountLaxeia
     End Function
 

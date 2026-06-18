@@ -1,20 +1,21 @@
-﻿Imports Oracle.DataAccess.Client
+﻿Imports System.Data.SQLite
+Imports Oracle.DataAccess.Client
 
 Public Class frmMain
 
-    Private Sub btnExit_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnExit.Click
+    Private Sub BtnExit_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnExit.Click
         If MessageBox.Show("Εξοδος;", "Εξοδος", MessageBoxButtons.YesNo, MessageBoxIcon.Question) = Windows.Forms.DialogResult.Yes Then
-            If generateXreport(whois) Then
+            'TODO
+            If GenerateXreport(whois) Then
                 If MessageBox.Show("Εκτύπωση Αναφοράς Βάρδιας;", "Εκτύπωση", MessageBoxButtons.YesNo, MessageBoxIcon.Question) = Windows.Forms.DialogResult.Yes Then
                     PrintDocument1.PrinterSettings.Copies = 1
                     PrintDocument1.Print()
                 End If
             End If
-            logoutUserUUID(whois)
+            LogoutUserUUID(whois)
             Me.Dispose()
             frmLogin.Dispose()
-            'frmLogin.Show()
-        End If        
+        End If
     End Sub
 
     Private Sub cmdUsers_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdUsers.Click
@@ -289,34 +290,58 @@ Public Class frmMain
         End Try
     End Sub
 
-    Private Sub btnUpdate_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnUpdate.Click
-        If Not isLoggedIn(username) Then
+    Private Sub BtnUpdate_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnUpdate.Click
+        Dim WhoAmI As String = "frmMain.BtnUpdate_Click"
+
+        If Not IsLoggedIn(username) Then
             MessageBox.Show("Ο χρήστης δεν ειναι συνδεμένος", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Exit Sub
         End If
+
         If Not IsNumeric(txtBoxInitialFiscalAmt.Text) Then
             MessageBox.Show("Το πεδίο 'Αρχικό Ποσό Ταμείου' πρέπει να είναι αριθμός", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Exit Sub
-        Else
-            Dim sql As String = ""
-            Dim cmd As New OracleCommand("", conn)
-            Try
-                sql = "update global_params " & _
-                      "set paramvalue = " & txtBoxInitialFiscalAmt.Text.Replace(",", ".") & " " & _
-                      "where paramkey = 'init.fiscal.amt'"
-
-                cmd = New OracleCommand(sql, conn)
-                cmd.CommandType = CommandType.Text
-                cmd.ExecuteNonQuery()
-
-                MessageBox.Show("Το ποσά έχουν αποθηκευτεί επιτυχώς", "Αποθήκευση αλλαγής", MessageBoxButtons.OK, MessageBoxIcon.Information)
-            Catch ex As Exception
-                createExceptionFile(ex.Message, sql)
-                MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-            Finally
-                cmd.Dispose()
-            End Try
         End If
+
+        Dim sql As String = ""
+        Dim amount As Decimal = Convert.ToDecimal(txtBoxInitialFiscalAmt.Text)
+
+        Try
+            If SqlLite Then
+                sql =
+                    "UPDATE GLOBAL_PARAMS
+                     SET PARAMVALUE = @PARAMVALUE,
+                         UPDATED_AT = CURRENT_TIMESTAMP,
+                         SYNC_STATUS = '1'
+                     WHERE PARAMKEY = 'init.fiscal.amt'
+                     AND KIOSKID = @KIOSKID"
+
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
+                    Using cmd As New SQLiteCommand(sql, sqliteConn)
+                        cmd.Parameters.AddWithValue("@PARAMVALUE", amount)
+                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                        cmd.ExecuteNonQuery()
+                    End Using
+                End Using
+            Else
+                sql =
+                    "UPDATE GLOBAL_PARAMS
+                        SET PARAMVALUE = :PARAMVALUE,
+                            UPDATED_AT = SYSTIMESTAMP
+                        WHERE PARAMKEY = 'init.fiscal.amt'"
+
+                Using cmd As New OracleCommand(sql, conn)
+                    cmd.BindByName = True
+                    cmd.Parameters.Add("PARAMVALUE", OracleDbType.Decimal).Value = amount
+                    cmd.ExecuteNonQuery()
+                End Using
+            End If
+            MessageBox.Show("Το ποσά έχουν αποθηκευτεί επιτυχώς", "Αποθήκευση αλλαγής", MessageBoxButtons.OK, MessageBoxIcon.Information)
+        Catch ex As Exception
+            CreateExceptionFile(WhoAmI + " " + ex.Message, sql)
+            MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
     End Sub
 
     Private Sub getInitialAmt()
