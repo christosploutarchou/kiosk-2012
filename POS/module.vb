@@ -18,6 +18,8 @@ Module connectionModule
     Public WithEvents SyncTimer As New System.Windows.Forms.Timer()
     Public SyncRunning As Boolean = False
 
+    Public DeletedSuppliers As New ArrayList
+
     Public oradb As String
 
     'Button selected to be edited
@@ -80,6 +82,7 @@ Module connectionModule
 
             sync.UploadGlobalParams()
             sync.UploadCategories()
+            sync.UploadSuppliers()
             'TODO
             'sync.UploadSessions()
             'UploadProducts()

@@ -164,6 +164,7 @@ Module SqliteModule
                         KIOSKID TEXT,
                         UPDATED_AT TEXT,
                         UUID TEXT NOT NULL UNIQUE,
+                        SYNC_STATUS INTEGER NOT NULL DEFAULT 0,
                         FOREIGN KEY (CATEGORY_ID) REFERENCES CATEGORIES(UUID),
                         FOREIGN KEY (SUPPLIER_ID) REFERENCES SUPPLIERS(UUID),
                         FOREIGN KEY (VATTYPE_ID) REFERENCES VAT_TYPES(UUID),
@@ -258,6 +259,7 @@ Module SqliteModule
                         WEB INTEGER,
                         ISDEFAULT INTEGER,
                         KIOSKID TEXT,
+                        SYNC_STATUS INTEGER NOT NULL DEFAULT 0,
                         UPDATED_AT TEXT DEFAULT CURRENT_TIMESTAMP,
                         FOREIGN KEY (KIOSKID) REFERENCES KIOSK(KIOSKID)
                     );
@@ -424,7 +426,8 @@ Module SqliteModule
                                     WEB,
                                     ISDEFAULT,
                                     KIOSKID,
-                                    UPDATED_AT
+                                    UPDATED_AT,
+                                    SYNC_STATUS
                                 )
                                 VALUES
                                 (
@@ -443,7 +446,8 @@ Module SqliteModule
                                     @WEB,
                                     @ISDEFAULT,
                                     @KIOSKID,
-                                    @UPDATED_AT
+                                    @UPDATED_AT,
+                                    0
                                 )
                                 ON CONFLICT(UUID)
                                 DO UPDATE SET
@@ -461,7 +465,8 @@ Module SqliteModule
                                     WEB = excluded.WEB,
                                     ISDEFAULT = excluded.ISDEFAULT,
                                     KIOSKID = excluded.KIOSKID,
-                                    UPDATED_AT = excluded.UPDATED_AT
+                                    UPDATED_AT = excluded.UPDATED_AT,
+                                    SYNC_STATUS = 0;
                                 "
 
             Dim cmd As New SQLiteCommand(sql, conn)
@@ -506,6 +511,7 @@ Module SqliteModule
         End Sub
 
         Public Sub SyncSuppliers()
+
             Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
                 sqliteConn.Open()
                 EnableForeignKeys(sqliteConn)
@@ -1130,7 +1136,8 @@ Module SqliteModule
                                 BUY_AMT_NO_VAT,
                                 BUY_AMT_NEW,
                                 KIOSKID,
-                                UPDATED_AT
+                                UPDATED_AT,
+                                SYNC_STATUS
                                 )
                                 VALUES
                                 (
@@ -1167,7 +1174,8 @@ Module SqliteModule
                                 @BUY_AMT_NO_VAT,
                                 @BUY_AMT_NEW,
                                 @KIOSKID,
-                                @UPDATED_AT
+                                @UPDATED_AT,
+                                0
                                 )
                                 ON CONFLICT(UUID)
                                 DO UPDATE SET
@@ -1203,7 +1211,8 @@ Module SqliteModule
                                 BUY_AMT_NO_VAT=excluded.BUY_AMT_NO_VAT,
                                 BUY_AMT_NEW=excluded.BUY_AMT_NEW,
                                 KIOSKID=excluded.KIOSKID,
-                                UPDATED_AT=excluded.UPDATED_AT
+                                UPDATED_AT=excluded.UPDATED_AT,
+                                SYNC_STATUS=excluded.SYNC_STATUS
                                 "
 
             Dim cmd As New SQLiteCommand(sql, conn)
@@ -1564,119 +1573,259 @@ Module SqliteModule
 
         End Sub
 
-        Private Sub UploadCategory(sqliteConn As SQLiteConnection,
-                           reader As SQLiteDataReader)
+        Private Sub UploadCategory(sqliteConn As SQLiteConnection, reader As SQLiteDataReader)
 
             Dim uuid As String = reader("UUID").ToString()
-            Dim description As Object =
-        If(IsDBNull(reader("DESCRIPTION")),
-           DBNull.Value,
-           reader("DESCRIPTION").ToString())
-
-            Dim vat As Object =
-        If(IsDBNull(reader("VAT")),
-           DBNull.Value,
-           Convert.ToDecimal(reader("VAT")))
-
-            Dim kiosk As Object =
-        If(IsDBNull(reader("KIOSKID")),
-           DBNull.Value,
-           reader("KIOSKID").ToString())
+            Dim description As Object = If(IsDBNull(reader("DESCRIPTION")), DBNull.Value, reader("DESCRIPTION").ToString())
+            Dim vat As Object = If(IsDBNull(reader("VAT")), DBNull.Value, Convert.ToDecimal(reader("VAT")))
+            Dim kiosk As Object = If(IsDBNull(reader("KIOSKID")), DBNull.Value, reader("KIOSKID").ToString())
 
             '-------------------------
             ' UPDATE
             '-------------------------
 
             Dim updateSql As String =
-    "
-    UPDATE CATEGORIES
-       SET DESCRIPTION = :DESCRIPTION,
-           VAT = :VAT,
-           KIOSKID = :KIOSKID,
-           UPDATED_AT = SYSTIMESTAMP
-     WHERE UUID = :UUID
-    "
+                                    "
+                                    UPDATE CATEGORIES
+                                       SET DESCRIPTION = :DESCRIPTION,
+                                           VAT = :VAT,
+                                           KIOSKID = :KIOSKID,
+                                           UPDATED_AT = SYSTIMESTAMP
+                                     WHERE UUID = :UUID
+                                    "
 
             Dim rows As Integer
-
             Using cmd As New OracleCommand(updateSql, conn)
-
                 cmd.BindByName = True
-
                 cmd.Parameters.Add("DESCRIPTION", OracleDbType.Varchar2).Value = description
                 cmd.Parameters.Add("VAT", OracleDbType.Decimal).Value = vat
                 cmd.Parameters.Add("KIOSKID", OracleDbType.Varchar2).Value = kiosk
                 cmd.Parameters.Add("UUID", OracleDbType.Varchar2).Value = uuid
-
                 rows = cmd.ExecuteNonQuery()
-
             End Using
 
             '-------------------------
             ' INSERT
             '-------------------------
-
             If rows = 0 Then
-
                 Dim insertSql As String =
-        "
-        INSERT INTO CATEGORIES
-        (
-            UUID,
-            DESCRIPTION,
-            VAT,
-            KIOSKID,
-            UPDATED_AT
-        )
-        VALUES
-        (
-            :UUID,
-            :DESCRIPTION,
-            :VAT,
-            :KIOSKID,
-            SYSTIMESTAMP
-        )
-        "
+                                        "
+                                        INSERT INTO CATEGORIES
+                                        (
+                                            UUID,
+                                            DESCRIPTION,
+                                            VAT,
+                                            KIOSKID,
+                                            UPDATED_AT
+                                        )
+                                        VALUES
+                                        (
+                                            :UUID,
+                                            :DESCRIPTION,
+                                            :VAT,
+                                            :KIOSKID,
+                                            SYSTIMESTAMP
+                                        )
+                                        "
 
                 Using cmd As New OracleCommand(insertSql, conn)
-
                     cmd.BindByName = True
-
                     cmd.Parameters.Add("UUID", OracleDbType.Varchar2).Value = uuid
                     cmd.Parameters.Add("DESCRIPTION", OracleDbType.Varchar2).Value = description
                     cmd.Parameters.Add("VAT", OracleDbType.Decimal).Value = vat
                     cmd.Parameters.Add("KIOSKID", OracleDbType.Varchar2).Value = kiosk
-
                     cmd.ExecuteNonQuery()
-
                 End Using
-
             End If
-
             MarkCategorySynced(sqliteConn, uuid)
+        End Sub
+
+        Private Sub MarkCategorySynced(sqliteConn As SQLiteConnection, uuid As String)
+            Dim sql As String =
+                                "
+                                UPDATE CATEGORIES
+                                SET SYNC_STATUS = 0
+                                WHERE UUID = @UUID
+                                "
+
+            Using cmd As New SQLiteCommand(sql, sqliteConn)
+                cmd.Parameters.AddWithValue("@UUID", uuid)
+                cmd.ExecuteNonQuery()
+            End Using
+        End Sub
+
+        Public Sub UploadSuppliers()
+            Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                sqliteConn.Open()
+                Dim sql As String =
+                                "
+                                SELECT *
+                                FROM SUPPLIERS
+                                WHERE KIOSKID=@KIOSKID
+                                  AND SYNC_STATUS=1
+                                ORDER BY UPDATED_AT
+                                "
+
+                Using cmd As New SQLiteCommand(sql, sqliteConn)
+                    cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                    Using reader = cmd.ExecuteReader()
+                        While reader.Read()
+                            UploadSupplier(sqliteConn, reader)
+                        End While
+                    End Using
+                End Using
+            End Using
+
+            'Delete from oracle any suppliers deleted locally 
+            While DeletedSuppliers.Count > 0
+                Dim item As Object = DeletedSuppliers(0)
+                Try
+                    DeleteSupplierInOracle(item)
+                Catch ex As Exception
+                    Exit Sub
+                End Try
+                DeletedSuppliers.RemoveAt(0)
+            End While
 
         End Sub
 
-        Private Sub MarkCategorySynced(sqliteConn As SQLiteConnection,
-                               uuid As String)
+        Private Sub DeleteSupplierInOracle(supplierId As String)
+            Dim sql As String = "DELETE FROM SUPPLIERS WHERE UUID=:UUID"
+            Using cmd As New OracleCommand(sql, conn)
+                cmd.BindByName = True
+                cmd.Parameters.Add("UUID", OracleDbType.Varchar2).Value = supplierId
+                cmd.ExecuteNonQuery()
+            End Using
+        End Sub
+        Private Sub UploadSupplier(sqliteConn As SQLiteConnection, reader As SQLiteDataReader)
+            Dim mergeSql As String =
+                                    "
+                            MERGE INTO SUPPLIERS s
 
+                            USING
+                            (
+                                SELECT
+
+                                    :UUID UUID,
+                                    :S_NAME S_NAME,
+                                    :PHONE_1 PHONE_1,
+                                    :PHONE_2 PHONE_2,
+                                    :EMAIL EMAIL,
+                                    :CONTACT_NAME CONTACT_NAME,
+                                    :MON MON,
+                                    :TUE TUE,
+                                    :WED WED,
+                                    :THU THU,
+                                    :FRI FRI,
+                                    :NOTES NOTES,
+                                    :ISDEFAULT ISDEFAULT,
+                                    :KIOSKID KIOSKID,
+                                    :UPDATED_AT UPDATED_AT
+
+                                FROM dual
+
+                            ) x
+
+                            ON
+                            (
+                                s.UUID=x.UUID
+                            )
+
+                            WHEN MATCHED THEN
+
+                            UPDATE SET
+
+                                s.S_NAME=x.S_NAME,
+                                s.PHONE_1=x.PHONE_1,
+                                s.PHONE_2=x.PHONE_2,
+                                s.EMAIL=x.EMAIL,
+                                s.CONTACT_NAME=x.CONTACT_NAME,
+                                s.MON=x.MON,
+                                s.TUE=x.TUE,
+                                s.WED=x.WED,
+                                s.THU=x.THU,
+                                s.FRI=x.FRI,
+                                s.NOTES=x.NOTES,
+                                s.ISDEFAULT=x.ISDEFAULT,
+                                s.KIOSKID=x.KIOSKID,
+                                s.UPDATED_AT=x.UPDATED_AT
+
+                            WHEN NOT MATCHED THEN
+
+                            INSERT
+                            (
+                                UUID,
+                                S_NAME,
+                                PHONE_1,
+                                PHONE_2,
+                                EMAIL,
+                                CONTACT_NAME,
+                                MON,
+                                TUE,
+                                WED,
+                                THU,
+                                FRI,
+                                NOTES,
+                                ISDEFAULT,
+                                KIOSKID,
+                                UPDATED_AT
+                            )
+
+                            VALUES
+                            (
+                                x.UUID,
+                                x.S_NAME,
+                                x.PHONE_1,
+                                x.PHONE_2,
+                                x.EMAIL,
+                                x.CONTACT_NAME,
+                                x.MON,
+                                x.TUE,
+                                x.WED,
+                                x.THU,
+                                x.FRI,
+                                x.NOTES,
+                                x.ISDEFAULT,
+                                x.KIOSKID,
+                                x.UPDATED_AT
+                            )
+                            "
+
+            Using cmd As New OracleCommand(mergeSql, conn)
+                cmd.BindByName = True
+                cmd.Parameters.Add("UUID", OracleDbType.Varchar2).Value = reader("UUID").ToString()
+                cmd.Parameters.Add("S_NAME", OracleDbType.Varchar2).Value = If(IsDBNull(reader("S_NAME")), DBNull.Value, reader("S_NAME").ToString())
+                cmd.Parameters.Add("PHONE_1", OracleDbType.Varchar2).Value = If(IsDBNull(reader("PHONE_1")), DBNull.Value, reader("PHONE_1").ToString())
+                cmd.Parameters.Add("PHONE_2", OracleDbType.Varchar2).Value = If(IsDBNull(reader("PHONE_2")), DBNull.Value, reader("PHONE_2").ToString())
+                cmd.Parameters.Add("EMAIL", OracleDbType.Varchar2).Value = If(IsDBNull(reader("EMAIL")), DBNull.Value, reader("EMAIL").ToString())
+                cmd.Parameters.Add("CONTACT_NAME", OracleDbType.Varchar2).Value = If(IsDBNull(reader("CONTACT_NAME")), DBNull.Value, reader("CONTACT_NAME").ToString())
+                cmd.Parameters.Add("MON", OracleDbType.Int32).Value = Convert.ToInt32(reader("MON"))
+                cmd.Parameters.Add("TUE", OracleDbType.Int32).Value = Convert.ToInt32(reader("TUE"))
+                cmd.Parameters.Add("WED", OracleDbType.Int32).Value = Convert.ToInt32(reader("WED"))
+                cmd.Parameters.Add("THU", OracleDbType.Int32).Value = Convert.ToInt32(reader("THU"))
+                cmd.Parameters.Add("FRI", OracleDbType.Int32).Value = Convert.ToInt32(reader("FRI"))
+                cmd.Parameters.Add("NOTES", OracleDbType.Varchar2).Value = If(IsDBNull(reader("NOTES")), DBNull.Value, reader("NOTES").ToString())
+                cmd.Parameters.Add("ISDEFAULT", OracleDbType.Int32).Value = 0 'Convert.ToInt32(reader("ISDEFAULT"))
+                'cmd.Parameters.Add("DELETED", OracleDbType.Int32).Value = Convert.ToInt32(reader("DELETED"))
+                cmd.Parameters.Add("KIOSKID", OracleDbType.Varchar2).Value = reader("KIOSKID").ToString()
+                cmd.Parameters.Add("UPDATED_AT", OracleDbType.TimeStamp).Value = Convert.ToDateTime(reader("UPDATED_AT"))
+                cmd.ExecuteNonQuery()
+            End Using
+            MarkSupplierSynced(sqliteConn, reader("UUID").ToString())
+        End Sub
+
+        Private Sub MarkSupplierSynced(sqliteConn As SQLiteConnection, uuid As String)
             Dim sql As String =
-            "
-    UPDATE CATEGORIES
-
-    SET SYNC_STATUS = 0
-
-    WHERE UUID = @UUID
-    "
+                               "
+                                UPDATE SUPPLIERS
+                                SET SYNC_STATUS=0
+                                WHERE UUID=@UUID
+                               "
 
             Using cmd As New SQLiteCommand(sql, sqliteConn)
-
                 cmd.Parameters.AddWithValue("@UUID", uuid)
-
                 cmd.ExecuteNonQuery()
-
             End Using
-
         End Sub
     End Class
 End Module

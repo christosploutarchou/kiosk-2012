@@ -1,34 +1,25 @@
-﻿Imports Oracle.DataAccess.Client
+﻿Imports System.Data.SQLite
+Imports Oracle.DataAccess.Client
 
 Public Class frmSuppliers
-
-    Private Sub frmSuppliers_Disposed(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Disposed
+    Private Sub FrmSuppliers_Disposed(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Disposed
         frmMain.Show()
     End Sub
 
-    Private Sub frmSuppliers_FormClosed(ByVal sender As Object, ByVal e As System.Windows.Forms.FormClosedEventArgs) Handles Me.FormClosed
+    Private Sub FrmSuppliers_FormClosed(ByVal sender As Object, ByVal e As System.Windows.Forms.FormClosedEventArgs) Handles Me.FormClosed
         Me.Dispose()
     End Sub
 
-    Private Sub frmSuppliers_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
-        fillSuppliersList()
+    Private Sub FrmSuppliers_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
+        FillSuppliersList()
         rdbNewSupplier.Checked = True
     End Sub
 
-    Private Sub fillSuppliersList()
-        Dim cmd As New OracleCommand("", conn)
-        Dim dr As OracleDataReader
+    Private Sub FillSuppliersList()
+        Dim WhoAmI As String = "FillSuppliersList"
         Dim sql As String = ""
-        Try
-            sql = "select uuid, s_name, NVL(phone_1,' ') phone_1, NVL(phone_2,' ') phone_2, NVL(email,' ') email, " & _
-                  "NVL(contact_name,' ') contact_name, " & _
-                  "NVL(mon,0) mon, NVL(tue,0) tue, NVL(wed,0) wed, NVL(thu,0) thu, NVL(fri,0) fri, NVL(notes,' ') notes, NVL(isdefault,0) isdefault " & _
-                  "from suppliers order by s_name asc"
-            Dim counter As Integer = 0
-            cmd = New OracleCommand(sql, conn)
-            cmd.CommandType = CommandType.Text
 
-            dr = cmd.ExecuteReader()
+        Try
             lstBoxUUID.Items.Clear()
             lstBoxName.Items.Clear()
             lstBoxPhone1.Items.Clear()
@@ -41,40 +32,105 @@ Public Class frmSuppliers
             lstBoxThu.Items.Clear()
             lstBoxFri.Items.Clear()
             lstBoxNotes.Items.Clear()
-            lstBoxIsDefault.items.clear()
+            lstBoxIsDefault.Items.Clear()
 
-            While dr.Read()
-                lstBoxUUID.Items.Add(dr("uuid"))
-                lstBoxName.Items.Add(dr("s_name"))
-                lstBoxPhone1.Items.Add(dr("phone_1"))
-                lstBoxPhone2.Items.Add(dr("phone_2"))
-                lstBoxEmail.Items.Add(dr("email"))
-                lstBoxContactName.Items.Add(dr("contact_name"))
-                lstBoxMon.Items.Add(dr("mon"))
-                lstBoxTue.Items.Add(dr("tue"))
-                lstBoxWed.Items.Add(dr("wed"))
-                lstBoxThu.Items.Add(dr("thu"))
-                lstBoxFri.Items.Add(dr("fri"))
-                lstBoxNotes.Items.Add(dr("notes"))
-                lstBoxIsDefault.Items.Add(dr("isdefault"))
-            End While
-            dr.Close()
+            If SqlLite Then
+                sql =
+                    "SELECT
+                        UUID,
+                        S_NAME,
+                        IFNULL(PHONE_1,' ') PHONE_1,
+                        IFNULL(PHONE_2,' ') PHONE_2,
+                        IFNULL(EMAIL,' ') EMAIL,
+                        IFNULL(CONTACT_NAME,' ') CONTACT_NAME,
+                        IFNULL(MON,0) MON,
+                        IFNULL(TUE,0) TUE,
+                        IFNULL(WED,0) WED,
+                        IFNULL(THU,0) THU,
+                        IFNULL(FRI,0) FRI,
+                        IFNULL(NOTES,' ') NOTES,
+                        IFNULL(ISDEFAULT,0) ISDEFAULT
+                    FROM SUPPLIERS
+                    WHERE KIOSKID=@KIOSKID
+                    ORDER BY S_NAME"
+
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
+                    Using cmd As New SQLiteCommand(sql, sqliteConn)
+                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                        Using dr As SQLiteDataReader = cmd.ExecuteReader()
+                            While dr.Read()
+                                lstBoxUUID.Items.Add(dr("UUID").ToString())
+                                lstBoxName.Items.Add(dr("S_NAME").ToString())
+                                lstBoxPhone1.Items.Add(dr("PHONE_1").ToString())
+                                lstBoxPhone2.Items.Add(dr("PHONE_2").ToString())
+                                lstBoxEmail.Items.Add(dr("EMAIL").ToString())
+                                lstBoxContactName.Items.Add(dr("CONTACT_NAME").ToString())
+                                lstBoxMon.Items.Add(Convert.ToInt32(dr("MON")))
+                                lstBoxTue.Items.Add(Convert.ToInt32(dr("TUE")))
+                                lstBoxWed.Items.Add(Convert.ToInt32(dr("WED")))
+                                lstBoxThu.Items.Add(Convert.ToInt32(dr("THU")))
+                                lstBoxFri.Items.Add(Convert.ToInt32(dr("FRI")))
+                                lstBoxNotes.Items.Add(dr("NOTES").ToString())
+                                lstBoxIsDefault.Items.Add(Convert.ToInt32(dr("ISDEFAULT")))
+                            End While
+                        End Using
+                    End Using
+                End Using
+            Else
+                sql =
+                    "SELECT
+                        UUID,
+                        S_NAME,
+                        NVL(PHONE_1,' ') PHONE_1,
+                        NVL(PHONE_2,' ') PHONE_2,
+                        NVL(EMAIL,' ') EMAIL,
+                        NVL(CONTACT_NAME,' ') CONTACT_NAME,
+                        NVL(MON,0) MON,
+                        NVL(TUE,0) TUE,
+                        NVL(WED,0) WED,
+                        NVL(THU,0) THU,
+                        NVL(FRI,0) FRI,
+                        NVL(NOTES,' ') NOTES,
+                        NVL(ISDEFAULT,0) ISDEFAULT
+                    FROM SUPPLIERS
+                    ORDER BY S_NAME"
+
+                Using cmd As New OracleCommand(sql, conn)
+                    cmd.CommandType = CommandType.Text
+                    Using dr As OracleDataReader = cmd.ExecuteReader()
+                        While dr.Read()
+                            lstBoxUUID.Items.Add(dr("UUID").ToString())
+                            lstBoxName.Items.Add(dr("S_NAME").ToString())
+                            lstBoxPhone1.Items.Add(dr("PHONE_1").ToString())
+                            lstBoxPhone2.Items.Add(dr("PHONE_2").ToString())
+                            lstBoxEmail.Items.Add(dr("EMAIL").ToString())
+                            lstBoxContactName.Items.Add(dr("CONTACT_NAME").ToString())
+                            lstBoxMon.Items.Add(Convert.ToInt32(dr("MON")))
+                            lstBoxTue.Items.Add(Convert.ToInt32(dr("TUE")))
+                            lstBoxWed.Items.Add(Convert.ToInt32(dr("WED")))
+                            lstBoxThu.Items.Add(Convert.ToInt32(dr("THU")))
+                            lstBoxFri.Items.Add(Convert.ToInt32(dr("FRI")))
+                            lstBoxNotes.Items.Add(dr("NOTES").ToString())
+                            lstBoxIsDefault.Items.Add(Convert.ToInt32(dr("ISDEFAULT")))
+                        End While
+                    End Using
+                End Using
+            End If
         Catch ex As Exception
-            createExceptionFile(ex.Message, sql)
-            MessageBox.Show(ex.Message, "Applicaton Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
-            cmd.Dispose()
+            CreateExceptionFile(WhoAmI + " " + ex.Message, sql)
+            MessageBox.Show(ex.Message, "Application Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
-    Private Sub btnExit_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnExit.Click
+    Private Sub BtnExit_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnExit.Click
         Me.Dispose()
     End Sub
 
-    Private Sub rdbNewSupplier_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles rdbNewSupplier.CheckedChanged
-        resetFields()
+    Private Sub RdbNewSupplier_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles rdbNewSupplier.CheckedChanged
+        ResetFields()
         btnClear.Visible = True
-        fillSuppliersList()
+        FillSuppliersList()
     End Sub
 
     Private Sub rdbExisting_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles rdbExisting.CheckedChanged
@@ -84,7 +140,7 @@ Public Class frmSuppliers
         btnDeleteSupplier.Visible = True
     End Sub
 
-    Private Sub resetFields()
+    Private Sub ResetFields()
         txtBoxContactName.Clear()
         txtBoxEmail.Clear()
         txtBoxName.Clear()
@@ -99,7 +155,7 @@ Public Class frmSuppliers
         btnDeleteSupplier.Visible = False
     End Sub
 
-    Private Sub lstBoxName_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles lstBoxName.SelectedIndexChanged
+    Private Sub LstBoxName_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles lstBoxName.SelectedIndexChanged
         If rdbNewSupplier.Checked Then
             Exit Sub
         Else
@@ -112,7 +168,7 @@ Public Class frmSuppliers
             txtBoxEmail.Text = lstBoxEmail.Items.Item(index)
             txtBoxPhone1.Text = lstBoxPhone1.Items.Item(index)
             txtBoxPhone2.Text = lstBoxPhone2.Items.Item(index)
-            txtBoxNotes.Text = lstBoxNotes.items.item(index)
+            txtBoxNotes.Text = lstBoxNotes.Items.Item(index)
 
             If lstBoxMon.Items.Item(index) = 1 Then
                 ckbMon.Checked = True
@@ -146,125 +202,186 @@ Public Class frmSuppliers
         End If
     End Sub
 
-    Private Sub btnSave_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnSave.Click
+    Private Sub BtnSave_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnSave.Click
+        Dim WhoAmI As String = "BtnSave_Click"
         Dim sql As String = ""
 
-        Dim mon, tue, wed, thu, fri As Integer
-
-        If ckbMon.Checked = True Then
-            mon = 1
-        Else
-            mon = 0
-        End If
-
-        If ckbTue.Checked = True Then
-            tue = 1
-        Else
-            tue = 0
-        End If
-
-        If ckbWed.Checked = True Then
-            wed = 1
-        Else
-            wed = 0
-        End If
-
-        If ckbThu.Checked = True Then
-            thu = 1
-        Else
-            thu = 0
-        End If
-
-        If ckbFri.Checked = True Then
-            fri = 1
-        Else
-            fri = 0
-        End If
+        Dim mon As Integer = If(ckbMon.Checked, 1, 0)
+        Dim tue As Integer = If(ckbTue.Checked, 1, 0)
+        Dim wed As Integer = If(ckbWed.Checked, 1, 0)
+        Dim thu As Integer = If(ckbThu.Checked, 1, 0)
+        Dim fri As Integer = If(ckbFri.Checked, 1, 0)
 
         If Not IsNumeric(txtBoxPhone1.Text) Then
-            MessageBox.Show("Το πεδίο τηλέφωνο (1) πρέπει να αποτελείται μόνο από αριθμούς", "Πληροφορία", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            MessageBox.Show("Το πεδίο τηλέφωνο (1) πρέπει να αποτελείται μόνο από αριθμούς")
             Exit Sub
         End If
 
-        If txtBoxPhone2.Text.Length > 0 And Not txtBoxPhone2.Text.Equals(" ") And Not IsNumeric(txtBoxPhone2.Text) Then
-            MessageBox.Show("Το πεδίο τηλέφωνο (2) πρέπει να αποτελείται μόνο από αριθμούς", "Πληροφορία", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        If txtBoxPhone2.Text.Length > 0 AndAlso
+           txtBoxPhone2.Text <> " " AndAlso
+           Not IsNumeric(txtBoxPhone2.Text) Then
+            MessageBox.Show("Το πεδίο τηλέφωνο (2) πρέπει να αποτελείται μόνο από αριθμούς")
             Exit Sub
         End If
 
-        If txtBoxNotes.Text = String.Empty Then
-            txtBoxNotes.Text = " "
+        If txtBoxNotes.Text = "" Then txtBoxNotes.Text = " "
+        If txtBoxPhone2.Text = "" Then txtBoxPhone2.Text = " "
+        If txtBoxEmail.Text = "" Then txtBoxEmail.Text = " "
+
+        If txtBoxContactName.Text = "" OrElse txtBoxName.Text = "" OrElse txtBoxPhone1.Text = "" Then
+            MessageBox.Show("Υπάρχουν κενά πεδία")
+            Exit Sub
         End If
 
-        If txtBoxPhone2.Text = String.Empty Then
-            txtBoxPhone2.Text = " "
-        End If
-
-        If txtBoxEmail.Text = String.Empty Then
-            txtBoxEmail.Text = " "
-        End If
-
-        If rdbNewSupplier.Checked Then
-            If txtBoxContactName.Text = String.Empty Or txtBoxName.Text = String.Empty Or txtBoxPhone1.Text = String.Empty Then
-                MessageBox.Show("Υπάρχουν κενά πεδία", "Πληροφορία", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        If supplierExists(txtBoxName.Text.Replace("'", "`")) Then
+            If rdbNewSupplier.Checked Then
+                MessageBox.Show("Υπάρχει ήδη καταχωρημένος Προμηθευτής με αυτό το όνομα")
                 Exit Sub
             End If
-
-            If supplierExists(txtBoxName.Text.Replace("'", "`")) Then
-                MessageBox.Show("Υπάρχει ήδη καταχωρημένος Προμηθευτής με αυτό το όνομα", "Πληροφορία", MessageBoxButtons.OK, MessageBoxIcon.Error)
-                Exit Sub
-            End If
-
-            sql = "insert into suppliers (UUID, S_NAME, PHONE_1, PHONE_2, EMAIL, CONTACT_NAME, MON, TUE, WED, THU, FRI, notes) " & _
-                  "values (sys_guid(), '" & txtBoxName.Text.Replace("'", "`") & "'," & _
-                  "                    '" & txtBoxPhone1.Text & "', " & _
-                  "                    '" & txtBoxPhone2.Text & "', " & _
-                  "                    '" & txtBoxEmail.Text.Replace("'", "`") & "'," & _
-                  "                    '" & txtBoxContactName.Text.Replace("'", "`") & "'," & _
-                  "                     " & mon & ", " & _
-                  "                     " & tue & ", " & _
-                  "                     " & wed & ", " & _
-                  "                     " & thu & ", " & _
-                  "                     " & fri & ", " & _
-                  "                    '" & txtBoxNotes.Text.Replace("'", "`") & "') "
-        Else
-            If lstBoxName.SelectedIndex = -1 Then
-                MessageBox.Show("Δεν έχετε επιλέξει προμηθευτή για επεξεργασία", "Επεξεργασία Προμηθευτή", MessageBoxButtons.OK, MessageBoxIcon.Error)
-                Exit Sub
-            End If
-            sql = "update suppliers set " & _
-                  "                      S_NAME = '" & txtBoxName.Text.Replace("'", "`") & "'," & _
-                  "                      PHONE_1 = '" & txtBoxPhone1.Text & "', " & _
-                  "                      PHONE_2 = '" & txtBoxPhone2.Text & "', " & _
-                  "                      EMAIL = '" & txtBoxEmail.Text.Replace("'", "`") & "'," & _
-                  "                      CONTACT_NAME = '" & txtBoxContactName.Text.Replace("'", "`") & "'," & _
-                  "                      MON = " & mon & ", " & _
-                  "                      TUE = " & tue & ", " & _
-                  "                      WED = " & wed & ", " & _
-                  "                      THU = " & thu & ", " & _
-                  "                      FRI = " & fri & ", " & _
-                  "                      notes = '" & txtBoxNotes.Text.Replace("'", "`") & "' " & _
-                  " where uuid = '" & lstBoxUUID.Items.Item(lstBoxName.SelectedIndex) & "'"
         End If
 
-        Dim cmd As New OracleCommand("", conn)
         Try
-            cmd = New OracleCommand(sql, conn)
-            cmd.CommandType = CommandType.Text
-            Using cmd                cmd.ExecuteNonQuery()            End Using
-        Catch ex As Exception
-            createExceptionFile(ex.Message, sql)
-            MessageBox.Show(ex.Message, "Applicaton Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
-            cmd.Dispose()
-        End Try
+            If SqlLite Then
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
+                    If rdbNewSupplier.Checked Then
+                        sql =
+                            "INSERT INTO SUPPLIERS
+                            (
+                                UUID,
+                                S_NAME,
+                                PHONE_1,
+                                PHONE_2,
+                                EMAIL,
+                                CONTACT_NAME,
+                                MON,
+                                TUE,
+                                WED,
+                                THU,
+                                FRI,
+                                NOTES,
+                                KIOSKID,
+                                UPDATED_AT,
+                                SYNC_STATUS
+                            )
+                            VALUES
+                            (
+                                @UUID,
+                                @S_NAME,
+                                @PHONE_1,
+                                @PHONE_2,
+                                @EMAIL,
+                                @CONTACT_NAME,
+                                @MON,
+                                @TUE,
+                                @WED,
+                                @THU,
+                                @FRI,
+                                @NOTES,
+                                @KIOSKID,
+                                CURRENT_TIMESTAMP,
+                                1
+                            )"
 
-        MessageBox.Show("Η εντολή εκτελέστηκε επιτυχώς", "Πληροφορία", MessageBoxButtons.OK, MessageBoxIcon.Information)
-        resetFields()
-        fillSuppliersList()
-        rdbNewSupplier.Checked = True
+                    Else
+                        If lstBoxName.SelectedIndex = -1 Then
+                            MessageBox.Show("Δεν έχετε επιλέξει προμηθευτή")
+                            Exit Sub
+                        End If
+
+                        sql =
+                            "UPDATE SUPPLIERS
+                                SET
+                                    S_NAME=@S_NAME,
+                                    PHONE_1=@PHONE_1,
+                                    PHONE_2=@PHONE_2,
+                                    EMAIL=@EMAIL,
+                                    CONTACT_NAME=@CONTACT_NAME,
+                                    MON=@MON,
+                                    TUE=@TUE,
+                                    WED=@WED,
+                                    THU=@THU,
+                                    FRI=@FRI,
+                                    NOTES=@NOTES,
+                                    UPDATED_AT=CURRENT_TIMESTAMP,
+                                    SYNC_STATUS=1
+                             WHERE UUID=@UUID
+                             AND KIOSKID=@KIOSKID"
+                    End If
+
+                    Using cmd As New SQLiteCommand(sql, sqliteConn)
+                        Dim uuid As String = If(rdbNewSupplier.Checked, Guid.NewGuid().ToString("N").ToUpper(), lstBoxUUID.Items(lstBoxName.SelectedIndex).ToString())
+
+                        cmd.Parameters.AddWithValue("@UUID", uuid)
+                        cmd.Parameters.AddWithValue("@S_NAME", txtBoxName.Text.Replace("'", "`"))
+                        cmd.Parameters.AddWithValue("@PHONE_1", txtBoxPhone1.Text)
+                        cmd.Parameters.AddWithValue("@PHONE_2", txtBoxPhone2.Text)
+                        cmd.Parameters.AddWithValue("@EMAIL", txtBoxEmail.Text.Replace("'", "`"))
+                        cmd.Parameters.AddWithValue("@CONTACT_NAME", txtBoxContactName.Text.Replace("'", "`"))
+                        cmd.Parameters.AddWithValue("@MON", mon)
+                        cmd.Parameters.AddWithValue("@TUE", tue)
+                        cmd.Parameters.AddWithValue("@WED", wed)
+                        cmd.Parameters.AddWithValue("@THU", thu)
+                        cmd.Parameters.AddWithValue("@FRI", fri)
+                        cmd.Parameters.AddWithValue("@NOTES", txtBoxNotes.Text.Replace("'", "`"))
+                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+
+                        cmd.ExecuteNonQuery()
+                    End Using
+                End Using
+            Else
+                Dim cmd As New OracleCommand("", conn)
+
+                If rdbNewSupplier.Checked Then
+                    sql =
+                        "INSERT INTO suppliers
+                        (UUID,S_NAME,PHONE_1,PHONE_2,EMAIL,CONTACT_NAME,MON,TUE,WED,THU,FRI,NOTES)
+                        VALUES
+                        (
+                            sys_guid(),
+                            '" & txtBoxName.Text.Replace("'", "`") & "',
+                            '" & txtBoxPhone1.Text & "',
+                            '" & txtBoxPhone2.Text & "',
+                            '" & txtBoxEmail.Text.Replace("'", "`") & "',
+                            '" & txtBoxContactName.Text.Replace("'", "`") & "',
+                            " & mon & ",
+                            " & tue & ",
+                            " & wed & ",
+                            " & thu & ",
+                            " & fri & ",
+                            '" & txtBoxNotes.Text.Replace("'", "`") & "'
+                        )"
+                Else
+                    sql =
+                        "UPDATE suppliers SET
+                            S_NAME='" & txtBoxName.Text.Replace("'", "`") & "',
+                            PHONE_1='" & txtBoxPhone1.Text & "',
+                            PHONE_2='" & txtBoxPhone2.Text & "',
+                            EMAIL='" & txtBoxEmail.Text.Replace("'", "`") & "',
+                            CONTACT_NAME='" & txtBoxContactName.Text.Replace("'", "`") & "',
+                            MON=" & mon & ",
+                            TUE=" & tue & ",
+                            WED=" & wed & ",
+                            THU=" & thu & ",
+                            FRI=" & fri & ",
+                            NOTES='" & txtBoxNotes.Text.Replace("'", "`") & "'
+                         WHERE UUID='" & lstBoxUUID.Items(lstBoxName.SelectedIndex) & "'"
+                End If
+                cmd = New OracleCommand(sql, conn)
+                cmd.ExecuteNonQuery()
+            End If
+
+            MessageBox.Show("Η εντολή εκτελέστηκε επιτυχώς", "Πληροφορία", MessageBoxButtons.OK, MessageBoxIcon.Information)
+            ResetFields()
+            FillSuppliersList()
+            rdbNewSupplier.Checked = True
+        Catch ex As Exception
+            CreateExceptionFile(WhoAmI + " " + ex.Message, sql)
+            MessageBox.Show(ex.Message, "Application Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
     End Sub
 
-    Private Sub btnClear_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnClear.Click
+    Private Sub BtnClear_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnClear.Click
         txtBoxName.Clear()
         txtBoxContactName.Clear()
         txtBoxEmail.Clear()
@@ -273,71 +390,143 @@ Public Class frmSuppliers
         txtBoxPhone2.Clear()
     End Sub
 
-    Private Function supplierExists(ByVal name As String) As Boolean
-        Dim sql As String = "select count(*) from suppliers where upper(s_name) = '" & name.ToUpper & "' "
-        Dim cmd As New OracleCommand(sql, conn)
-        Dim dr As OracleDataReader
+    Private Function SupplierExists(ByVal name As String) As Boolean
+        Dim WhoAmI As String = "SupplierExists"
+        Dim sql As String = ""
         Dim found As Boolean = False
+
         Try
-            cmd = New OracleCommand(sql, conn)
-            cmd.CommandType = CommandType.Text
-            dr = cmd.ExecuteReader()
-            If dr.Read Then
-                If CInt(dr(0)) > 0 Then
-                    found = True
-                End If
+            If SqlLite Then
+                sql =
+                    "SELECT COUNT(*)
+                     FROM SUPPLIERS
+                     WHERE UPPER(S_NAME)=@NAME
+                     AND KIOSKID=@KIOSKID"
+
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
+                    Using cmd As New SQLiteCommand(sql, sqliteConn)
+                        cmd.Parameters.AddWithValue("@NAME", name.ToUpper())
+                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                        found = Convert.ToInt32(cmd.ExecuteScalar()) > 0
+                    End Using
+                End Using
+            Else
+                sql =
+                    "SELECT COUNT(*)
+                        FROM SUPPLIERS
+                        WHERE UPPER(S_NAME)=:NAME"
+
+                Using cmd As New OracleCommand(sql, conn)
+                    cmd.BindByName = True
+                    cmd.Parameters.Add("NAME", OracleDbType.Varchar2).Value = name.ToUpper()
+                    found = Convert.ToInt32(cmd.ExecuteScalar()) > 0
+                End Using
             End If
-            dr.Close()
         Catch ex As Exception
-            createExceptionFile(ex.Message, sql)
-            MessageBox.Show(ex.Message, "Applicaton Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
-            cmd.Dispose()
+            CreateExceptionFile(WhoAmI + " " + ex.Message, sql)
+            MessageBox.Show(ex.Message, "Application Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
         Return found
     End Function
 
-    Private Sub btnDeleteSupplier_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnDeleteSupplier.Click
-        Dim sql As String = ""
-
+    Private Sub BtnDeleteSupplier_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnDeleteSupplier.Click
+        Dim WhoAmI As String = "BtnDeleteSupplier_Click"
         If lstBoxName.SelectedIndex = -1 Then
             MessageBox.Show("Δεν έχετε επιλέξει προμηθευτή", "Διαγραφή Προμηθευτή", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Exit Sub
         End If
 
-        'If default you cannot delete
-        If lstBoxIsDefault.Items.Item(lstBoxName.SelectedIndex).ToString.Equals("1") Then
-            MessageBox.Show("Δεν μπορειτε να διαγραψετε αυτόν τον προμηθευτή", "Διαγραφή Προμηθευτή", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        If lstBoxIsDefault.Items(lstBoxName.SelectedIndex).ToString() = "1" Then
+            MessageBox.Show("Δεν μπορείτε να διαγράψετε αυτόν τον προμηθευτή", "Διαγραφή Προμηθευτή", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Exit Sub
         End If
 
-        '1. Update linked products with default supplier
-        sql = "update products set supplier_id =(select uuid from suppliers where isdefault=1) " & _
-              "where supplier_id = '" & lstBoxUUID.Items.Item(lstBoxName.SelectedIndex) & "'"
+        Dim supplierUUID As String = lstBoxUUID.Items(lstBoxName.SelectedIndex).ToString()
 
-        Dim cmd As New OracleCommand("", conn)
         Try
-            cmd = New OracleCommand(sql, conn)
-            cmd.CommandType = CommandType.Text
-            cmd.ExecuteNonQuery()
+            If SqlLite Then
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
+                    Using trans = sqliteConn.BeginTransaction()
+                        'Find default supplier
+                        Dim defaultSupplier As String = Nothing
 
-            '2. Delete supplier
-            sql = "delete from suppliers " & _
-                  " where uuid = '" & lstBoxUUID.Items.Item(lstBoxName.SelectedIndex) & "'"
+                        Using cmd As New SQLiteCommand("SELECT UUID FROM SUPPLIERS WHERE ISDEFAULT=1 AND KIOSKID=@KIOSKID", sqliteConn, trans)
+                            cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                            defaultSupplier = Convert.ToString(cmd.ExecuteScalar())
+                        End Using
 
-            cmd = New OracleCommand(sql, conn)
-            cmd.CommandType = CommandType.Text
-            cmd.ExecuteNonQuery()
+                        'Update products
+                        Using cmd As New SQLiteCommand(
+                                                    "UPDATE PRODUCTS
+                                                     SET SUPPLIER_ID=@DEFAULTSUPPLIER,
+                                                         UPDATED_AT=CURRENT_TIMESTAMP,
+                                                         SYNC_STATUS=1
+                                                     WHERE SUPPLIER_ID=@SUPPLIERUUID
+                                                     AND KIOSKID=@KIOSKID",
+                                                    sqliteConn, trans)
+
+                            cmd.Parameters.AddWithValue("@DEFAULTSUPPLIER", defaultSupplier)
+                            cmd.Parameters.AddWithValue("@SUPPLIERUUID", supplierUUID)
+                            cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                            cmd.ExecuteNonQuery()
+                        End Using
+
+                        'Delete supplier
+                        Using cmd As New SQLiteCommand(
+                                                    "DELETE FROM SUPPLIERS
+                                                     WHERE UUID=@UUID
+                                                     AND KIOSKID=@KIOSKID", sqliteConn, trans)
+                            cmd.Parameters.AddWithValue("@UUID", supplierUUID)
+                            cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                            cmd.ExecuteNonQuery()
+                            DeletedSuppliers.Add(supplierUUID)
+                        End Using
+                        trans.Commit()
+                    End Using
+                End Using
+            Else
+                Using trans = conn.BeginTransaction()
+
+                    Dim defaultSupplier As String
+
+                    Using cmd As New OracleCommand("SELECT UUID FROM SUPPLIERS WHERE ISDEFAULT=1", conn)
+                        cmd.Transaction = trans
+                        defaultSupplier = Convert.ToString(cmd.ExecuteScalar())
+                    End Using
+
+                    Using cmd As New OracleCommand(
+                                                "UPDATE PRODUCTS
+                                                 SET SUPPLIER_ID=:DEFAULTSUPPLIER
+                                                 WHERE SUPPLIER_ID=:SUPPLIERUUID",
+                    conn)
+
+                        cmd.Transaction = trans
+                        cmd.BindByName = True
+
+                        cmd.Parameters.Add("DEFAULTSUPPLIER", OracleDbType.Varchar2).Value = defaultSupplier
+                        cmd.Parameters.Add("SUPPLIERUUID", OracleDbType.Varchar2).Value = supplierUUID
+                        cmd.ExecuteNonQuery()
+                    End Using
+
+                    Using cmd As New OracleCommand("DELETE FROM SUPPLIERS WHERE UUID=:UUID", conn)
+                        cmd.Transaction = trans
+                        cmd.BindByName = True
+                        cmd.Parameters.Add("UUID", OracleDbType.Varchar2).Value = supplierUUID
+                        cmd.ExecuteNonQuery()
+                    End Using
+                    trans.Commit()
+                End Using
+            End If
+
+            MessageBox.Show("Η εντολή εκτελέστηκε επιτυχώς", "Πληροφορία", MessageBoxButtons.OK, MessageBoxIcon.Information)
+            ResetFields()
+            FillSuppliersList()
+            rdbNewSupplier.Checked = True
         Catch ex As Exception
-            createExceptionFile(ex.Message, sql)
-            MessageBox.Show(ex.Message, "Applicaton Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
-            cmd.Dispose()
+            CreateExceptionFile(WhoAmI + " " + ex.Message, "Delete Supplier")
+            MessageBox.Show(ex.Message, "Application Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
-
-        MessageBox.Show("Η εντολή εκτελέστηκε επιτυχώς", "Πληροφορία", MessageBoxButtons.OK, MessageBoxIcon.Information)
-        resetFields()
-        fillSuppliersList()
-        rdbNewSupplier.Checked = True
     End Sub
 End Class

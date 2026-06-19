@@ -33,6 +33,7 @@ Public Class frmLogin
             Dim sync As New SyncTables()
             Try
                 CreateSqliteTableStructure()
+                'TODO Sync if tables are empty
                 sync.SyncGlobalParams()
                 sync.SyncUsers()
                 sync.SyncLottery()

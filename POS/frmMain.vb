@@ -138,8 +138,8 @@ Public Class frmMain
         frmCategories.Show()
     End Sub
 
-    Private Sub cmdSuppliers_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdSuppliers.Click
-        If Not isLoggedIn(username) Then
+    Private Sub CmdSuppliers_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdSuppliers.Click
+        If Not IsLoggedIn(username) Then
             MessageBox.Show("Ο χρήστης δεν ειναι συνδεμένος", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Exit Sub
         End If

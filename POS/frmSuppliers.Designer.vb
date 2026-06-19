@@ -23,44 +23,44 @@ Partial Class frmSuppliers
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
         Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(frmSuppliers))
-        Me.txtBoxPhone2 = New System.Windows.Forms.TextBox
-        Me.txtBoxPhone1 = New System.Windows.Forms.TextBox
-        Me.txtBoxName = New System.Windows.Forms.TextBox
-        Me.lblPhone2 = New System.Windows.Forms.Label
-        Me.lblPhone1 = New System.Windows.Forms.Label
-        Me.Label1 = New System.Windows.Forms.Label
-        Me.GroupBox1 = New System.Windows.Forms.GroupBox
-        Me.rdbExisting = New System.Windows.Forms.RadioButton
-        Me.rdbNewSupplier = New System.Windows.Forms.RadioButton
-        Me.lstBoxName = New System.Windows.Forms.ListBox
-        Me.txtBoxEmail = New System.Windows.Forms.TextBox
-        Me.Label4 = New System.Windows.Forms.Label
-        Me.lblContactName = New System.Windows.Forms.Label
-        Me.txtBoxContactName = New System.Windows.Forms.TextBox
-        Me.lblDay = New System.Windows.Forms.Label
-        Me.ckbMon = New System.Windows.Forms.CheckBox
-        Me.ckbTue = New System.Windows.Forms.CheckBox
-        Me.ckbWed = New System.Windows.Forms.CheckBox
-        Me.ckbThu = New System.Windows.Forms.CheckBox
-        Me.ckbFri = New System.Windows.Forms.CheckBox
-        Me.lstBoxUUID = New System.Windows.Forms.ListBox
-        Me.lstBoxThu = New System.Windows.Forms.ListBox
-        Me.lstBoxWed = New System.Windows.Forms.ListBox
-        Me.lstBoxTue = New System.Windows.Forms.ListBox
-        Me.lstBoxMon = New System.Windows.Forms.ListBox
-        Me.lstBoxContactName = New System.Windows.Forms.ListBox
-        Me.lstBoxEmail = New System.Windows.Forms.ListBox
-        Me.lstBoxPhone2 = New System.Windows.Forms.ListBox
-        Me.lstBoxPhone1 = New System.Windows.Forms.ListBox
-        Me.lstBoxFri = New System.Windows.Forms.ListBox
-        Me.btnExit = New System.Windows.Forms.Button
-        Me.btnSave = New System.Windows.Forms.Button
-        Me.btnClear = New System.Windows.Forms.Button
-        Me.lblNotes = New System.Windows.Forms.Label
-        Me.txtBoxNotes = New System.Windows.Forms.TextBox
-        Me.lstBoxNotes = New System.Windows.Forms.ListBox
-        Me.btnDeleteSupplier = New System.Windows.Forms.Button
-        Me.lstBoxIsDefault = New System.Windows.Forms.ListBox
+        Me.txtBoxPhone2 = New System.Windows.Forms.TextBox()
+        Me.txtBoxPhone1 = New System.Windows.Forms.TextBox()
+        Me.txtBoxName = New System.Windows.Forms.TextBox()
+        Me.lblPhone2 = New System.Windows.Forms.Label()
+        Me.lblPhone1 = New System.Windows.Forms.Label()
+        Me.Label1 = New System.Windows.Forms.Label()
+        Me.GroupBox1 = New System.Windows.Forms.GroupBox()
+        Me.rdbExisting = New System.Windows.Forms.RadioButton()
+        Me.rdbNewSupplier = New System.Windows.Forms.RadioButton()
+        Me.lstBoxName = New System.Windows.Forms.ListBox()
+        Me.txtBoxEmail = New System.Windows.Forms.TextBox()
+        Me.Label4 = New System.Windows.Forms.Label()
+        Me.lblContactName = New System.Windows.Forms.Label()
+        Me.txtBoxContactName = New System.Windows.Forms.TextBox()
+        Me.lblDay = New System.Windows.Forms.Label()
+        Me.ckbMon = New System.Windows.Forms.CheckBox()
+        Me.ckbTue = New System.Windows.Forms.CheckBox()
+        Me.ckbWed = New System.Windows.Forms.CheckBox()
+        Me.ckbThu = New System.Windows.Forms.CheckBox()
+        Me.ckbFri = New System.Windows.Forms.CheckBox()
+        Me.lstBoxUUID = New System.Windows.Forms.ListBox()
+        Me.lstBoxThu = New System.Windows.Forms.ListBox()
+        Me.lstBoxWed = New System.Windows.Forms.ListBox()
+        Me.lstBoxTue = New System.Windows.Forms.ListBox()
+        Me.lstBoxMon = New System.Windows.Forms.ListBox()
+        Me.lstBoxContactName = New System.Windows.Forms.ListBox()
+        Me.lstBoxEmail = New System.Windows.Forms.ListBox()
+        Me.lstBoxPhone2 = New System.Windows.Forms.ListBox()
+        Me.lstBoxPhone1 = New System.Windows.Forms.ListBox()
+        Me.lstBoxFri = New System.Windows.Forms.ListBox()
+        Me.btnExit = New System.Windows.Forms.Button()
+        Me.btnSave = New System.Windows.Forms.Button()
+        Me.btnClear = New System.Windows.Forms.Button()
+        Me.lblNotes = New System.Windows.Forms.Label()
+        Me.txtBoxNotes = New System.Windows.Forms.TextBox()
+        Me.lstBoxNotes = New System.Windows.Forms.ListBox()
+        Me.btnDeleteSupplier = New System.Windows.Forms.Button()
+        Me.lstBoxIsDefault = New System.Windows.Forms.ListBox()
         Me.GroupBox1.SuspendLayout()
         Me.SuspendLayout()
         '
@@ -94,7 +94,7 @@ Partial Class frmSuppliers
         Me.lblPhone2.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.lblPhone2.Location = New System.Drawing.Point(12, 299)
         Me.lblPhone2.Name = "lblPhone2"
-        Me.lblPhone2.Size = New System.Drawing.Size(162, 32)
+        Me.lblPhone2.Size = New System.Drawing.Size(161, 32)
         Me.lblPhone2.TabIndex = 22
         Me.lblPhone2.Text = "Τηλέφωνο (2)"
         '
@@ -104,7 +104,7 @@ Partial Class frmSuppliers
         Me.lblPhone1.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.lblPhone1.Location = New System.Drawing.Point(12, 253)
         Me.lblPhone1.Name = "lblPhone1"
-        Me.lblPhone1.Size = New System.Drawing.Size(162, 32)
+        Me.lblPhone1.Size = New System.Drawing.Size(161, 32)
         Me.lblPhone1.TabIndex = 21
         Me.lblPhone1.Text = "Τηλέφωνο (1)"
         '
@@ -114,7 +114,7 @@ Partial Class frmSuppliers
         Me.Label1.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.Label1.Location = New System.Drawing.Point(12, 161)
         Me.Label1.Name = "Label1"
-        Me.Label1.Size = New System.Drawing.Size(90, 32)
+        Me.Label1.Size = New System.Drawing.Size(89, 32)
         Me.Label1.TabIndex = 20
         Me.Label1.Text = "Όνομα"
         '
@@ -135,7 +135,7 @@ Partial Class frmSuppliers
         Me.rdbExisting.AutoSize = True
         Me.rdbExisting.Location = New System.Drawing.Point(6, 81)
         Me.rdbExisting.Name = "rdbExisting"
-        Me.rdbExisting.Size = New System.Drawing.Size(318, 36)
+        Me.rdbExisting.Size = New System.Drawing.Size(317, 36)
         Me.rdbExisting.TabIndex = 14
         Me.rdbExisting.TabStop = True
         Me.rdbExisting.Text = "Επεξεργασία Υφιστάμενου"
@@ -146,7 +146,7 @@ Partial Class frmSuppliers
         Me.rdbNewSupplier.AutoSize = True
         Me.rdbNewSupplier.Location = New System.Drawing.Point(6, 39)
         Me.rdbNewSupplier.Name = "rdbNewSupplier"
-        Me.rdbNewSupplier.Size = New System.Drawing.Size(219, 36)
+        Me.rdbNewSupplier.Size = New System.Drawing.Size(218, 36)
         Me.rdbNewSupplier.TabIndex = 13
         Me.rdbNewSupplier.TabStop = True
         Me.rdbNewSupplier.Text = "Δημιουργία Νέου"
@@ -177,7 +177,7 @@ Partial Class frmSuppliers
         Me.Label4.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.Label4.Location = New System.Drawing.Point(12, 345)
         Me.Label4.Name = "Label4"
-        Me.Label4.Size = New System.Drawing.Size(72, 32)
+        Me.Label4.Size = New System.Drawing.Size(71, 32)
         Me.Label4.TabIndex = 35
         Me.Label4.Text = "Email"
         '
@@ -187,7 +187,7 @@ Partial Class frmSuppliers
         Me.lblContactName.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.lblContactName.Location = New System.Drawing.Point(12, 207)
         Me.lblContactName.Name = "lblContactName"
-        Me.lblContactName.Size = New System.Drawing.Size(240, 32)
+        Me.lblContactName.Size = New System.Drawing.Size(239, 32)
         Me.lblContactName.TabIndex = 37
         Me.lblContactName.Text = "Όνομα Επικοινωνίας"
         '
@@ -205,7 +205,7 @@ Partial Class frmSuppliers
         Me.lblDay.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.lblDay.Location = New System.Drawing.Point(12, 391)
         Me.lblDay.Name = "lblDay"
-        Me.lblDay.Size = New System.Drawing.Size(86, 32)
+        Me.lblDay.Size = New System.Drawing.Size(85, 32)
         Me.lblDay.TabIndex = 39
         Me.lblDay.Text = "Ημέρα"
         '
@@ -215,7 +215,7 @@ Partial Class frmSuppliers
         Me.ckbMon.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.ckbMon.Location = New System.Drawing.Point(308, 391)
         Me.ckbMon.Name = "ckbMon"
-        Me.ckbMon.Size = New System.Drawing.Size(49, 36)
+        Me.ckbMon.Size = New System.Drawing.Size(48, 36)
         Me.ckbMon.TabIndex = 6
         Me.ckbMon.Text = "Δ"
         Me.ckbMon.UseVisualStyleBackColor = True
@@ -226,7 +226,7 @@ Partial Class frmSuppliers
         Me.ckbTue.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.ckbTue.Location = New System.Drawing.Point(367, 390)
         Me.ckbTue.Name = "ckbTue"
-        Me.ckbTue.Size = New System.Drawing.Size(47, 36)
+        Me.ckbTue.Size = New System.Drawing.Size(46, 36)
         Me.ckbTue.TabIndex = 7
         Me.ckbTue.Text = "Τ"
         Me.ckbTue.UseVisualStyleBackColor = True
@@ -237,7 +237,7 @@ Partial Class frmSuppliers
         Me.ckbWed.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.ckbWed.Location = New System.Drawing.Point(424, 391)
         Me.ckbWed.Name = "ckbWed"
-        Me.ckbWed.Size = New System.Drawing.Size(47, 36)
+        Me.ckbWed.Size = New System.Drawing.Size(46, 36)
         Me.ckbWed.TabIndex = 8
         Me.ckbWed.Text = "Τ"
         Me.ckbWed.UseVisualStyleBackColor = True
@@ -248,7 +248,7 @@ Partial Class frmSuppliers
         Me.ckbThu.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.ckbThu.Location = New System.Drawing.Point(481, 391)
         Me.ckbThu.Name = "ckbThu"
-        Me.ckbThu.Size = New System.Drawing.Size(51, 36)
+        Me.ckbThu.Size = New System.Drawing.Size(50, 36)
         Me.ckbThu.TabIndex = 9
         Me.ckbThu.Text = "Π"
         Me.ckbThu.UseVisualStyleBackColor = True
@@ -259,7 +259,7 @@ Partial Class frmSuppliers
         Me.ckbFri.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.ckbFri.Location = New System.Drawing.Point(541, 390)
         Me.ckbFri.Name = "ckbFri"
-        Me.ckbFri.Size = New System.Drawing.Size(51, 36)
+        Me.ckbFri.Size = New System.Drawing.Size(50, 36)
         Me.ckbFri.TabIndex = 10
         Me.ckbFri.Text = "Π"
         Me.ckbFri.UseVisualStyleBackColor = True
@@ -379,7 +379,7 @@ Partial Class frmSuppliers
         Me.btnExit.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
         Me.btnExit.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.btnExit.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.btnExit.Image = Global.POS.My.Resources.Resources.Logout
+        Me.btnExit.Image = Global.POS.My.Resources.Resources._exit
         Me.btnExit.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
         Me.btnExit.Location = New System.Drawing.Point(789, 643)
         Me.btnExit.Name = "btnExit"
@@ -393,7 +393,7 @@ Partial Class frmSuppliers
         Me.btnSave.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
         Me.btnSave.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.btnSave.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.btnSave.Image = Global.POS.My.Resources.Resources.save
+        Me.btnSave.Image = Global.POS.My.Resources.Resources.save1
         Me.btnSave.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
         Me.btnSave.Location = New System.Drawing.Point(567, 643)
         Me.btnSave.Name = "btnSave"
@@ -408,7 +408,7 @@ Partial Class frmSuppliers
         Me.btnClear.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom
         Me.btnClear.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.btnClear.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.btnClear.Image = Global.POS.My.Resources.Resources.undo
+        Me.btnClear.Image = Global.POS.My.Resources.Resources.reset
         Me.btnClear.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
         Me.btnClear.Location = New System.Drawing.Point(346, 643)
         Me.btnClear.Name = "btnClear"
@@ -424,7 +424,7 @@ Partial Class frmSuppliers
         Me.lblNotes.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.lblNotes.Location = New System.Drawing.Point(12, 435)
         Me.lblNotes.Name = "lblNotes"
-        Me.lblNotes.Size = New System.Drawing.Size(133, 32)
+        Me.lblNotes.Size = New System.Drawing.Size(132, 32)
         Me.lblNotes.TabIndex = 56
         Me.lblNotes.Text = "Σημειώσεις"
         '
@@ -478,7 +478,7 @@ Partial Class frmSuppliers
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
-        Me.ClientSize = New System.Drawing.Size(1014, 739)
+        Me.ClientSize = New System.Drawing.Size(1004, 725)
         Me.Controls.Add(Me.lstBoxIsDefault)
         Me.Controls.Add(Me.btnDeleteSupplier)
         Me.Controls.Add(Me.lstBoxNotes)

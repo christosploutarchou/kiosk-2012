@@ -317,7 +317,7 @@ Partial Class frmMain
         Me.btnCategories.Name = "btnCategories"
         Me.btnCategories.Size = New System.Drawing.Size(170, 102)
         Me.btnCategories.TabIndex = 3
-        Me.btnCategories.Text = "    Διαχείριση " & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "    Κατηγοριών"
+        Me.btnCategories.Text = "   Κατηγορίες"
         Me.btnCategories.TextAlign = System.Drawing.ContentAlignment.MiddleRight
         Me.btnCategories.UseVisualStyleBackColor = False
         '
@@ -327,13 +327,13 @@ Partial Class frmMain
         Me.cmdSuppliers.FlatStyle = System.Windows.Forms.FlatStyle.Popup
         Me.cmdSuppliers.Font = New System.Drawing.Font("Segoe UI", 14.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(161, Byte))
         Me.cmdSuppliers.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.cmdSuppliers.Image = Global.POS.My.Resources.Resources.suppliers
+        Me.cmdSuppliers.Image = Global.POS.My.Resources.Resources.suppliers1
         Me.cmdSuppliers.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
         Me.cmdSuppliers.Location = New System.Drawing.Point(370, 51)
         Me.cmdSuppliers.Name = "cmdSuppliers"
         Me.cmdSuppliers.Size = New System.Drawing.Size(170, 102)
         Me.cmdSuppliers.TabIndex = 2
-        Me.cmdSuppliers.Text = "   Διαχείριση " & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "   Προμηθευτών"
+        Me.cmdSuppliers.Text = "   Προμηθευτές"
         Me.cmdSuppliers.UseVisualStyleBackColor = False
         '
         'cmdUsers
