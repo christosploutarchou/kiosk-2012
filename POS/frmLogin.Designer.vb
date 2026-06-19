@@ -223,7 +223,7 @@ Partial Class frmLogin
         Me.btnClear.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
         Me.btnClear.FlatStyle = System.Windows.Forms.FlatStyle.Popup
         Me.btnClear.Font = New System.Drawing.Font("Segoe UI", 18.0!)
-        Me.btnClear.Image = Global.POS.My.Resources.Resources.undo
+        Me.btnClear.Image = Global.POS.My.Resources.Resources.reset
         Me.btnClear.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
         Me.btnClear.Location = New System.Drawing.Point(569, 236)
         Me.btnClear.Name = "btnClear"
@@ -237,7 +237,7 @@ Partial Class frmLogin
         Me.btnBack.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
         Me.btnBack.FlatStyle = System.Windows.Forms.FlatStyle.Popup
         Me.btnBack.Font = New System.Drawing.Font("Segoe UI", 18.0!)
-        Me.btnBack.Image = Global.POS.My.Resources.Resources.back
+        Me.btnBack.Image = Global.POS.My.Resources.Resources.back1
         Me.btnBack.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
         Me.btnBack.Location = New System.Drawing.Point(569, 299)
         Me.btnBack.Name = "btnBack"
@@ -251,7 +251,7 @@ Partial Class frmLogin
         Me.btnLogin.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
         Me.btnLogin.FlatStyle = System.Windows.Forms.FlatStyle.Popup
         Me.btnLogin.Font = New System.Drawing.Font("Segoe UI", 18.0!)
-        Me.btnLogin.Image = Global.POS.My.Resources.Resources.loginButton
+        Me.btnLogin.Image = Global.POS.My.Resources.Resources.login
         Me.btnLogin.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
         Me.btnLogin.Location = New System.Drawing.Point(569, 368)
         Me.btnLogin.Name = "btnLogin"
@@ -265,7 +265,7 @@ Partial Class frmLogin
         Me.btnExit.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
         Me.btnExit.FlatStyle = System.Windows.Forms.FlatStyle.Popup
         Me.btnExit.Font = New System.Drawing.Font("Segoe UI", 18.0!)
-        Me.btnExit.Image = Global.POS.My.Resources.Resources.Logout
+        Me.btnExit.Image = Global.POS.My.Resources.Resources._exit
         Me.btnExit.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
         Me.btnExit.Location = New System.Drawing.Point(569, 434)
         Me.btnExit.Name = "btnExit"

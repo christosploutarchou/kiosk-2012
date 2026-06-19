@@ -1,19 +1,21 @@
 ﻿Imports Oracle.DataAccess.Client
 Public Class frmNewUser
-    Private Sub frmNewUser_Disposed(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Disposed
+    Dim mouseIndex As Integer = -1
+    Private Sub FrmNewUser_Disposed(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Disposed
         frmMain.Show()
     End Sub
 
-    Private Sub frmNewUser_FormClosed(ByVal sender As Object, ByVal e As System.Windows.Forms.FormClosedEventArgs) Handles Me.FormClosed
+    Private Sub FrmNewUser_FormClosed(ByVal sender As Object, ByVal e As System.Windows.Forms.FormClosedEventArgs) Handles Me.FormClosed
         Me.Dispose()
     End Sub
 
-    Private Sub frmNewUser_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
-        fillUsersList()
+    Private Sub FrmNewUser_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
+        FillUsersList()
         rdbNewUser.Checked = True
     End Sub
 
-    Private Sub fillUsersList()
+    Private Sub FillUsersList()
+        'TODO
         Dim cmd As New OracleCommand("", conn)
         Dim dr As OracleDataReader
         Dim sql As String = ""
@@ -29,18 +31,19 @@ Public Class frmNewUser
             End While
             dr.Close()
         Catch ex As Exception
-            createExceptionFile(ex.Message, sql)
+            CreateExceptionFile(ex.Message, sql)
             MessageBox.Show(ex.Message, "Application Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
         Finally
             cmd.Dispose()
         End Try
     End Sub
 
-    Private Sub cmdExit_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdExit.Click
+    Private Sub CmdExit_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdExit.Click
         Me.Dispose()
     End Sub
 
-    Private Sub lstBoxUsers_SelectedIndexChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles lstBoxUsers.SelectedIndexChanged
+    Private Sub LstBoxUsers_SelectedIndexChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles lstBoxUsers.SelectedIndexChanged
+        'TODO
         If rdbNewUser.Checked Then
             Exit Sub
         Else
@@ -53,7 +56,7 @@ Public Class frmNewUser
             Dim dr As OracleDataReader
             Dim sql As String = ""
             Try
-                sql = "select fullname, phone, address, id_num, nvl(access_level,0), nvl(view_reports,0), nvl(edit_prod,0),  nvl(edit_prod_full,0) from users " & _
+                sql = "select fullname, phone, address, id_num, nvl(access_level,0), nvl(view_reports,0), nvl(edit_prod,0),  nvl(edit_prod_full,0) from users " &
                       "where username = '" & lstBoxUsers.Text & "'"
                 cmd = New OracleCommand(sql, conn)
                 Dim counter As Integer = 0
@@ -93,7 +96,7 @@ Public Class frmNewUser
                 End If
                 dr.Close()
             Catch ex As Exception
-                createExceptionFile(ex.Message, " " & sql)
+                CreateExceptionFile(ex.Message, " " & sql)
                 MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
             Finally
                 cmd.Dispose()
@@ -101,46 +104,45 @@ Public Class frmNewUser
         End If
     End Sub
 
-    Dim mouseIndex As Integer = -1
-    Private Sub ListBox1_MouseMove(ByVal sender As Object, ByVal e As MouseEventArgs) _
-                                   Handles lstBoxUsers.MouseMove
-        Dim index As Integer = lstboxUsers.IndexFromPoint(e.Location)
+    Private Sub ListBox1_MouseMove(ByVal sender As Object, ByVal e As MouseEventArgs) Handles lstBoxUsers.MouseMove
+        Dim index As Integer = lstBoxUsers.IndexFromPoint(e.Location)
         If index <> mouseIndex Then
             If mouseIndex > -1 Then
                 Dim oldIndex As Integer = mouseIndex
                 mouseIndex = -1
-                If oldIndex <= lstboxUsers.Items.Count - 1 Then
-                    lstboxUsers.Invalidate(lstboxUsers.GetItemRectangle(oldIndex))
+                If oldIndex <= lstBoxUsers.Items.Count - 1 Then
+                    lstBoxUsers.Invalidate(lstBoxUsers.GetItemRectangle(oldIndex))
                 End If
             End If
             mouseIndex = index
             If mouseIndex > -1 Then
-                lstboxUsers.Invalidate(lstboxUsers.GetItemRectangle(mouseIndex))
+                lstBoxUsers.Invalidate(lstBoxUsers.GetItemRectangle(mouseIndex))
             End If
         End If
 
         If mouseIndex > -1 Then
-            lstboxUsers.SelectedIndex = mouseIndex
-            lstboxUsers_SelectedIndexChanged(sender, e)
+            lstBoxUsers.SelectedIndex = mouseIndex
+            LstBoxUsers_SelectedIndexChanged(sender, e)
         End If
     End Sub
 
-    Private Sub btnDelete_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnDelete.Click
+    Private Sub BtnDelete_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnDelete.Click
+        'TODO
         If MessageBox.Show("Διαγραφή χρήστη;", "Διαγραγή", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question) = Windows.Forms.DialogResult.Yes Then
             Dim cmd As New OracleCommand("", conn)
             Dim sql As String = ""
             Dim newUserName = lstBoxUsers.Text + "DEL"
             Try
-                sql = "update users set username = '" & newUserName & "', deleted=1, deleted_by = '" & whois & "' " & _
+                sql = "update users set username = '" & newUserName & "', deleted=1, deleted_by = '" & whois & "' " &
                       "where username = '" & lstBoxUsers.Text & "'"
                 cmd = New OracleCommand(sql, conn)
                 cmd.CommandType = CommandType.Text
                 cmd.ExecuteNonQuery()
                 cmd.Dispose()
-                fillUsersList()
+                FillUsersList()
                 resetFields()
             Catch ex As Exception
-                createExceptionFile(ex.Message, Sql)
+                CreateExceptionFile(ex.Message, sql)
                 MessageBox.Show(ex.Message, "Application Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Finally
                 cmd.Dispose()
@@ -150,7 +152,7 @@ Public Class frmNewUser
         End If
     End Sub
 
-    Private Sub resetFields()
+    Private Sub ResetFields()
         txtBoxFullName.Clear()
         txtBoxPhone.Clear()
         txtBoxAddress.Clear()
@@ -165,7 +167,8 @@ Public Class frmNewUser
         chkBoxEditProd.Checked = False
     End Sub
 
-    Private Sub btnSave_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnSave.Click
+    Private Sub BtnSave_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnSave.Click
+        'TODO
         Dim accessLevel As Integer
         Dim canViewReports As Integer
         Dim canEditProducts As Integer
@@ -223,18 +226,18 @@ Public Class frmNewUser
                 End If
                 dr.Close()
 
-                sql = "insert into users (UUID, username, PHONE, PASS, ID_NUM, FULLNAME, DELETED, CREATED_BY, ADDRESS, ACCESS_LEVEL, VIEW_REPORTS, EDIT_PROD, EDIT_PROD_FULL) " & _
-                      "values (sys_guid(), '" & txtBoxUsername.Text.Replace("\'", "\`") & "'," & _
-                      "                    '" & txtBoxPhone.Text.Replace("\'", "\`") & "'," & _
-                      "                    '" & getEncryptedValue(txtBoxPassword.Text.Replace("\'", "\`")) & "'," & _
-                      "                    '" & txtBoxIdentity.Text.Replace("\'", "\`") & "', " & _
-                      "                    '" & txtBoxFullName.Text.Replace("\'", "\`") & "', " & _
-                      "                    0, " & _
-                      "                    '" & whois & "', " & _
-                      "                    '" & txtBoxAddress.Text.Replace("\'", "\`") & "', " & _
-                      "                     " & accessLevel & ", " & _
-                      "                     " & canViewReports & ", " & _
-                      "                     " & canEditProducts & ", " & _
+                sql = "insert into users (UUID, username, PHONE, PASS, ID_NUM, FULLNAME, DELETED, CREATED_BY, ADDRESS, ACCESS_LEVEL, VIEW_REPORTS, EDIT_PROD, EDIT_PROD_FULL) " &
+                      "values (sys_guid(), '" & txtBoxUsername.Text.Replace("\'", "\`") & "'," &
+                      "                    '" & txtBoxPhone.Text.Replace("\'", "\`") & "'," &
+                      "                    '" & getEncryptedValue(txtBoxPassword.Text.Replace("\'", "\`")) & "'," &
+                      "                    '" & txtBoxIdentity.Text.Replace("\'", "\`") & "', " &
+                      "                    '" & txtBoxFullName.Text.Replace("\'", "\`") & "', " &
+                      "                    0, " &
+                      "                    '" & whois & "', " &
+                      "                    '" & txtBoxAddress.Text.Replace("\'", "\`") & "', " &
+                      "                     " & accessLevel & ", " &
+                      "                     " & canViewReports & ", " &
+                      "                     " & canEditProducts & ", " &
                       "                     " & canEditProductsFull & ") "
             Else
                 If lblNewPassword.Visible And txtBoxPassword.Text = String.Empty Then
@@ -242,13 +245,13 @@ Public Class frmNewUser
                     Exit Sub
                 End If
 
-                sql = "update users set fullname = '" & txtBoxFullName.Text.Replace("\'", "\`") & "'," & _
-                      "                 phone = '" & txtBoxPhone.Text.Replace("\'", "\`") & "'," & _
-                      "                 id_num = '" & txtBoxIdentity.Text.Replace("\'", "\`") & "'," & _
-                      "                 address = '" & txtBoxAddress.Text.Replace("\'", "\`") & "', " & _
-                      "                 access_level = " & accessLevel & ",  " & _
-                      "                 view_reports = " & canViewReports & ",  " & _
-                      "                 edit_prod = " & canEditProducts & ",  " & _
+                sql = "update users set fullname = '" & txtBoxFullName.Text.Replace("\'", "\`") & "'," &
+                      "                 phone = '" & txtBoxPhone.Text.Replace("\'", "\`") & "'," &
+                      "                 id_num = '" & txtBoxIdentity.Text.Replace("\'", "\`") & "'," &
+                      "                 address = '" & txtBoxAddress.Text.Replace("\'", "\`") & "', " &
+                      "                 access_level = " & accessLevel & ",  " &
+                      "                 view_reports = " & canViewReports & ",  " &
+                      "                 edit_prod = " & canEditProducts & ",  " &
                       "                 edit_prod_full = " & canEditProductsFull & "  "
 
                 If lblNewPassword.Visible Then
@@ -261,44 +264,44 @@ Public Class frmNewUser
             cmd = New OracleCommand(sql, conn)
             cmd.CommandType = CommandType.Text
             Using cmd                cmd.ExecuteNonQuery()            End Using
-            fillUsersList()
+            FillUsersList()
             rdbNewUser.Checked = True
-            resetFields()
+            ResetFields()
             txtBoxPassword.Visible = True
             btnSave.Visible = True
             txtBoxPassword.Clear()
         Catch ex As Exception
-            createExceptionFile(ex.Message, sql)
+            CreateExceptionFile(ex.Message, sql)
             MessageBox.Show(ex.Message, "Application Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally            
+        Finally
             cmd.Dispose()
         End Try
     End Sub
 
-    Private Sub lnkLabelChangePass_LinkClicked(ByVal sender As System.Object, ByVal e As System.Windows.Forms.LinkLabelLinkClickedEventArgs) Handles lnkLabelChangePass.LinkClicked
+    Private Sub LnkLabelChangePass_LinkClicked(ByVal sender As System.Object, ByVal e As System.Windows.Forms.LinkLabelLinkClickedEventArgs) Handles lnkLabelChangePass.LinkClicked
         lblNewPassword.Visible = True
         txtBoxPassword.Visible = True
     End Sub
 
-    Private Sub rdbNewUser_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles rdbNewUser.CheckedChanged
+    Private Sub RdbNewUser_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles rdbNewUser.CheckedChanged
         setFields()
     End Sub
 
-    Private Sub rdbExisting_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles rdbExisting.CheckedChanged
-        setFields()
+    Private Sub RdbExisting_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles rdbExisting.CheckedChanged
+        SetFields()
     End Sub
 
-    Private Sub rdbNewUser_MouseHover(ByVal sender As Object, ByVal e As System.EventArgs) Handles rdbNewUser.MouseHover
+    Private Sub RdbNewUser_MouseHover(ByVal sender As Object, ByVal e As System.EventArgs) Handles rdbNewUser.MouseHover
         rdbNewUser.Checked = True
         rdbExisting.Checked = False
     End Sub
 
-    Private Sub rdbExisting_MouseHover(ByVal sender As Object, ByVal e As System.EventArgs) Handles rdbExisting.MouseHover
+    Private Sub RdbExisting_MouseHover(ByVal sender As Object, ByVal e As System.EventArgs) Handles rdbExisting.MouseHover
         rdbNewUser.Checked = False
         rdbExisting.Checked = True
     End Sub
 
-    Private Sub setFields()
+    Private Sub SetFields()
         If rdbNewUser.Checked = True Then
             lblPassword.Visible = True
             txtBoxPassword.Visible = True
@@ -326,7 +329,7 @@ Public Class frmNewUser
         End If
     End Sub
 
-    Private Sub btnClear_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnClear.Click
+    Private Sub BtnClear_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnClear.Click
         txtBoxAddress.Clear()
         txtBoxFullName.Clear()
         txtBoxIdentity.Clear()
@@ -339,14 +342,14 @@ Public Class frmNewUser
         chkBoxEditProdFull.Checked = False
     End Sub
 
-    Private Sub txtBoxFullName_MouseEnter(ByVal sender As Object, ByVal e As System.EventArgs) Handles txtBoxFullName.MouseEnter
+    Private Sub TxtBoxFullName_MouseEnter(ByVal sender As Object, ByVal e As System.EventArgs) Handles txtBoxFullName.MouseEnter
         txtBoxFullName.BackColor = Color.Bisque
     End Sub
 
-    Private Sub txtBoxFullName_MouseLeave(ByVal sender As Object, ByVal e As System.EventArgs) Handles txtBoxFullName.MouseLeave
+    Private Sub TxtBoxFullName_MouseLeave(ByVal sender As Object, ByVal e As System.EventArgs) Handles txtBoxFullName.MouseLeave
         txtBoxFullName.BackColor = Color.LemonChiffon
     End Sub
 
- 
+
 
 End Class

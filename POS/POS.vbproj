@@ -674,7 +674,13 @@
     <None Include="Resources\kronos.JPG" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\reset.png" />
+    <None Include="Resources\login.png" />
+    <None Include="Resources\exit.png" />
+    <None Include="Resources\back1.png" />
+    <None Include="Resources\categories1.png" />
     <Content Include="Resources\hold.jpg" />
+    <None Include="Resources\save1.png" />
     <None Include="Resources\IMG_2691.JPG" />
     <None Include="Resources\IMG_2690.JPG" />
     <None Include="Resources\hold2.jpg" />

@@ -79,6 +79,7 @@ Module connectionModule
             Dim sync As New SyncTables()
 
             sync.UploadGlobalParams()
+            sync.UploadCategories()
             'TODO
             'sync.UploadSessions()
             'UploadProducts()
@@ -87,7 +88,7 @@ Module connectionModule
             'SyncProducts()
             'SyncUsers()
         Catch ex As Exception
-            CreateExceptionFile(SyncTimer_Tick() + " " + ex.ToString(), "SyncTimer")
+            CreateExceptionFile(WhoAmI + " " + ex.ToString(), "SyncTimer")
         Finally
             SyncRunning = False
         End Try
@@ -788,7 +789,7 @@ Module connectionModule
     Public Function GetUserByUsername(ByVal username As String) As String
         Dim WhoAmI As String = "GetUserByUsername"
         Dim result As String = ""
-        Dim sql As String
+        Dim sql As String = ""
 
         Try
             If SqlLite Then

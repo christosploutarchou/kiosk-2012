@@ -239,7 +239,6 @@ Module SqliteModule
                         UPDATED_AT TEXT DEFAULT CURRENT_TIMESTAMP,
                         FOREIGN KEY (KIOSKID) REFERENCES KIOSK(KIOSKID)
                     );
-
                     CREATE INDEX IF NOT EXISTS IDX_VAT_TYPES_SYNC ON VAT_TYPES(KIOSKID, UPDATED_AT);
 
                     -- SUPPLIERS
@@ -262,7 +261,6 @@ Module SqliteModule
                         UPDATED_AT TEXT DEFAULT CURRENT_TIMESTAMP,
                         FOREIGN KEY (KIOSKID) REFERENCES KIOSK(KIOSKID)
                     );
-
                     CREATE INDEX IF NOT EXISTS IDX_SUPPLIERS_SYNC ON SUPPLIERS(KIOSKID, UPDATED_AT);
                     CREATE INDEX IF NOT EXISTS IDX_SUPPLIERS_NAME ON SUPPLIERS(S_NAME);
 
@@ -273,9 +271,9 @@ Module SqliteModule
                         VAT INTEGER,
                         KIOSKID TEXT,
                         UPDATED_AT TEXT DEFAULT CURRENT_TIMESTAMP,
+                        SYNC_STATUS INTEGER NOT NULL DEFAULT 0,
                         FOREIGN KEY (KIOSKID) REFERENCES KIOSK(KIOSKID)
                     );
-
                     CREATE INDEX IF NOT EXISTS IDX_CATEGORIES_SYNC ON CATEGORIES(KIOSKID, UPDATED_AT);
                     CREATE INDEX IF NOT EXISTS IDX_CATEGORIES_DESCRIPTION ON CATEGORIES(DESCRIPTION);
 
@@ -290,7 +288,6 @@ Module SqliteModule
                         FOREIGN KEY (KIOSKID) REFERENCES KIOSK(KIOSKID),
                         FOREIGN KEY (PRODUCT_UUID) REFERENCES PRODUCTS(UUID)
                     );
- 
                     CREATE INDEX IF NOT EXISTS IDX_BARCODES_SYNC ON BARCODES(KIOSKID, UPDATED_AT);
                     CREATE INDEX IF NOT EXISTS IDX_BARCODES_PRODUCT_UUID ON BARCODES(PRODUCT_UUID);
                     CREATE INDEX IF NOT EXISTS IDX_BARCODES_PRODUCT_SERNO ON BARCODES(PRODUCT_SERNO);
@@ -317,7 +314,8 @@ Module SqliteModule
                                     DESCRIPTION,
                                     VAT,
                                     KIOSKID,
-                                    UPDATED_AT
+                                    UPDATED_AT,
+                                    SYNC_STATUS
                                 )
                                 VALUES
                                 (
@@ -325,14 +323,16 @@ Module SqliteModule
                                     @DESCRIPTION,
                                     @VAT,
                                     @KIOSKID,
-                                    @UPDATED_AT
+                                    @UPDATED_AT,
+                                    0
                                 )
                                 ON CONFLICT(UUID)
                                 DO UPDATE SET
                                     DESCRIPTION = excluded.DESCRIPTION,
                                     VAT = excluded.VAT,
                                     KIOSKID = excluded.KIOSKID,
-                                    UPDATED_AT = excluded.UPDATED_AT
+                                    UPDATED_AT = excluded.UPDATED_AT,
+                                    SYNC_STATUS=0;
                                 "
 
             Dim cmd As New SQLiteCommand(sql, conn)
@@ -1523,6 +1523,160 @@ Module SqliteModule
                 cmd.Parameters.AddWithValue("@PARAMKEY", paramKey)
                 cmd.ExecuteNonQuery()
             End Using
+        End Sub
+
+        Public Sub UploadCategories()
+
+            If Not isConnOpen() Then Exit Sub
+
+            Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+
+                sqliteConn.Open()
+
+                Dim sql As String =
+                "
+        SELECT
+            UUID,
+            DESCRIPTION,
+            VAT,
+            KIOSKID,
+            UPDATED_AT
+        FROM CATEGORIES
+        WHERE SYNC_STATUS = 1
+        ORDER BY UPDATED_AT
+        "
+
+                Using cmd As New SQLiteCommand(sql, sqliteConn)
+
+                    Using reader As SQLiteDataReader = cmd.ExecuteReader()
+
+                        While reader.Read()
+
+                            UploadCategory(sqliteConn, reader)
+
+                        End While
+
+                    End Using
+
+                End Using
+
+            End Using
+
+        End Sub
+
+        Private Sub UploadCategory(sqliteConn As SQLiteConnection,
+                           reader As SQLiteDataReader)
+
+            Dim uuid As String = reader("UUID").ToString()
+            Dim description As Object =
+        If(IsDBNull(reader("DESCRIPTION")),
+           DBNull.Value,
+           reader("DESCRIPTION").ToString())
+
+            Dim vat As Object =
+        If(IsDBNull(reader("VAT")),
+           DBNull.Value,
+           Convert.ToDecimal(reader("VAT")))
+
+            Dim kiosk As Object =
+        If(IsDBNull(reader("KIOSKID")),
+           DBNull.Value,
+           reader("KIOSKID").ToString())
+
+            '-------------------------
+            ' UPDATE
+            '-------------------------
+
+            Dim updateSql As String =
+    "
+    UPDATE CATEGORIES
+       SET DESCRIPTION = :DESCRIPTION,
+           VAT = :VAT,
+           KIOSKID = :KIOSKID,
+           UPDATED_AT = SYSTIMESTAMP
+     WHERE UUID = :UUID
+    "
+
+            Dim rows As Integer
+
+            Using cmd As New OracleCommand(updateSql, conn)
+
+                cmd.BindByName = True
+
+                cmd.Parameters.Add("DESCRIPTION", OracleDbType.Varchar2).Value = description
+                cmd.Parameters.Add("VAT", OracleDbType.Decimal).Value = vat
+                cmd.Parameters.Add("KIOSKID", OracleDbType.Varchar2).Value = kiosk
+                cmd.Parameters.Add("UUID", OracleDbType.Varchar2).Value = uuid
+
+                rows = cmd.ExecuteNonQuery()
+
+            End Using
+
+            '-------------------------
+            ' INSERT
+            '-------------------------
+
+            If rows = 0 Then
+
+                Dim insertSql As String =
+        "
+        INSERT INTO CATEGORIES
+        (
+            UUID,
+            DESCRIPTION,
+            VAT,
+            KIOSKID,
+            UPDATED_AT
+        )
+        VALUES
+        (
+            :UUID,
+            :DESCRIPTION,
+            :VAT,
+            :KIOSKID,
+            SYSTIMESTAMP
+        )
+        "
+
+                Using cmd As New OracleCommand(insertSql, conn)
+
+                    cmd.BindByName = True
+
+                    cmd.Parameters.Add("UUID", OracleDbType.Varchar2).Value = uuid
+                    cmd.Parameters.Add("DESCRIPTION", OracleDbType.Varchar2).Value = description
+                    cmd.Parameters.Add("VAT", OracleDbType.Decimal).Value = vat
+                    cmd.Parameters.Add("KIOSKID", OracleDbType.Varchar2).Value = kiosk
+
+                    cmd.ExecuteNonQuery()
+
+                End Using
+
+            End If
+
+            MarkCategorySynced(sqliteConn, uuid)
+
+        End Sub
+
+        Private Sub MarkCategorySynced(sqliteConn As SQLiteConnection,
+                               uuid As String)
+
+            Dim sql As String =
+            "
+    UPDATE CATEGORIES
+
+    SET SYNC_STATUS = 0
+
+    WHERE UUID = @UUID
+    "
+
+            Using cmd As New SQLiteCommand(sql, sqliteConn)
+
+                cmd.Parameters.AddWithValue("@UUID", uuid)
+
+                cmd.ExecuteNonQuery()
+
+            End Using
+
         End Sub
     End Class
 End Module

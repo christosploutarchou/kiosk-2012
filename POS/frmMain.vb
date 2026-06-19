@@ -18,8 +18,8 @@ Public Class frmMain
         End If
     End Sub
 
-    Private Sub cmdUsers_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdUsers.Click
-        If Not isLoggedIn(username) Then
+    Private Sub CmdUsers_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdUsers.Click
+        If Not IsLoggedIn(username) Then
             MessageBox.Show("Ο χρήστης δεν ειναι συνδεμένος", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Exit Sub
         End If
@@ -27,8 +27,8 @@ Public Class frmMain
         frmNewUser.Show()
     End Sub
 
-    Private Sub frmMain_FormClosed(ByVal sender As Object, ByVal e As System.Windows.Forms.FormClosedEventArgs) Handles Me.FormClosed
-        btnExit_Click(sender, e)
+    Private Sub FrmMain_FormClosed(ByVal sender As Object, ByVal e As System.Windows.Forms.FormClosedEventArgs) Handles Me.FormClosed
+        BtnExit_Click(sender, e)
     End Sub
 
     Private Sub frmMain_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
@@ -129,8 +129,8 @@ Public Class frmMain
         End If
     End Sub
 
-    Private Sub btnCategories_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnCategories.Click
-        If Not isLoggedIn(username) Then
+    Private Sub BtnCategories_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnCategories.Click
+        If Not IsLoggedIn(username) Then
             MessageBox.Show("Ο χρήστης δεν ειναι συνδεμένος", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Exit Sub
         End If
@@ -161,10 +161,10 @@ Public Class frmMain
         Dim dr As OracleDataReader
         Dim sql As String = ""
         Try
-            sql = "select description, barcode, min_quantity, avail_quantity, s_name " & _
-                  "from products p " & _
-                  "inner join barcodes b on p.serno = b.product_serno " & _
-                  "inner join suppliers s on p.supplier_id = s.uuid " & _
+            sql = "select description, barcode, min_quantity, avail_quantity, s_name " &
+                  "from products p " &
+                  "inner join barcodes b on p.serno = b.product_serno " &
+                  "inner join suppliers s on p.supplier_id = s.uuid " &
                   "where alert_on_min = 1 and (avail_quantity <= min_quantity) order by description asc"
 
             cmd = New OracleCommand(sql, conn)
@@ -194,10 +194,10 @@ Public Class frmMain
                 counter += 1
             End While
 
-            sql = "select description, barcode, expiry_date, s_name " & _
-                  "from products p " & _
-                  "inner join barcodes b on p.serno = b.product_serno " & _
-                  "inner join suppliers s on p.supplier_id = s.uuid " & _
+            sql = "select description, barcode, expiry_date, s_name " &
+                  "from products p " &
+                  "inner join barcodes b on p.serno = b.product_serno " &
+                  "inner join suppliers s on p.supplier_id = s.uuid " &
                   "where alert_on_expiry = 1 and alert_date <= (select sysdate from dual) "
 
             cmd = New OracleCommand(sql, conn)
@@ -233,8 +233,8 @@ Public Class frmMain
             Dim dayOfWeek As DayOfWeek = thisCulture.Calendar.GetDayOfWeek(Date.Today)
             Dim dayName As String = thisCulture.DateTimeFormat.GetDayName(dayOfWeek)
 
-            sql = "select s_name, contact_name, phone_1, notes " & _
-                  "from suppliers " & _
+            sql = "select s_name, contact_name, phone_1, notes " &
+                  "from suppliers " &
                   "where "
 
             If dayName.Equals("Monday") Then
@@ -421,9 +421,9 @@ Public Class frmMain
         Dim dr As OracleDataReader
         Dim sql As String = ""
         Try
-            sql = "select from_date, to_date, total_receipts, total5percent, total19percent, payments, " & _
-                  "initial_amt, final_amt, description, total0percent, amount_laxeia, initialAmtLaxeia, amountVisa, NVL(finalAmtLaxeia,0), total3percent " & _
-                  "from x_report " & _
+            sql = "select from_date, to_date, total_receipts, total5percent, total19percent, payments, " &
+                  "initial_amt, final_amt, description, total0percent, amount_laxeia, initialAmtLaxeia, amountVisa, NVL(finalAmtLaxeia,0), total3percent " &
+                  "from x_report " &
                   "where user_id = '" & whois & "' and created_on = (select max(created_on) from x_report)"
 
             cmd = New OracleCommand(sql, conn)
@@ -439,7 +439,7 @@ Public Class frmMain
                     xMargin += 20
                     e.Graphics.DrawString("Αρ. Αποδείξεων: " & CStr(dr(2)), reportFont, Brushes.Black, 0, xMargin)
                 End If
-                
+
                 Dim totalVat5 As Double = CDbl(dr(3))
                 Dim totalVat19 As Double = CDbl(dr(4))
                 Dim payments As Double = CDbl(dr(5))
@@ -467,7 +467,7 @@ Public Class frmMain
                     xMargin += 20
                     e.Graphics.DrawString("Πληρωμές: " & payments.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
                 End If
-                
+
                 xMargin += 20
                 e.Graphics.DrawString("Αρχικό Ποσό: " & initial.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
 
@@ -479,7 +479,7 @@ Public Class frmMain
                     xMargin += 20
                     e.Graphics.DrawString("Τελικό Ποσό Ταμείου για Παράδοση: " & totalAmountToDeliver.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
                 End If
-                
+
                 xMargin += 20
                 e.Graphics.DrawString("Ποσο λαχείων για Παράδοση: " & (finalAmtLaxeia).ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
 
@@ -507,7 +507,7 @@ Public Class frmMain
                 path = CStr(dr(0))
             End If
             dr.Close()
-            Dim fileName As String = Date.Now.Month.ToString & Date.Now.Day.ToString & Date.Now.Year.ToString & _
+            Dim fileName As String = Date.Now.Month.ToString & Date.Now.Day.ToString & Date.Now.Year.ToString &
                                      Date.Now.Hour.ToString & Date.Now.Minute.ToString & Date.Now.Millisecond.ToString
 
             Shell("exp kiosk/oracle@orcl buffer=4096 grants=Y file=" & path & "backup" & fileName & ".dmp", vbNormalFocus)

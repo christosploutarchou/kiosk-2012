@@ -1,59 +1,87 @@
-﻿Imports Oracle.DataAccess.Client
+﻿Imports System.Data.SQLite
+Imports Oracle.DataAccess.Client
 
 Public Class frmCategories
 
-    Private Sub frmCategories_Disposed(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Disposed
+    Private Sub FrmCategories_Disposed(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Disposed
         frmMain.Show()
     End Sub
 
-    Private Sub frmCategories_FormClosed(ByVal sender As Object, ByVal e As System.Windows.Forms.FormClosedEventArgs) Handles Me.FormClosed
+    Private Sub FrmCategories_FormClosed(ByVal sender As Object, ByVal e As System.Windows.Forms.FormClosedEventArgs) Handles Me.FormClosed
         Me.Dispose()
     End Sub
 
-    Private Sub frmCategories_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
-        fillCategoriesList()
+    Private Sub FrmCategories_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
+        FillCategoriesList()
         rdbNewCategory.Checked = True
     End Sub
 
-    Private Sub fillCategoriesList()
-        Dim cmd As New OracleCommand("", conn)
-        Dim dr As OracleDataReader
+    Private Sub FillCategoriesList()
+        Dim WhoAmI As String = "frmCategories.FillCategoriesList"
         Dim sql As String = ""
+
         Try
-            sql = "select uuid, description, vat from categories"
-            cmd = New OracleCommand(sql, conn)
-            Dim counter As Integer = 0
-            cmd.CommandType = CommandType.Text
-            dr = cmd.ExecuteReader()
             lstBoxUUIDs.Items.Clear()
             lstBoxDescription.Items.Clear()
             lstBoxVAT.Items.Clear()
-            While dr.Read()
-                lstBoxUUIDs.Items.Add(dr("uuid"))
-                lstBoxDescription.Items.Add(dr("description"))
-                lstBoxVAT.Items.Add(dr("vat"))
-            End While
-            dr.Close()
+
+            If SqlLite Then
+                sql = "SELECT UUID,
+                          DESCRIPTION,
+                          VAT
+                   FROM CATEGORIES
+                   WHERE KIOSKID = @KIOSKID
+                   ORDER BY DESCRIPTION"
+
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
+                    Using cmd As New SQLiteCommand(sql, sqliteConn)
+                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                        Using dr As SQLiteDataReader = cmd.ExecuteReader()
+                            While dr.Read()
+                                lstBoxUUIDs.Items.Add(dr("UUID").ToString())
+                                lstBoxDescription.Items.Add(dr("DESCRIPTION").ToString())
+                                lstBoxVAT.Items.Add(If(IsDBNull(dr("VAT")), "", dr("VAT").ToString()))
+                            End While
+                        End Using
+                    End Using
+                End Using
+            Else
+                sql = "SELECT UUID,
+                          DESCRIPTION,
+                          VAT
+                   FROM CATEGORIES
+                   ORDER BY DESCRIPTION"
+
+                Using cmd As New OracleCommand(sql, conn)
+                    cmd.CommandType = CommandType.Text
+                    Using dr As OracleDataReader = cmd.ExecuteReader()
+                        While dr.Read()
+                            lstBoxUUIDs.Items.Add(dr("UUID").ToString())
+                            lstBoxDescription.Items.Add(dr("DESCRIPTION").ToString())
+                            lstBoxVAT.Items.Add(If(IsDBNull(dr("VAT")), "", dr("VAT").ToString()))
+                        End While
+                    End Using
+                End Using
+            End If
         Catch ex As Exception
-            createExceptionFile(ex.Message, sql)
+            CreateExceptionFile(WhoAmI + " " + ex.Message, sql)
             MessageBox.Show(ex.Message, "Application Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
-            cmd.Dispose()
         End Try
     End Sub
 
-    Private Sub rdbExisting_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles rdbExisting.CheckedChanged
-        txtBoxVAT.Clear()
-        txtBoxDescription.clear()
-    End Sub
-
-    Private Sub rdbNewCategory_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles rdbNewCategory.CheckedChanged
+    Private Sub RdbExisting_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles rdbExisting.CheckedChanged
         txtBoxVAT.Clear()
         txtBoxDescription.Clear()
-        fillCategoriesList()
     End Sub
 
-    Private Sub lstBoxDescription_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles lstBoxDescription.SelectedIndexChanged
+    Private Sub RdbNewCategory_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles rdbNewCategory.CheckedChanged
+        txtBoxVAT.Clear()
+        txtBoxDescription.Clear()
+        FillCategoriesList()
+    End Sub
+
+    Private Sub LstBoxDescription_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles lstBoxDescription.SelectedIndexChanged
         If rdbNewCategory.Checked Then
             Exit Sub
         Else
@@ -66,15 +94,14 @@ Public Class frmCategories
         End If
     End Sub
 
-    Private Sub cmdExit_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdExit.Click
+    Private Sub CmdExit_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdExit.Click
         Me.Dispose()
     End Sub
 
-    Private Sub btnSave_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnSave.Click
-        Dim sql As String = ""
-        Dim cmd As New OracleCommand("", conn)
+    Private Sub BtnSave_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnSave.Click
+        Dim WhoAmI As String = "frmCategories.BtnSave_Click"
 
-        If txtBoxDescription.Text = String.Empty Or txtBoxVAT.Text = String.Empty Then
+        If txtBoxDescription.Text = String.Empty OrElse txtBoxVAT.Text = String.Empty Then
             MessageBox.Show("Υπάρχουν κενά πεδία", "Πληροφορία", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Exit Sub
         End If
@@ -84,41 +111,129 @@ Public Class frmCategories
             Exit Sub
         End If
 
-        If CInt(txtBoxVAT.Text) <> 0 And CInt(txtBoxVAT.Text) <> 3 And CInt(txtBoxVAT.Text) <> 5 And CInt(txtBoxVAT.Text) <> 19 Then
+        If CInt(txtBoxVAT.Text) <> 0 AndAlso
+           CInt(txtBoxVAT.Text) <> 3 AndAlso
+           CInt(txtBoxVAT.Text) <> 5 AndAlso
+           CInt(txtBoxVAT.Text) <> 19 Then
             MessageBox.Show("Ο Φ.Π.Α. πρέπει να είναι 0% ή 3% ή 5% ή 19%", "Πληροφορία", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Exit Sub
         End If
 
-        Try
-            If rdbNewCategory.Checked Then
-                sql = "insert into categories (UUID, DESCRIPTION, VAT) " & _
-                      "values (sys_guid(), '" & txtBoxDescription.Text.Replace("\'", "\`") & "'," & _
-                      "                     " & CInt(txtBoxVAT.Text) & ") "
-            Else
-                If lstBoxDescription.SelectedIndex = -1 Then
-                    MessageBox.Show("Δεν μπορεί να γίνει επεξεργασία αν δεν επιλέξετε κατηγορία", "Επεξεργασία Κατηγορίας", MessageBoxButtons.OK, MessageBoxIcon.Error)
-                    cmd.Dispose()
-                    Exit Sub
-                End If
-                sql = "update categories set description = '" & txtBoxDescription.Text.Replace("\'", "\`") & "'," & _
-                      "                      vat = " & CInt(txtBoxVAT.Text) & " " & _
-                      " where uuid = '" & lstBoxUUIDs.Items.Item(lstBoxDescription.SelectedIndex) & "'"
+        Dim sql As String = ""
 
+        Try
+            If SqlLite Then
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
+
+                    If rdbNewCategory.Checked Then
+                        sql =
+                            "INSERT INTO CATEGORIES
+                            (
+                                UUID,
+                                DESCRIPTION,
+                                VAT,
+                                KIOSKID,
+                                UPDATED_AT,
+                                SYNC_STATUS
+                            )
+                            VALUES
+                            (
+                                @UUID,
+                                @DESCRIPTION,
+                                @VAT,
+                                @KIOSKID,
+                                CURRENT_TIMESTAMP,
+                                1
+                            )"
+
+                        Using cmd As New SQLiteCommand(sql, sqliteConn)
+                            cmd.Parameters.AddWithValue("@UUID", Guid.NewGuid().ToString("N").ToUpper())
+                            cmd.Parameters.AddWithValue("@DESCRIPTION", txtBoxDescription.Text.Trim())
+                            cmd.Parameters.AddWithValue("@VAT", CInt(txtBoxVAT.Text))
+                            cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                            cmd.ExecuteNonQuery()
+                        End Using
+                    Else
+                        If lstBoxDescription.SelectedIndex = -1 Then
+                            MessageBox.Show("Δεν μπορεί να γίνει επεξεργασία αν δεν επιλέξετε κατηγορία", "Επεξεργασία Κατηγορίας", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                            Exit Sub
+                        End If
+
+                        sql =
+                            "UPDATE CATEGORIES
+                             SET DESCRIPTION=@DESCRIPTION,
+                                 VAT=@VAT,
+                                 UPDATED_AT=CURRENT_TIMESTAMP,
+                                 SYNC_STATUS=1
+                             WHERE UUID=@UUID
+                             AND KIOSKID=@KIOSKID"
+
+                        Using cmd As New SQLiteCommand(sql, sqliteConn)
+                            cmd.Parameters.AddWithValue("@DESCRIPTION", txtBoxDescription.Text.Trim())
+                            cmd.Parameters.AddWithValue("@VAT", CInt(txtBoxVAT.Text))
+                            cmd.Parameters.AddWithValue("@UUID", lstBoxUUIDs.Items(lstBoxDescription.SelectedIndex).ToString())
+                            cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                            cmd.ExecuteNonQuery()
+                        End Using
+                    End If
+                End Using
+            Else
+                Using cmd As New OracleCommand()
+                    cmd.Connection = conn
+                    cmd.BindByName = True
+                    If rdbNewCategory.Checked Then
+                        sql =
+                            "INSERT INTO CATEGORIES
+                            (
+                                UUID,
+                                DESCRIPTION,
+                                VAT,
+                                UPDATED_AT
+                            )
+                            VALUES
+                            (
+                                SYS_GUID(),
+                                :DESCRIPTION,
+                                :VAT,
+                                SYSTIMESTAMP
+                            )"
+
+                        cmd.CommandText = sql
+                        cmd.Parameters.Add("DESCRIPTION", OracleDbType.Varchar2).Value = txtBoxDescription.Text.Trim()
+                        cmd.Parameters.Add("VAT", OracleDbType.Int32).Value = CInt(txtBoxVAT.Text)
+                    Else
+                        If lstBoxDescription.SelectedIndex = -1 Then
+                            MessageBox.Show("Δεν μπορεί να γίνει επεξεργασία αν δεν επιλέξετε κατηγορία", "Επεξεργασία Κατηγορίας", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                            Exit Sub
+                        End If
+
+                        sql =
+                            "UPDATE CATEGORIES
+                             SET DESCRIPTION=:DESCRIPTION,
+                                 VAT=:VAT,
+                                 UPDATED_AT=SYSTIMESTAMP
+                             WHERE UUID=:UUID"
+
+                        cmd.CommandText = sql
+                        cmd.Parameters.Add("DESCRIPTION", OracleDbType.Varchar2).Value = txtBoxDescription.Text.Trim()
+                        cmd.Parameters.Add("VAT", OracleDbType.Int32).Value = CInt(txtBoxVAT.Text)
+                        cmd.Parameters.Add("UUID", OracleDbType.Varchar2).Value =
+                        lstBoxUUIDs.Items(lstBoxDescription.SelectedIndex).ToString()
+                    End If
+                    cmd.ExecuteNonQuery()
+                End Using
             End If
-            cmd = New OracleCommand(sql, conn)
-            cmd.CommandType = CommandType.Text
-            Using cmd                cmd.ExecuteNonQuery()            End Using
 
             MessageBox.Show("Η εντολή εκτελέστηκε επιτυχώς", "Πληροφορία", MessageBoxButtons.OK, MessageBoxIcon.Information)
-            txtBoxDescription.ResetText()
-            txtBoxVAT.ResetText()
-            fillCategoriesList()
+            txtBoxDescription.Clear()
+            txtBoxVAT.Clear()
+
+            FillCategoriesList()
             rdbNewCategory.Checked = True
         Catch ex As Exception
-            createExceptionFile(ex.Message, sql)
+            CreateExceptionFile(WhoAmI + " " + ex.Message, sql)
             MessageBox.Show(ex.Message, "Application Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
-            cmd.Dispose()
         End Try
     End Sub
 End Class

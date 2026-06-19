@@ -22,25 +22,25 @@ Partial Class frmCategories
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
-        Me.lstBoxUUIDs = New System.Windows.Forms.ListBox
-        Me.lstBoxDescription = New System.Windows.Forms.ListBox
-        Me.lstBoxVAT = New System.Windows.Forms.ListBox
-        Me.GroupBox1 = New System.Windows.Forms.GroupBox
-        Me.rdbExisting = New System.Windows.Forms.RadioButton
-        Me.rdbNewCategory = New System.Windows.Forms.RadioButton
-        Me.txtBoxVAT = New System.Windows.Forms.TextBox
-        Me.txtBoxDescription = New System.Windows.Forms.TextBox
-        Me.lblVAT = New System.Windows.Forms.Label
-        Me.lblDescription = New System.Windows.Forms.Label
-        Me.lblPerCent = New System.Windows.Forms.Label
-        Me.cmdExit = New System.Windows.Forms.Button
-        Me.btnSave = New System.Windows.Forms.Button
+        Me.lstBoxUUIDs = New System.Windows.Forms.ListBox()
+        Me.lstBoxDescription = New System.Windows.Forms.ListBox()
+        Me.lstBoxVAT = New System.Windows.Forms.ListBox()
+        Me.GroupBox1 = New System.Windows.Forms.GroupBox()
+        Me.rdbExisting = New System.Windows.Forms.RadioButton()
+        Me.rdbNewCategory = New System.Windows.Forms.RadioButton()
+        Me.txtBoxVAT = New System.Windows.Forms.TextBox()
+        Me.txtBoxDescription = New System.Windows.Forms.TextBox()
+        Me.lblVAT = New System.Windows.Forms.Label()
+        Me.lblDescription = New System.Windows.Forms.Label()
+        Me.lblPerCent = New System.Windows.Forms.Label()
+        Me.cmdExit = New System.Windows.Forms.Button()
+        Me.btnSave = New System.Windows.Forms.Button()
         Me.GroupBox1.SuspendLayout()
         Me.SuspendLayout()
         '
         'lstBoxUUIDs
         '
-        Me.lstBoxUUIDs.Font = New System.Drawing.Font(REPORT_FONT, 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lstBoxUUIDs.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.lstBoxUUIDs.FormattingEnabled = True
         Me.lstBoxUUIDs.ItemHeight = 32
         Me.lstBoxUUIDs.Location = New System.Drawing.Point(417, 211)
@@ -61,7 +61,7 @@ Partial Class frmCategories
         '
         'lstBoxVAT
         '
-        Me.lstBoxVAT.Font = New System.Drawing.Font(REPORT_FONT, 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lstBoxVAT.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.lstBoxVAT.FormattingEnabled = True
         Me.lstBoxVAT.ItemHeight = 32
         Me.lstBoxVAT.Location = New System.Drawing.Point(529, 211)
@@ -74,7 +74,7 @@ Partial Class frmCategories
         '
         Me.GroupBox1.Controls.Add(Me.rdbExisting)
         Me.GroupBox1.Controls.Add(Me.rdbNewCategory)
-        Me.GroupBox1.Font = New System.Drawing.Font(REPORT_FONT, 18.0!)
+        Me.GroupBox1.Font = New System.Drawing.Font("Segoe UI", 18.0!)
         Me.GroupBox1.Location = New System.Drawing.Point(12, 11)
         Me.GroupBox1.Name = "GroupBox1"
         Me.GroupBox1.Size = New System.Drawing.Size(398, 136)
@@ -87,7 +87,7 @@ Partial Class frmCategories
         Me.rdbExisting.AutoSize = True
         Me.rdbExisting.Location = New System.Drawing.Point(6, 81)
         Me.rdbExisting.Name = "rdbExisting"
-        Me.rdbExisting.Size = New System.Drawing.Size(316, 36)
+        Me.rdbExisting.Size = New System.Drawing.Size(315, 36)
         Me.rdbExisting.TabIndex = 1
         Me.rdbExisting.TabStop = True
         Me.rdbExisting.Text = "Επεξεργασία Υφιστάμενης"
@@ -98,7 +98,7 @@ Partial Class frmCategories
         Me.rdbNewCategory.AutoSize = True
         Me.rdbNewCategory.Location = New System.Drawing.Point(6, 39)
         Me.rdbNewCategory.Name = "rdbNewCategory"
-        Me.rdbNewCategory.Size = New System.Drawing.Size(218, 36)
+        Me.rdbNewCategory.Size = New System.Drawing.Size(217, 36)
         Me.rdbNewCategory.TabIndex = 0
         Me.rdbNewCategory.TabStop = True
         Me.rdbNewCategory.Text = "Δημιουργία Νέας"
@@ -106,7 +106,7 @@ Partial Class frmCategories
         '
         'txtBoxVAT
         '
-        Me.txtBoxVAT.Font = New System.Drawing.Font(REPORT_FONT, 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.txtBoxVAT.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.txtBoxVAT.Location = New System.Drawing.Point(179, 211)
         Me.txtBoxVAT.MaxLength = 32
         Me.txtBoxVAT.Name = "txtBoxVAT"
@@ -115,7 +115,7 @@ Partial Class frmCategories
         '
         'txtBoxDescription
         '
-        Me.txtBoxDescription.Font = New System.Drawing.Font(REPORT_FONT, 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.txtBoxDescription.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.txtBoxDescription.Location = New System.Drawing.Point(179, 165)
         Me.txtBoxDescription.MaxLength = 100
         Me.txtBoxDescription.Name = "txtBoxDescription"
@@ -125,39 +125,39 @@ Partial Class frmCategories
         'lblVAT
         '
         Me.lblVAT.AutoSize = True
-        Me.lblVAT.Font = New System.Drawing.Font(REPORT_FONT, 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lblVAT.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.lblVAT.Location = New System.Drawing.Point(12, 211)
         Me.lblVAT.Name = "lblVAT"
-        Me.lblVAT.Size = New System.Drawing.Size(58, 32)
+        Me.lblVAT.Size = New System.Drawing.Size(54, 32)
         Me.lblVAT.TabIndex = 11
         Me.lblVAT.Text = "VAT"
         '
         'lblDescription
         '
         Me.lblDescription.AutoSize = True
-        Me.lblDescription.Font = New System.Drawing.Font(REPORT_FONT, 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lblDescription.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.lblDescription.Location = New System.Drawing.Point(12, 165)
         Me.lblDescription.Name = "lblDescription"
-        Me.lblDescription.Size = New System.Drawing.Size(135, 32)
+        Me.lblDescription.Size = New System.Drawing.Size(134, 32)
         Me.lblDescription.TabIndex = 10
         Me.lblDescription.Text = "Περιγραφή"
         '
         'lblPerCent
         '
         Me.lblPerCent.AutoSize = True
-        Me.lblPerCent.Font = New System.Drawing.Font(REPORT_FONT, 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lblPerCent.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.lblPerCent.Location = New System.Drawing.Point(342, 211)
         Me.lblPerCent.Name = "lblPerCent"
-        Me.lblPerCent.Size = New System.Drawing.Size(35, 32)
+        Me.lblPerCent.Size = New System.Drawing.Size(34, 32)
         Me.lblPerCent.TabIndex = 14
         Me.lblPerCent.Text = "%"
         '
         'cmdExit
         '
         Me.cmdExit.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
-        Me.cmdExit.Font = New System.Drawing.Font(REPORT_FONT, 18.0!)
+        Me.cmdExit.Font = New System.Drawing.Font("Segoe UI", 18.0!)
         Me.cmdExit.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.cmdExit.Image = Global.POS.My.Resources.Resources.Logout
+        Me.cmdExit.Image = Global.POS.My.Resources.Resources._exit
         Me.cmdExit.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
         Me.cmdExit.Location = New System.Drawing.Point(789, 643)
         Me.cmdExit.Name = "cmdExit"
@@ -169,9 +169,9 @@ Partial Class frmCategories
         'btnSave
         '
         Me.btnSave.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
-        Me.btnSave.Font = New System.Drawing.Font(REPORT_FONT, 18.0!)
+        Me.btnSave.Font = New System.Drawing.Font("Segoe UI", 18.0!)
         Me.btnSave.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.btnSave.Image = Global.POS.My.Resources.Resources.save
+        Me.btnSave.Image = Global.POS.My.Resources.Resources.save1
         Me.btnSave.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
         Me.btnSave.Location = New System.Drawing.Point(567, 643)
         Me.btnSave.Name = "btnSave"
@@ -185,7 +185,7 @@ Partial Class frmCategories
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
-        Me.ClientSize = New System.Drawing.Size(1014, 739)
+        Me.ClientSize = New System.Drawing.Size(1004, 725)
         Me.Controls.Add(Me.cmdExit)
         Me.Controls.Add(Me.btnSave)
         Me.Controls.Add(Me.lblPerCent)

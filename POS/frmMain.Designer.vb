@@ -251,7 +251,7 @@ Partial Class frmMain
         Me.btnUpdate.FlatStyle = System.Windows.Forms.FlatStyle.Popup
         Me.btnUpdate.Font = New System.Drawing.Font("Segoe UI", 14.25!)
         Me.btnUpdate.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.btnUpdate.Image = Global.POS.My.Resources.Resources.save
+        Me.btnUpdate.Image = Global.POS.My.Resources.Resources.save1
         Me.btnUpdate.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
         Me.btnUpdate.Location = New System.Drawing.Point(194, 267)
         Me.btnUpdate.Name = "btnUpdate"
@@ -281,7 +281,7 @@ Partial Class frmMain
         Me.btnExit.FlatStyle = System.Windows.Forms.FlatStyle.Popup
         Me.btnExit.Font = New System.Drawing.Font("Segoe UI", 14.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(161, Byte))
         Me.btnExit.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.btnExit.Image = Global.POS.My.Resources.Resources.Logout
+        Me.btnExit.Image = Global.POS.My.Resources.Resources._exit
         Me.btnExit.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
         Me.btnExit.Location = New System.Drawing.Point(722, 267)
         Me.btnExit.Name = "btnExit"
@@ -311,7 +311,7 @@ Partial Class frmMain
         Me.btnCategories.FlatStyle = System.Windows.Forms.FlatStyle.Popup
         Me.btnCategories.Font = New System.Drawing.Font("Segoe UI", 14.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(161, Byte))
         Me.btnCategories.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.btnCategories.Image = Global.POS.My.Resources.Resources.categories
+        Me.btnCategories.Image = Global.POS.My.Resources.Resources.categories1
         Me.btnCategories.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
         Me.btnCategories.Location = New System.Drawing.Point(546, 51)
         Me.btnCategories.Name = "btnCategories"
