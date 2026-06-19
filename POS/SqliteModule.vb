@@ -52,21 +52,26 @@ Module SqliteModule
             Return True
         End If
     End Function
-
-    Public Sub CreateSqliteTableStructure()
-        Dim WhoAmI As String = "CreateSqliteDB"
-        Try
-            Using conn As New SQLiteConnection("Data Source=kiosk.db")
-                conn.Open()
-                Dim sql As String = "
-                    -- SYNC_METADATA
+    Private Sub CreateSyncMetadataTable()
+        Using conn As New SQLiteConnection("Data Source=kiosk.db")
+            conn.Open()
+            Dim sql As String = "
                     CREATE TABLE IF NOT EXISTS SYNC_METADATA (
                         KEY TEXT PRIMARY KEY,
                         KIOSKID TEXT,
                         VALUE TEXT
                     );
+                "
+            Using cmd As New SQLiteCommand(sql, conn)
+                cmd.ExecuteNonQuery()
+            End Using
+        End Using
+    End Sub
 
-                    -- GLOBAL_PARAMS
+    Private Sub CreateGlobalParamsTable()
+        Using conn As New SQLiteConnection("Data Source=kiosk.db")
+            conn.Open()
+            Dim sql As String = "
                     CREATE TABLE IF NOT EXISTS GLOBAL_PARAMS (
                         PARAMKEY TEXT PRIMARY KEY,
                         PARAMVALUE TEXT,
@@ -75,8 +80,17 @@ Module SqliteModule
                         SYNC_STATUS INTEGER NOT NULL DEFAULT 0,
                         FOREIGN KEY (KIOSKID) REFERENCES KIOSK(KIOSKID)
                     );
+                "
+            Using cmd As New SQLiteCommand(sql, conn)
+                cmd.ExecuteNonQuery()
+            End Using
+        End Using
+    End Sub
 
-                    -- USERS
+    Private Sub CreateUsersTable()
+        Using conn As New SQLiteConnection("Data Source=kiosk.db")
+            conn.Open()
+            Dim sql As String = "
                     CREATE TABLE IF NOT EXISTS USERS (
                         UUID TEXT PRIMARY KEY,
                         USERNAME TEXT,
@@ -97,8 +111,17 @@ Module SqliteModule
                         UPDATED_AT TEXT DEFAULT CURRENT_TIMESTAMP,
                         FOREIGN KEY (KIOSKID) REFERENCES KIOSK(KIOSKID)
                     );
+                "
+            Using cmd As New SQLiteCommand(sql, conn)
+                cmd.ExecuteNonQuery()
+            End Using
+        End Using
+    End Sub
 
-                    -- SESSIONS
+    Private Sub CreateSessionsTable()
+        Using conn As New SQLiteConnection("Data Source=kiosk.db")
+            conn.Open()
+            Dim sql As String = "
                     CREATE TABLE IF NOT EXISTS SESSIONS (
                         UUID TEXT PRIMARY KEY,
                         LOGIN_WHEN TEXT,
@@ -116,19 +139,37 @@ Module SqliteModule
                     CREATE INDEX IF NOT EXISTS IDX_SESSIONS_USER_ID ON SESSIONS(USER_ID);
                     CREATE INDEX IF NOT EXISTS IDX_SESSIONS_UPDATED_AT ON SESSIONS(UPDATED_AT);
                     CREATE INDEX IF NOT EXISTS IDX_SESSIONS_KIOSKID ON SESSIONS(KIOSKID);
+                "
+            Using cmd As New SQLiteCommand(sql, conn)
+                cmd.ExecuteNonQuery()
+            End Using
+        End Using
+    End Sub
 
-                    -- LOTTERY
+    Private Sub CreateLotteryTable()
+        Using conn As New SQLiteConnection("Data Source=kiosk.db")
+            conn.Open()
+            Dim sql As String = "
                     CREATE TABLE IF NOT EXISTS LOTTERY (
                         BARCODE TEXT,
                         KIOSKID TEXT,
                         UPDATED_AT TEXT DEFAULT CURRENT_TIMESTAMP,
-                        PRIMARY KEY (BARCODE, KIOSKID),
+                        SYNC_STATUS INTEGER NOT NULL DEFAULT 0,
+                        PRIMARY KEY (BARCODE, KIOSKID),                        
                         FOREIGN KEY (KIOSKID) REFERENCES KIOSK(KIOSKID)
                     );
+                    CREATE INDEX IF NOT EXISTS IDX_LOTTERY_BARCODE ON LOTTERY(BARCODE, KIOSKID);
+                "
+            Using cmd As New SQLiteCommand(sql, conn)
+                cmd.ExecuteNonQuery()
+            End Using
+        End Using
+    End Sub
 
-                    CREATE UNIQUE INDEX IF NOT EXISTS IDX_LOTTERY_BARCODE ON LOTTERY(BARCODE);
-
-                    -- PRODUCTS
+    Private Sub CreateProductsTable()
+        Using conn As New SQLiteConnection("Data Source=kiosk.db")
+            conn.Open()
+            Dim sql As String = "
                     CREATE TABLE IF NOT EXISTS PRODUCTS (
                         DESCRIPTION TEXT,
                         MIN_QUANTITY INTEGER,
@@ -137,7 +178,7 @@ Module SqliteModule
                         EXPIRY_DATE TEXT,
                         ALERT_ON_EXPIRY INTEGER,
                         ALERT_DATE TEXT,
-                        SERNO INTEGER PRIMARY KEY,
+                        SERNO INTEGER,
                         BUY_AMT REAL,
                         SELL_AMT REAL,
                         CATEGORY_ID TEXT,
@@ -162,14 +203,14 @@ Module SqliteModule
                         BUY_AMT_NO_VAT REAL,
                         BUY_AMT_NEW REAL,
                         KIOSKID TEXT,
-                        UPDATED_AT TEXT,
                         UUID TEXT NOT NULL UNIQUE,
                         SYNC_STATUS INTEGER NOT NULL DEFAULT 0,
+                        UPDATED_AT TEXT DEFAULT CURRENT_TIMESTAMP,                        
                         FOREIGN KEY (CATEGORY_ID) REFERENCES CATEGORIES(UUID),
                         FOREIGN KEY (SUPPLIER_ID) REFERENCES SUPPLIERS(UUID),
                         FOREIGN KEY (VATTYPE_ID) REFERENCES VAT_TYPES(UUID),
                         FOREIGN KEY (KIOSKID) REFERENCES KIOSK(KIOSKID)
-                            );
+                    );
 
                         CREATE INDEX IF NOT EXISTS IDX_PRODUCTS_SYNC ON PRODUCTS(KIOSKID, UPDATED_AT);
                         CREATE INDEX IF NOT EXISTS IDX_PRODUCTS_CATEGORY ON PRODUCTS(CATEGORY_ID);
@@ -230,8 +271,17 @@ Module SqliteModule
                         );
 
                         END;
+                "
+            Using cmd As New SQLiteCommand(sql, conn)
+                cmd.ExecuteNonQuery()
+            End Using
+        End Using
+    End Sub
 
-                    -- VAT_TYPES
+    Private Sub CreateVatTypesTable()
+        Using conn As New SQLiteConnection("Data Source=kiosk.db")
+            conn.Open()
+            Dim sql As String = "
                     CREATE TABLE IF NOT EXISTS VAT_TYPES (
                         UUID TEXT PRIMARY KEY,
                         DESCRIPTION TEXT,
@@ -241,8 +291,17 @@ Module SqliteModule
                         FOREIGN KEY (KIOSKID) REFERENCES KIOSK(KIOSKID)
                     );
                     CREATE INDEX IF NOT EXISTS IDX_VAT_TYPES_SYNC ON VAT_TYPES(KIOSKID, UPDATED_AT);
+                "
+            Using cmd As New SQLiteCommand(sql, conn)
+                cmd.ExecuteNonQuery()
+            End Using
+        End Using
+    End Sub
 
-                    -- SUPPLIERS
+    Private Sub CreateSuppliersTable()
+        Using conn As New SQLiteConnection("Data Source=kiosk.db")
+            conn.Open()
+            Dim sql As String = "
                     CREATE TABLE IF NOT EXISTS SUPPLIERS (
                         UUID TEXT PRIMARY KEY,
                         S_NAME TEXT,
@@ -263,10 +322,20 @@ Module SqliteModule
                         UPDATED_AT TEXT DEFAULT CURRENT_TIMESTAMP,
                         FOREIGN KEY (KIOSKID) REFERENCES KIOSK(KIOSKID)
                     );
+
                     CREATE INDEX IF NOT EXISTS IDX_SUPPLIERS_SYNC ON SUPPLIERS(KIOSKID, UPDATED_AT);
                     CREATE INDEX IF NOT EXISTS IDX_SUPPLIERS_NAME ON SUPPLIERS(S_NAME);
+                "
+            Using cmd As New SQLiteCommand(sql, conn)
+                cmd.ExecuteNonQuery()
+            End Using
+        End Using
+    End Sub
 
-                    -- CATEGORIES
+    Private Sub CreateCategoriesTable()
+        Using conn As New SQLiteConnection("Data Source=kiosk.db")
+            conn.Open()
+            Dim sql As String = "
                     CREATE TABLE IF NOT EXISTS CATEGORIES (
                         UUID TEXT PRIMARY KEY,
                         DESCRIPTION TEXT,
@@ -278,8 +347,17 @@ Module SqliteModule
                     );
                     CREATE INDEX IF NOT EXISTS IDX_CATEGORIES_SYNC ON CATEGORIES(KIOSKID, UPDATED_AT);
                     CREATE INDEX IF NOT EXISTS IDX_CATEGORIES_DESCRIPTION ON CATEGORIES(DESCRIPTION);
+                "
+            Using cmd As New SQLiteCommand(sql, conn)
+                cmd.ExecuteNonQuery()
+            End Using
+        End Using
+    End Sub
 
-                    -- BARCODES
+    Private Sub CreateBarcodesTable()
+        Using conn As New SQLiteConnection("Data Source=kiosk.db")
+            conn.Open()
+            Dim sql As String = "
                     CREATE TABLE IF NOT EXISTS BARCODES
                     (
                         BARCODE TEXT PRIMARY KEY,
@@ -293,17 +371,29 @@ Module SqliteModule
                     CREATE INDEX IF NOT EXISTS IDX_BARCODES_SYNC ON BARCODES(KIOSKID, UPDATED_AT);
                     CREATE INDEX IF NOT EXISTS IDX_BARCODES_PRODUCT_UUID ON BARCODES(PRODUCT_UUID);
                     CREATE INDEX IF NOT EXISTS IDX_BARCODES_PRODUCT_SERNO ON BARCODES(PRODUCT_SERNO);
-                    "
-
-                Using cmd As New SQLiteCommand(sql, conn)
-                    cmd.ExecuteNonQuery()
-                End Using
+                "
+            Using cmd As New SQLiteCommand(sql, conn)
+                cmd.ExecuteNonQuery()
             End Using
+        End Using
+    End Sub
+    Public Sub CreateSqliteTableStructure()
+        Dim WhoAmI As String = "CreateSqliteDB"
+        Try
+            CreateSyncMetadataTable()
+            CreateGlobalParamsTable()
+            CreateUsersTable()
+            CreateSessionsTable()
+            CreateLotteryTable()
+            CreateProductsTable()
+            CreateVatTypesTable()
+            CreateSuppliersTable()
+            CreateCategoriesTable()
+            CreateBarcodesTable()
         Catch ex As Exception
             CreateExceptionFile(WhoAmI + ": " + ex.Message, " ")
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
-
     End Sub
 
     Public Class SyncTables
@@ -976,18 +1066,21 @@ Module SqliteModule
                                 (
                                     BARCODE,
                                     KIOSKID,
-                                    UPDATED_AT
+                                    UPDATED_AT,
+                                    SYNC_STATUS
                                 )
                                 VALUES
                                 (
                                     @BARCODE,
                                     @KIOSKID,
-                                    @UPDATED_AT
+                                    @UPDATED_AT,
+                                    0
                                 )
-                                ON CONFLICT(BARCODE)
+                                ON CONFLICT(BARCODE,KIOSKID)
                                 DO UPDATE SET
                                     KIOSKID = excluded.KIOSKID,
-                                    UPDATED_AT = excluded.UPDATED_AT
+                                    UPDATED_AT = excluded.UPDATED_AT,
+                                    SYNC_STATUS = 0
                                 "
 
             Using cmd As New SQLiteCommand(sql, conn)
@@ -1824,6 +1917,79 @@ Module SqliteModule
 
             Using cmd As New SQLiteCommand(sql, sqliteConn)
                 cmd.Parameters.AddWithValue("@UUID", uuid)
+                cmd.ExecuteNonQuery()
+            End Using
+        End Sub
+
+        Public Sub UploadLottery()
+            Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                sqliteConn.Open()
+                'Delete existing Oracle rows
+                Using cmd As New OracleCommand("DELETE FROM LOTTERY WHERE KIOSKID = :KIOSKID", conn)
+                    cmd.Parameters.Add("KIOSKID", OracleDbType.Varchar2).Value = kioskId
+                    cmd.ExecuteNonQuery()
+                End Using
+
+                'Insert all SQLite rows
+                Const sql As String =
+                                    "
+                                    SELECT BARCODE,
+                                           KIOSKID,
+                                           UPDATED_AT
+                                    FROM LOTTERY
+                                    WHERE KIOSKID=@KIOSKID
+                                    ORDER BY BARCODE
+                                    "
+
+                Using cmd As New SQLiteCommand(sql, sqliteConn)
+                    cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                    Using reader = cmd.ExecuteReader()
+                        While reader.Read()
+                            InsertLotteryRow(reader)
+                        End While
+                    End Using
+                End Using
+                MarkLotterySynced(sqliteConn, kioskId)
+            End Using
+        End Sub
+
+        Private Sub InsertLotteryRow(reader As SQLiteDataReader)
+            Const sql As String =
+                                "
+                                INSERT INTO LOTTERY
+                                (
+                                    BARCODE,
+                                    KIOSKID,
+                                    UPDATED_AT
+                                )
+                                VALUES
+                                (
+                                    :BARCODE,
+                                    :KIOSKID,
+                                    :UPDATED_AT
+                                )
+                                "
+
+            Using cmd As New OracleCommand(sql, conn)
+                cmd.BindByName = True
+
+                cmd.Parameters.Add("BARCODE", OracleDbType.Varchar2).Value = reader("BARCODE").ToString()
+                cmd.Parameters.Add("KIOSKID", OracleDbType.Varchar2).Value = reader("KIOSKID").ToString()
+                cmd.Parameters.Add("UPDATED_AT", OracleDbType.TimeStamp).Value = Convert.ToDateTime(reader("UPDATED_AT"))
+                cmd.ExecuteNonQuery()
+            End Using
+        End Sub
+
+        Private Sub MarkLotterySynced(sqliteConn As SQLiteConnection, kioskId As String)
+            Const sql As String =
+                                "
+                                UPDATE LOTTERY
+                                   SET SYNC_STATUS = 0
+                                 WHERE KIOSKID = @KIOSKID
+                                "
+
+            Using cmd As New SQLiteCommand(sql, sqliteConn)
+                cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
                 cmd.ExecuteNonQuery()
             End Using
         End Sub

@@ -83,6 +83,7 @@ Module connectionModule
             sync.UploadGlobalParams()
             sync.UploadCategories()
             sync.UploadSuppliers()
+            sync.UploadLottery()
             'TODO
             'sync.UploadSessions()
             'UploadProducts()

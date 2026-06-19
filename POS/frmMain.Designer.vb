@@ -1,9 +1,9 @@
-﻿<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()> _
+﻿<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()>
 Partial Class frmMain
     Inherits System.Windows.Forms.Form
 
     'Form overrides dispose to clean up the component list.
-    <System.Diagnostics.DebuggerNonUserCode()> _
+    <System.Diagnostics.DebuggerNonUserCode()>
     Protected Overrides Sub Dispose(ByVal disposing As Boolean)
         Try
             If disposing AndAlso components IsNot Nothing Then
@@ -20,7 +20,7 @@ Partial Class frmMain
     'NOTE: The following procedure is required by the Windows Form Designer
     'It can be modified using the Windows Form Designer.  
     'Do not modify it using the code editor.
-    <System.Diagnostics.DebuggerStepThrough()> _
+    <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
         Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(frmMain))
         Me.lblUser = New System.Windows.Forms.Label()
@@ -35,7 +35,6 @@ Partial Class frmMain
         Me.lblVersion = New System.Windows.Forms.Label()
         Me.btnEditPos = New System.Windows.Forms.Button()
         Me.btnLottery = New System.Windows.Forms.Button()
-        Me.Button2 = New System.Windows.Forms.Button()
         Me.btnInvoices = New System.Windows.Forms.Button()
         Me.btnBackup = New System.Windows.Forms.Button()
         Me.btnReceipts = New System.Windows.Forms.Button()
@@ -177,28 +176,15 @@ Partial Class frmMain
         Me.btnLottery.FlatStyle = System.Windows.Forms.FlatStyle.Popup
         Me.btnLottery.Font = New System.Drawing.Font("Segoe UI", 14.25!)
         Me.btnLottery.ForeColor = System.Drawing.SystemColors.ControlText
+        Me.btnLottery.Image = Global.POS.My.Resources.Resources.lottery1
         Me.btnLottery.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
         Me.btnLottery.Location = New System.Drawing.Point(722, 159)
         Me.btnLottery.Name = "btnLottery"
         Me.btnLottery.Size = New System.Drawing.Size(170, 102)
         Me.btnLottery.TabIndex = 27
-        Me.btnLottery.Text = "  Διαχείριση " & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Λαχείων"
+        Me.btnLottery.Text = "  " & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Λαχεία"
+        Me.btnLottery.TextAlign = System.Drawing.ContentAlignment.TopCenter
         Me.btnLottery.UseVisualStyleBackColor = False
-        '
-        'Button2
-        '
-        Me.Button2.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
-        Me.Button2.FlatStyle = System.Windows.Forms.FlatStyle.Popup
-        Me.Button2.Font = New System.Drawing.Font("Segoe UI", 14.25!)
-        Me.Button2.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.Button2.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
-        Me.Button2.Location = New System.Drawing.Point(546, 267)
-        Me.Button2.Name = "Button2"
-        Me.Button2.Size = New System.Drawing.Size(170, 102)
-        Me.Button2.TabIndex = 28
-        Me.Button2.Text = "  Διαχείριση Προσφορών"
-        Me.Button2.UseVisualStyleBackColor = False
-        Me.Button2.Visible = False
         '
         'btnInvoices
         '
@@ -372,7 +358,6 @@ Partial Class frmMain
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
         Me.ClientSize = New System.Drawing.Size(1004, 725)
-        Me.Controls.Add(Me.Button2)
         Me.Controls.Add(Me.btnLottery)
         Me.Controls.Add(Me.btnEditPos)
         Me.Controls.Add(Me.btnInvoices)
@@ -432,5 +417,4 @@ Partial Class frmMain
     Friend WithEvents btnInvoices As System.Windows.Forms.Button
     Friend WithEvents btnEditPos As System.Windows.Forms.Button
     Friend WithEvents btnLottery As System.Windows.Forms.Button
-    Friend WithEvents Button2 As System.Windows.Forms.Button
 End Class

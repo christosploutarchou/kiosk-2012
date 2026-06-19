@@ -563,4 +563,5 @@ Public Class frmMain
         Me.Hide()
         frmLottery.Show()
     End Sub
+
 End Class
