@@ -2,19 +2,19 @@
 Imports System.ComponentModel
 
 Public Class frmPOSEdit
-    Private Sub frmPOSEdit_Disposed(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Disposed
+    Private Sub FrmPOSEdit_Disposed(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Disposed
         frmMain.Show()
     End Sub
 
-    Private Sub frmPOSEdit_FormClosed(ByVal sender As Object, ByVal e As System.Windows.Forms.FormClosedEventArgs) Handles Me.FormClosed
+    Private Sub FrmPOSEdit_FormClosed(ByVal sender As Object, ByVal e As System.Windows.Forms.FormClosedEventArgs) Handles Me.FormClosed
         Me.Dispose()
     End Sub
 
-    Private Sub frmPOSEdit_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
+    Private Sub FrmPOSEdit_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
         loadButtonParams(1)
     End Sub
 
-    Private Sub loadButtonParams(ByVal all As Integer)
+    Private Sub LoadButtonParams(ByVal all As Integer)
         Dim sql As String = ""
         Dim cmd As New OracleCommand("", conn)
         Dim dr As OracleDataReader
@@ -52,7 +52,7 @@ Public Class frmPOSEdit
                     CType(Me.Controls("btnPos" & setCurrentTableIndex()), Button).Text = ""
                 End If
             End If
-            
+
         Catch ex As Exception
             MessageBox.Show(ex.Message + sql, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
         Finally

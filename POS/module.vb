@@ -1097,6 +1097,7 @@ Module connectionModule
         Public currentDiscount As Double
     End Structure
 
+    'TODO CONSIDER SQLLITE 
     Public Sub GetMinBarcodeLength()
         Const q As String = "SELECT NVL(MIN(LENGTH(barcode)), 9999999) FROM barcodes"
         Try
@@ -1239,6 +1240,7 @@ Module connectionModule
         Return sb64
     End Function
 
+    'TODO CONSIDER SQLITE
     Public Sub getStartDate()
         If Not isConnOpen() Then
             MessageBox.Show(CANNOT_ACCESS_DB, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)

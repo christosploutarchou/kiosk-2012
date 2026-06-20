@@ -34,19 +34,19 @@ Public Class frmPOS
 
     Dim printType As String
 
-    Private Sub setAmount(ByVal value As String)
+    Private Sub SetAmount(ByVal value As String)
         txtBoxManualAmt.Text += value
         If String.Compare(".", value) = 0 Or String.Compare("0.", value) = 0 Then
             Exit Sub
         End If
-        If validateAmount(txtBoxManualAmt.Text) Then
+        If ValidateAmount(txtBoxManualAmt.Text) Then
             Exit Sub
         End If
         Dim tmpAmount = Math.Round(CDbl(txtBoxManualAmt.Text), 2)
         txtBoxManualAmt.Text = tmpAmount
     End Sub
 
-    Private Function validateAmount(ByVal amt As String) As Boolean
+    Private Function ValidateAmount(ByVal amt As String) As Boolean
         For i As Integer = 0 To 9999
             If amt.Equals(i.ToString & ".0") Then
                 Return True
@@ -54,57 +54,23 @@ Public Class frmPOS
         Next
         Return False
     End Function
+    Private Sub NumberButton_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) _
+    Handles btn0.Click, btn1.Click, btn2.Click, btn3.Click, btn4.Click,
+            btn5.Click, btn6.Click, btn7.Click, btn8.Click, btn9.Click
 
-    Private Sub btn7_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btn7.Click
-        setAmount("7")
+        Dim btn As Button = DirectCast(sender, Button)
+        SetAmount(btn.Text)
+
     End Sub
 
-    Private Sub btn8_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btn8.Click
-        setAmount("8")
-    End Sub
+    Private Sub BtnDot_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnDot.Click
+        If txtBoxManualAmt.Text.Contains(".") Then Exit Sub
 
-    Private Sub btn9_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btn9.Click
-        setAmount("9")
-    End Sub
-
-    Private Sub btn4_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btn4.Click
-        setAmount("4")
-    End Sub
-
-    Private Sub btn5_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btn5.Click
-        setAmount("5")
-    End Sub
-
-    Private Sub btn6_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btn6.Click
-        setAmount("6")
-    End Sub
-
-    Private Sub btn1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btn1.Click
-        setAmount("1")
-    End Sub
-
-    Private Sub btn2_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btn2.Click
-        setAmount("2")
-    End Sub
-
-    Private Sub btn3_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btn3.Click
-        setAmount("3")
-    End Sub
-
-    Private Sub btn0_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btn0.Click
-        setAmount("0")
-    End Sub
-
-    Private Sub btnDot_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnDot.Click
-        If txtBoxManualAmt.Text.Contains(".") Then
-            Exit Sub
+        If String.IsNullOrEmpty(txtBoxManualAmt.Text) Then
+            SetAmount("0.")
+        Else
+            SetAmount(".")
         End If
-
-        If txtBoxManualAmt.Text.Length = 0 Or txtBoxManualAmt.Text = String.Empty Then
-            setAmount("0.")
-            Exit Sub
-        End If
-        setAmount(".")
     End Sub
 
     Private Sub TxtBoxBarcode_KeyDown(sender As Object, e As KeyEventArgs) Handles txtBoxBarcode.KeyDown
@@ -117,20 +83,16 @@ Public Class frmPOS
 
         If String.IsNullOrEmpty(barcodeText) Then Return
 
-        'if not isloggedin(username) then
-        '    messagebox.show("ο χρήστης δεν είναι συνδεμένος", "σφάλμα", messageboxbuttons.ok, messageboxicon.error)
-        '    return
-        'end if
-
         If Not isConnOpen() Then
             MessageBox.Show(CANNOT_ACCESS_DB, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
             Return
         End If
 
+        'TODO CONSIDER SQLITE IMPLEMENTATION (READ minBarcode again?)
         If barcodeText.Length < minBarcode Then Return
 
         Try
-            Sql =
+            sql =
             "SELECT p.serno, p.description, p.sell_amt, v.vat, " &
             "NVL(p.offer,-1) AS offer, NVL(p.offer_type,-1) AS offer_type, NVL(p.offer_x,0) AS offer_x, NVL(p.offer_y,0) AS offer_y, " &
             "NVL(p.offer_disc,0) AS offer_disc, NVL(p.offer_at,0) AS offer_at, NVL(p.isbox,0) AS isbox, NVL(p.box_qnt,0) AS box_qnt, " &
@@ -201,10 +163,10 @@ Public Class frmPOS
             txtBoxTotalWithDiscount.Text = totalWithDiscount.ToString("N2")
 
         Catch ex As Exception
-            CreateExceptionFile(ex.ToString(), Sql)
+            CreateExceptionFile(ex.ToString(), sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Finally
-            formatDataGrid()
+            FormatDataGrid()
         End Try
     End Sub
 
