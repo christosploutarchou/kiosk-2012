@@ -22,17 +22,17 @@ Partial Class frmLottery
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
-        Me.lblTotalLotteryAmt = New System.Windows.Forms.Label
-        Me.txtBoxLotteryAmt = New System.Windows.Forms.TextBox
-        Me.lnkLblBarcodes = New System.Windows.Forms.LinkLabel
-        Me.btnSave = New System.Windows.Forms.Button
-        Me.btnExit = New System.Windows.Forms.Button
-        Me.dgvLinkedProducts = New System.Windows.Forms.DataGridView
-        Me.productSerno = New System.Windows.Forms.DataGridViewTextBoxColumn
-        Me.barcode = New System.Windows.Forms.DataGridViewTextBoxColumn
-        Me.description = New System.Windows.Forms.DataGridViewTextBoxColumn
-        Me.sellAmt = New System.Windows.Forms.DataGridViewTextBoxColumn
-        Me.availQnt = New System.Windows.Forms.DataGridViewTextBoxColumn
+        Me.lblTotalLotteryAmt = New System.Windows.Forms.Label()
+        Me.txtBoxLotteryAmt = New System.Windows.Forms.TextBox()
+        Me.lnkLblBarcodes = New System.Windows.Forms.LinkLabel()
+        Me.dgvLinkedProducts = New System.Windows.Forms.DataGridView()
+        Me.productSerno = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.barcode = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.description = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.sellAmt = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.availQnt = New System.Windows.Forms.DataGridViewTextBoxColumn()
+        Me.btnSave = New System.Windows.Forms.Button()
+        Me.btnExit = New System.Windows.Forms.Button()
         CType(Me.dgvLinkedProducts, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
@@ -70,36 +70,6 @@ Partial Class frmLottery
         Me.lnkLblBarcodes.TabStop = True
         Me.lnkLblBarcodes.Text = "Προσθήκη Barcode"
         Me.lnkLblBarcodes.VisitedLinkColor = System.Drawing.Color.MediumBlue
-        '
-        'btnSave
-        '
-        Me.btnSave.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
-        Me.btnSave.FlatStyle = System.Windows.Forms.FlatStyle.Popup
-        Me.btnSave.Font = New System.Drawing.Font("Segoe UI", 15.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.btnSave.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.btnSave.Image = Global.POS.My.Resources.Resources.save
-        Me.btnSave.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
-        Me.btnSave.Location = New System.Drawing.Point(54, 416)
-        Me.btnSave.Name = "btnSave"
-        Me.btnSave.Size = New System.Drawing.Size(182, 75)
-        Me.btnSave.TabIndex = 23
-        Me.btnSave.Text = "       Αποθήκευση"
-        Me.btnSave.UseVisualStyleBackColor = False
-        '
-        'btnExit
-        '
-        Me.btnExit.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
-        Me.btnExit.FlatStyle = System.Windows.Forms.FlatStyle.Popup
-        Me.btnExit.Font = New System.Drawing.Font("Segoe UI", 15.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.btnExit.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.btnExit.Image = Global.POS.My.Resources.Resources.Logout
-        Me.btnExit.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
-        Me.btnExit.Location = New System.Drawing.Point(242, 416)
-        Me.btnExit.Name = "btnExit"
-        Me.btnExit.Size = New System.Drawing.Size(182, 75)
-        Me.btnExit.TabIndex = 25
-        Me.btnExit.Text = "  Έξοδος"
-        Me.btnExit.UseVisualStyleBackColor = False
         '
         'dgvLinkedProducts
         '
@@ -147,12 +117,42 @@ Partial Class frmLottery
         Me.availQnt.Name = "availQnt"
         Me.availQnt.ReadOnly = True
         '
+        'btnSave
+        '
+        Me.btnSave.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
+        Me.btnSave.FlatStyle = System.Windows.Forms.FlatStyle.Popup
+        Me.btnSave.Font = New System.Drawing.Font("Segoe UI", 15.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.btnSave.ForeColor = System.Drawing.SystemColors.ControlText
+        Me.btnSave.Image = Global.POS.My.Resources.Resources.save1
+        Me.btnSave.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
+        Me.btnSave.Location = New System.Drawing.Point(54, 416)
+        Me.btnSave.Name = "btnSave"
+        Me.btnSave.Size = New System.Drawing.Size(182, 75)
+        Me.btnSave.TabIndex = 23
+        Me.btnSave.Text = "       Αποθήκευση"
+        Me.btnSave.UseVisualStyleBackColor = False
+        '
+        'btnExit
+        '
+        Me.btnExit.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
+        Me.btnExit.FlatStyle = System.Windows.Forms.FlatStyle.Popup
+        Me.btnExit.Font = New System.Drawing.Font("Segoe UI", 15.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.btnExit.ForeColor = System.Drawing.SystemColors.ControlText
+        Me.btnExit.Image = Global.POS.My.Resources.Resources._exit
+        Me.btnExit.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
+        Me.btnExit.Location = New System.Drawing.Point(242, 416)
+        Me.btnExit.Name = "btnExit"
+        Me.btnExit.Size = New System.Drawing.Size(182, 75)
+        Me.btnExit.TabIndex = 25
+        Me.btnExit.Text = "  Έξοδος"
+        Me.btnExit.UseVisualStyleBackColor = False
+        '
         'frmLottery
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
-        Me.ClientSize = New System.Drawing.Size(490, 521)
+        Me.ClientSize = New System.Drawing.Size(480, 507)
         Me.Controls.Add(Me.dgvLinkedProducts)
         Me.Controls.Add(Me.lnkLblBarcodes)
         Me.Controls.Add(Me.btnSave)

@@ -523,12 +523,12 @@ Public Class frmPOS
         End If
     End Sub
 
-    Private Sub btnClear_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnClear.Click
+    Private Sub BtnClear_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnClear.Click
         txtBoxManualAmt.Clear()
         txtBoxBarcode.Focus()
     End Sub
 
-    Private Sub btnBackspace_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnBackspace.Click
+    Private Sub BtnBackspace_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnBackspace.Click
         If txtBoxManualAmt.Text.Length > 0 Then
             If txtBoxManualAmt.Text.Length = 2 Then
                 If txtBoxManualAmt.Text.Contains(".") Then
@@ -934,7 +934,7 @@ Public Class frmPOS
         txtBoxManualAmt.Clear()
     End Sub
 
-    Private Sub btnPayment_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnPayment.Click
+    Private Sub PtnPayment_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnPayment.Click
         If txtBoxManualAmt.Text = String.Empty Or txtBoxManualAmt.Text.Length = 0 Then
             MessageBox.Show("Δεν έχετε καταχωρήσει ποσό Πληρωμής", "Καταχώρηση Ποσού Πληρωμής", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Exit Sub
@@ -948,13 +948,13 @@ Public Class frmPOS
         End If
     End Sub
 
-    Private Sub btnVisa_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnVisa.Click
+    Private Sub BtnVisa_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnVisa.Click
         If dgvReceipt.Rows.Count = 0 Then
             MessageBox.Show("Δεν έχετε επιλέξει είδος αγοράς", "Επιλογή είδους αγοράς", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Exit Sub
         End If
         paymentMethod = "V"
-        generateReceipt()
+        GenerateReceipt()
     End Sub
 
     Private Sub btnCash_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnCash.Click
@@ -1881,11 +1881,11 @@ Public Class frmPOS
         frmReceiptsPOS.ShowDialog()
     End Sub
 
-    Private Sub btnPosBtn_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnPos1.Click, btnPos2.Click, btnPos3.Click,
+    Private Sub BtnPosBtn_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnPos1.Click, btnPos2.Click, btnPos3.Click,
                                         btnPos4.Click, btnPos5.Click, btnPos6.Click, btnPos7.Click, btnPos8.Click, btnPos9.Click, btnPos10.Click,
                                         btnPos11.Click, btnPos12.Click, btnPos13.Click, btnPos14.Click, btnPos15.Click, btnPos16.Click, btnPos17.Click,
                                         btnPos18.Click, btnPos19.Click, btnPos20.Click, btnPos21.Click, btnPos22.Click, btnPos23.Click
-        If Not isLoggedIn(username) Then
+        If Not IsLoggedIn(username) Then
             MessageBox.Show("Ο χρήστης δεν ειναι συνδεμένος", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Exit Sub
         End If
@@ -2500,5 +2500,4 @@ Public Class frmPOS
 
         End Try
     End Function
-
 End Class

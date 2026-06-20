@@ -120,27 +120,4 @@
   <metadata name="lstBoxName.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
-  <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-  <data name="btnDeleteSupplier.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-    <value>
-        iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAACxIAAAsSAdLdfvwAAAPJSURBVGhD7Zq7bhQxFIaHawMU3ESDUHYTAQrp6ACJBiih
-        yWMgIPAAqdgkM0sFDXVooOYJuAgh0YACROlAa68QHaGBguH8nuPBhPGOz3rIriCfZGX8+/flzNhj726S
-        Lf5VpudXdrcyvdROlW5nOq9JitIC6nD18aGV6sUNg61Pqe5w9fGBBoa7nE92e2dY8kJP7SwHo1gaH3hg
-        OWdrkfo3jbEOhObwU9vhyBONhYclZ6wCyfQTHtbw2MY4u2k03u9WIJFsBeLjvwqknamXtGO/4GyJT6cj
-        zXM6mz3jbCUjCqTaI9VdQjwiYjqV6i4hHhExnUp1lxCPiJhOpbpLiEdETKdS3SXEIyKmU6nuEuIREdOp
-        VHcJ8YiI6VSqu4R4RMR0KtVdQjwiYjqV6i4hHhExnUp1lxCPiJhOpbpLiEdETKdS3SXEIyKmU6nugm8i
-        G/02MqRTn0eq/1VCOvV5JPrp+/ku+owy2071A0rv6XPM11aq1otr/QBl8LBdjm8wLj7PQD3VdzmbTKbq
-        Cg10zfp9CR54uZoM2whnK/F5vHqqHiZ5vi2Zz7dT+YL1tTK1QmU3Jhf7p45k/T1IuKYA5ujpvDW+VP2g
-        m9BBXW4uDNsJZyvxeXz6iaXP+/CXykwQNNBvFMTV5FG+wxiqoDL66HyNAvpu2pV+m+8bjIvPM6gupgju
-        rgki7V1guZZWV100wVDdiW7vMsv1DBqMxefx6bywzZowT4I4tvBhP6bVyU7voDE5QEMZPMi3u+p6UVev
-        Bb8AfINx8Xl8Og1gFjrWhJ1OpM2x//XxrjpkjASuoZkyCgDa+fl8J02zd0UbetYY6+DGGw0Er1NTRneZ
-        peKu2wHT36nb+jCSqx298/EA2/GV0s1CV8ssDYYbaTaQTK9Cn8r0NEuGjQN3r1HGNkM7689w2SpLg2Fz
-        o4GYjY706Xuf9rJUgnVAd/uVrUvpt6lmwZsP5WiLpcHYBjlbCU0V/Jbyx28YPp3Wxhe0aV/DLuappOqN
-        7RfXG58GKAOhtlgajG2Qs41A7Zmphc2OJcPIp5YUu9jxpmJJvtgzfavQG1zsUsrXLx07hn794jCJNpp8
-        /UpxN0QcO6CZDZGuvRsildkN0QaNNiQbovlnALob51hqhPKIQscNHDtYrmUiVZeGPaKUp9OGkrILl6ZH
-        B5oZGE0bTBnTaQUow5MwXrQjPTTi4yZVRDDFk2kipepxeYxHMDiak441U+zY/RnsMUi4pgBoYRdHEuMd
-        5hi/GWCK/Foz/gSPaDqNAn4BlB916emsIxVPQi2jrHphJ8lP5o1VoC8qZAQAAAAASUVORK5CYII=
-</value>
-  </data>
 </root>

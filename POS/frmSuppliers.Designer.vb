@@ -22,7 +22,6 @@ Partial Class frmSuppliers
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
-        Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(frmSuppliers))
         Me.txtBoxPhone2 = New System.Windows.Forms.TextBox()
         Me.txtBoxPhone1 = New System.Windows.Forms.TextBox()
         Me.txtBoxName = New System.Windows.Forms.TextBox()
@@ -453,7 +452,7 @@ Partial Class frmSuppliers
         Me.btnDeleteSupplier.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
         Me.btnDeleteSupplier.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.btnDeleteSupplier.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.btnDeleteSupplier.Image = CType(resources.GetObject("btnDeleteSupplier.Image"), System.Drawing.Image)
+        Me.btnDeleteSupplier.Image = Global.POS.My.Resources.Resources.delete1
         Me.btnDeleteSupplier.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
         Me.btnDeleteSupplier.Location = New System.Drawing.Point(346, 643)
         Me.btnDeleteSupplier.Name = "btnDeleteSupplier"

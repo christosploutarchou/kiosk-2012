@@ -22,11 +22,11 @@ Partial Class frmUnlockUser
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
-        Me.lstBoxLockedUsers = New System.Windows.Forms.ListBox
-        Me.lstBoxUUIDS = New System.Windows.Forms.ListBox
-        Me.PrintDocument1 = New System.Drawing.Printing.PrintDocument
-        Me.btnExit = New System.Windows.Forms.Button
-        Me.btnUnlock = New System.Windows.Forms.Button
+        Me.lstBoxLockedUsers = New System.Windows.Forms.ListBox()
+        Me.lstBoxUUIDS = New System.Windows.Forms.ListBox()
+        Me.PrintDocument1 = New System.Drawing.Printing.PrintDocument()
+        Me.btnExit = New System.Windows.Forms.Button()
+        Me.btnUnlock = New System.Windows.Forms.Button()
         Me.SuspendLayout()
         '
         'lstBoxLockedUsers
@@ -57,7 +57,7 @@ Partial Class frmUnlockUser
         '
         Me.btnExit.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
         Me.btnExit.Font = New System.Drawing.Font("Segoe UI", 18.0!)
-        Me.btnExit.Image = Global.POS.My.Resources.Resources.Logout
+        Me.btnExit.Image = Global.POS.My.Resources.Resources._exit
         Me.btnExit.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
         Me.btnExit.Location = New System.Drawing.Point(312, 415)
         Me.btnExit.Name = "btnExit"
@@ -70,7 +70,7 @@ Partial Class frmUnlockUser
         '
         Me.btnUnlock.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
         Me.btnUnlock.Font = New System.Drawing.Font("Segoe UI", 18.0!)
-        Me.btnUnlock.Image = Global.POS.My.Resources.Resources.unlock
+        Me.btnUnlock.Image = Global.POS.My.Resources.Resources.unlock1
         Me.btnUnlock.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
         Me.btnUnlock.Location = New System.Drawing.Point(12, 21)
         Me.btnUnlock.Name = "btnUnlock"
@@ -84,7 +84,7 @@ Partial Class frmUnlockUser
         Me.AutoScaleDimensions = New System.Drawing.SizeF(12.0!, 30.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
-        Me.ClientSize = New System.Drawing.Size(492, 501)
+        Me.ClientSize = New System.Drawing.Size(482, 492)
         Me.Controls.Add(Me.btnUnlock)
         Me.Controls.Add(Me.btnExit)
         Me.Controls.Add(Me.lstBoxUUIDS)
@@ -93,8 +93,8 @@ Partial Class frmUnlockUser
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D
         Me.Margin = New System.Windows.Forms.Padding(5, 8, 5, 8)
         Me.MaximizeBox = False
-        Me.MaximumSize = New System.Drawing.Size(502, 530)
-        Me.MinimumSize = New System.Drawing.Size(502, 530)
+        Me.MaximumSize = New System.Drawing.Size(502, 535)
+        Me.MinimumSize = New System.Drawing.Size(502, 535)
         Me.Name = "frmUnlockUser"
         Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen
         Me.Text = "User Unlock"

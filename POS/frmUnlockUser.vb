@@ -1,4 +1,5 @@
-﻿Imports Oracle.DataAccess.Client
+﻿Imports System.Data.SQLite
+Imports Oracle.DataAccess.Client
 
 Public Class frmUnlockUser
 
@@ -15,32 +16,46 @@ Public Class frmUnlockUser
     End Sub
 
     Private Sub FillLists()
+        Dim WhoAmI As String = "frmUnlockUser.FillLists"
+        Dim sql As String = ""
         lstBoxLockedUsers.Items.Clear()
         lstBoxUUIDS.Items.Clear()
 
-        Try
-            Using cmd As New OracleCommand(GET_ACTIVE_USERS, conn)
-                cmd.CommandType = CommandType.Text
 
-                Using dr As OracleDataReader = cmd.ExecuteReader()
-                    While dr.Read()
-                        lstBoxLockedUsers.Items.Add(dr("username").ToString())
-                        lstBoxUUIDS.Items.Add(dr("user_id").ToString())
-                    End While
+        Try
+            If SqlLite Then
+                'TODO IMPLEMENT
+                Using conn As New SQLiteConnection("Data Source=kiosk.db")
+                    conn.Open()
+
                 End Using
-            End Using
+            Else
+                sql = "select user_id, username from sessions s " &
+                                        "inner join users u on u.uuid = s.user_id " &
+                                        "where is_active = 1"
+                Using cmd As New OracleCommand(sql, conn)
+                    cmd.CommandType = CommandType.Text
+
+                    Using dr As OracleDataReader = cmd.ExecuteReader()
+                        While dr.Read()
+                            lstBoxLockedUsers.Items.Add(dr("username").ToString())
+                            lstBoxUUIDS.Items.Add(dr("user_id").ToString())
+                        End While
+                    End Using
+                End Using
+            End If
         Catch ex As Exception
-            CreateExceptionFile(ex.Message, " " & GET_ACTIVE_USERS)
+            CreateExceptionFile(WhoAmI + " " + ex.Message, " " & sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
-
-    Private Sub frmUnlockUser_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
+    Private Sub FrmUnlockUser_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
         FillLists()
     End Sub
 
-    Private Sub btnUnlock_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnUnlock.Click
+    Private Sub BtnUnlock_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnUnlock.Click
+        'TODO IMPLEMENT
         If lstBoxLockedUsers.SelectedIndex = -1 Then
             Exit Sub
         End If
@@ -69,6 +84,7 @@ Public Class frmUnlockUser
     End Sub
 
     Private Sub PrintDocument1_PrintPage(ByVal sender As System.Object, ByVal e As System.Drawing.Printing.PrintPageEventArgs) Handles PrintDocument1.PrintPage
+        'TODO IMPLEMENT
         Dim headerFont As Font = New Drawing.Font(REPORT_FONT, 15, FontStyle.Bold)
         Dim reportFont As Font = New Drawing.Font(REPORT_FONT, 9)
         Dim reportFontSmall As Font = New Drawing.Font(REPORT_FONT, 9)

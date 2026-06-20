@@ -49,15 +49,12 @@ Partial Class frmPOS
         Me.btn9 = New System.Windows.Forms.Button()
         Me.btn8 = New System.Windows.Forms.Button()
         Me.txtBoxManualAmt = New System.Windows.Forms.TextBox()
-        Me.btnDiscount = New System.Windows.Forms.Button()
         Me.btnDiscountPercent = New System.Windows.Forms.Button()
         Me.txtBoxBarcode = New System.Windows.Forms.TextBox()
         Me.lblBarcode = New System.Windows.Forms.Label()
         Me.lblQuantity = New System.Windows.Forms.Label()
         Me.txtBoxQuantity = New System.Windows.Forms.TextBox()
         Me.Panel1 = New System.Windows.Forms.Panel()
-        Me.btnCancelPayment = New System.Windows.Forms.Button()
-        Me.btnCancelDiscount = New System.Windows.Forms.Button()
         Me.lblTotal = New System.Windows.Forms.Label()
         Me.txtBoxTotalWithDiscount = New System.Windows.Forms.TextBox()
         Me.txtBoxPaymentAmt = New System.Windows.Forms.TextBox()
@@ -99,6 +96,8 @@ Partial Class frmPOS
         Me.btnPos21 = New System.Windows.Forms.Button()
         Me.btnPos20 = New System.Windows.Forms.Button()
         Me.btnPos19 = New System.Windows.Forms.Button()
+        Me.Button1 = New System.Windows.Forms.Button()
+        Me.TextBox1 = New System.Windows.Forms.TextBox()
         Me.btnReceipts = New System.Windows.Forms.Button()
         Me.btnHold = New System.Windows.Forms.Button()
         Me.btnKronosSearch = New System.Windows.Forms.Button()
@@ -107,12 +106,13 @@ Partial Class frmPOS
         Me.btnClear = New System.Windows.Forms.Button()
         Me.btnPayment = New System.Windows.Forms.Button()
         Me.btnVisa = New System.Windows.Forms.Button()
+        Me.btnDiscount = New System.Windows.Forms.Button()
         Me.btnExit = New System.Windows.Forms.Button()
         Me.btnBackspace = New System.Windows.Forms.Button()
+        Me.btnCancelPayment = New System.Windows.Forms.Button()
+        Me.btnCancelDiscount = New System.Windows.Forms.Button()
         Me.btnRemoveQuantity = New System.Windows.Forms.Button()
         Me.btnAddQuantity = New System.Windows.Forms.Button()
-        Me.Button1 = New System.Windows.Forms.Button()
-        Me.TextBox1 = New System.Windows.Forms.TextBox()
         CType(Me.dgvReceipt, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.Panel1.SuspendLayout()
         Me.SuspendLayout()
@@ -371,18 +371,6 @@ Partial Class frmPOS
         Me.txtBoxManualAmt.Size = New System.Drawing.Size(193, 35)
         Me.txtBoxManualAmt.TabIndex = 54
         '
-        'btnDiscount
-        '
-        Me.btnDiscount.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
-        Me.btnDiscount.Font = New System.Drawing.Font("Segoe UI Semibold", 15.75!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.btnDiscount.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.btnDiscount.Location = New System.Drawing.Point(896, 468)
-        Me.btnDiscount.Name = "btnDiscount"
-        Me.btnDiscount.Size = New System.Drawing.Size(99, 52)
-        Me.btnDiscount.TabIndex = 57
-        Me.btnDiscount.Text = "Disc."
-        Me.btnDiscount.UseVisualStyleBackColor = False
-        '
         'btnDiscountPercent
         '
         Me.btnDiscountPercent.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
@@ -453,31 +441,6 @@ Partial Class frmPOS
         Me.Panel1.Name = "Panel1"
         Me.Panel1.Size = New System.Drawing.Size(291, 193)
         Me.Panel1.TabIndex = 68
-        '
-        'btnCancelPayment
-        '
-        Me.btnCancelPayment.BackgroundImage = Global.POS.My.Resources.Resources.cancel
-        Me.btnCancelPayment.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
-        Me.btnCancelPayment.Font = New System.Drawing.Font("Segoe UI Semibold", 15.75!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.btnCancelPayment.ForeColor = System.Drawing.Color.FromArgb(CType(CType(192, Byte), Integer), CType(CType(0, Byte), Integer), CType(CType(0, Byte), Integer))
-        Me.btnCancelPayment.Location = New System.Drawing.Point(236, 122)
-        Me.btnCancelPayment.Name = "btnCancelPayment"
-        Me.btnCancelPayment.Size = New System.Drawing.Size(52, 34)
-        Me.btnCancelPayment.TabIndex = 83
-        Me.btnCancelPayment.UseVisualStyleBackColor = True
-        '
-        'btnCancelDiscount
-        '
-        Me.btnCancelDiscount.BackgroundImage = Global.POS.My.Resources.Resources.cancel
-        Me.btnCancelDiscount.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
-        Me.btnCancelDiscount.Font = New System.Drawing.Font("Segoe UI Semibold", 15.75!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.btnCancelDiscount.ForeColor = System.Drawing.Color.FromArgb(CType(CType(192, Byte), Integer), CType(CType(0, Byte), Integer), CType(CType(0, Byte), Integer))
-        Me.btnCancelDiscount.Location = New System.Drawing.Point(236, 78)
-        Me.btnCancelDiscount.Name = "btnCancelDiscount"
-        Me.btnCancelDiscount.Size = New System.Drawing.Size(52, 34)
-        Me.btnCancelDiscount.TabIndex = 82
-        Me.btnCancelDiscount.TextAlign = System.Drawing.ContentAlignment.TopCenter
-        Me.btnCancelDiscount.UseVisualStyleBackColor = True
         '
         'lblTotal
         '
@@ -913,155 +876,6 @@ Partial Class frmPOS
         Me.btnPos19.UseVisualStyleBackColor = False
         Me.btnPos19.Visible = False
         '
-        'btnReceipts
-        '
-        Me.btnReceipts.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
-        Me.btnReceipts.Font = New System.Drawing.Font("Segoe UI", 15.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.btnReceipts.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.btnReceipts.Image = Global.POS.My.Resources.Resources.receipt
-        Me.btnReceipts.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
-        Me.btnReceipts.Location = New System.Drawing.Point(726, 8)
-        Me.btnReceipts.Name = "btnReceipts"
-        Me.btnReceipts.Size = New System.Drawing.Size(136, 60)
-        Me.btnReceipts.TabIndex = 87
-        Me.btnReceipts.Text = "Αποδειξεις"
-        Me.btnReceipts.UseVisualStyleBackColor = False
-        '
-        'btnHold
-        '
-        Me.btnHold.BackColor = System.Drawing.Color.LightGray
-        Me.btnHold.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
-        Me.btnHold.Font = New System.Drawing.Font("Segoe UI Semibold", 14.25!, System.Drawing.FontStyle.Bold)
-        Me.btnHold.Image = Global.POS.My.Resources.Resources.hold1
-        Me.btnHold.ImageAlign = System.Drawing.ContentAlignment.TopCenter
-        Me.btnHold.Location = New System.Drawing.Point(601, 651)
-        Me.btnHold.Name = "btnHold"
-        Me.btnHold.Size = New System.Drawing.Size(139, 52)
-        Me.btnHold.TabIndex = 85
-        Me.btnHold.Text = "Κράτημα"
-        Me.btnHold.TextAlign = System.Drawing.ContentAlignment.BottomCenter
-        Me.btnHold.UseVisualStyleBackColor = False
-        '
-        'btnKronosSearch
-        '
-        Me.btnKronosSearch.BackgroundImage = Global.POS.My.Resources.Resources.search
-        Me.btnKronosSearch.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
-        Me.btnKronosSearch.Font = New System.Drawing.Font("Segoe UI Semibold", 15.75!, System.Drawing.FontStyle.Bold)
-        Me.btnKronosSearch.Location = New System.Drawing.Point(385, 10)
-        Me.btnKronosSearch.Name = "btnKronosSearch"
-        Me.btnKronosSearch.Size = New System.Drawing.Size(41, 34)
-        Me.btnKronosSearch.TabIndex = 84
-        Me.btnKronosSearch.UseVisualStyleBackColor = True
-        '
-        'btnClearBarcode
-        '
-        Me.btnClearBarcode.BackgroundImage = Global.POS.My.Resources.Resources.undo
-        Me.btnClearBarcode.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
-        Me.btnClearBarcode.Font = New System.Drawing.Font("Segoe UI Semibold", 15.75!, System.Drawing.FontStyle.Bold)
-        Me.btnClearBarcode.Location = New System.Drawing.Point(341, 11)
-        Me.btnClearBarcode.Name = "btnClearBarcode"
-        Me.btnClearBarcode.Size = New System.Drawing.Size(38, 34)
-        Me.btnClearBarcode.TabIndex = 80
-        Me.btnClearBarcode.UseVisualStyleBackColor = True
-        '
-        'btnCash
-        '
-        Me.btnCash.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
-        Me.btnCash.BackgroundImage = Global.POS.My.Resources.Resources.currency_blue_euro
-        Me.btnCash.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
-        Me.btnCash.Font = New System.Drawing.Font("Segoe UI", 15.75!, CType((System.Drawing.FontStyle.Bold Or System.Drawing.FontStyle.Italic), System.Drawing.FontStyle), System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.btnCash.ForeColor = System.Drawing.SystemColors.ControlLightLight
-        Me.btnCash.Location = New System.Drawing.Point(801, 584)
-        Me.btnCash.Name = "btnCash"
-        Me.btnCash.Size = New System.Drawing.Size(193, 49)
-        Me.btnCash.TabIndex = 76
-        Me.btnCash.UseVisualStyleBackColor = False
-        '
-        'btnClear
-        '
-        Me.btnClear.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
-        Me.btnClear.Font = New System.Drawing.Font("Segoe UI Semibold", 15.75!, System.Drawing.FontStyle.Bold)
-        Me.btnClear.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.btnClear.Image = Global.POS.My.Resources.Resources.undo
-        Me.btnClear.ImageAlign = System.Drawing.ContentAlignment.TopCenter
-        Me.btnClear.Location = New System.Drawing.Point(896, 410)
-        Me.btnClear.Name = "btnClear"
-        Me.btnClear.Size = New System.Drawing.Size(99, 47)
-        Me.btnClear.TabIndex = 74
-        Me.btnClear.UseVisualStyleBackColor = False
-        '
-        'btnPayment
-        '
-        Me.btnPayment.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
-        Me.btnPayment.BackgroundImage = Global.POS.My.Resources.Resources.payment
-        Me.btnPayment.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center
-        Me.btnPayment.Font = New System.Drawing.Font("Segoe UI", 15.75!, CType((System.Drawing.FontStyle.Bold Or System.Drawing.FontStyle.Italic), System.Drawing.FontStyle), System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.btnPayment.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.btnPayment.Location = New System.Drawing.Point(801, 526)
-        Me.btnPayment.Name = "btnPayment"
-        Me.btnPayment.Size = New System.Drawing.Size(193, 52)
-        Me.btnPayment.TabIndex = 72
-        Me.btnPayment.UseVisualStyleBackColor = False
-        '
-        'btnVisa
-        '
-        Me.btnVisa.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
-        Me.btnVisa.BackgroundImage = Global.POS.My.Resources.Resources.credit_card_visa
-        Me.btnVisa.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
-        Me.btnVisa.Font = New System.Drawing.Font("Segoe UI", 15.75!, CType((System.Drawing.FontStyle.Bold Or System.Drawing.FontStyle.Italic), System.Drawing.FontStyle), System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.btnVisa.Location = New System.Drawing.Point(801, 467)
-        Me.btnVisa.Name = "btnVisa"
-        Me.btnVisa.Size = New System.Drawing.Size(89, 52)
-        Me.btnVisa.TabIndex = 58
-        Me.btnVisa.UseVisualStyleBackColor = False
-        '
-        'btnExit
-        '
-        Me.btnExit.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
-        Me.btnExit.Font = New System.Drawing.Font("Segoe UI", 15.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.btnExit.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.btnExit.Image = Global.POS.My.Resources.Resources.Logout
-        Me.btnExit.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
-        Me.btnExit.Location = New System.Drawing.Point(868, 8)
-        Me.btnExit.Name = "btnExit"
-        Me.btnExit.Size = New System.Drawing.Size(136, 60)
-        Me.btnExit.TabIndex = 70
-        Me.btnExit.Text = "        Έξοδος"
-        Me.btnExit.UseVisualStyleBackColor = False
-        '
-        'btnBackspace
-        '
-        Me.btnBackspace.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
-        Me.btnBackspace.Font = New System.Drawing.Font("Segoe UI Semibold", 15.75!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.btnBackspace.Image = Global.POS.My.Resources.Resources.back
-        Me.btnBackspace.Location = New System.Drawing.Point(801, 410)
-        Me.btnBackspace.Name = "btnBackspace"
-        Me.btnBackspace.Size = New System.Drawing.Size(89, 47)
-        Me.btnBackspace.TabIndex = 62
-        Me.btnBackspace.UseVisualStyleBackColor = False
-        '
-        'btnRemoveQuantity
-        '
-        Me.btnRemoveQuantity.BackgroundImage = Global.POS.My.Resources.Resources.minus
-        Me.btnRemoveQuantity.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
-        Me.btnRemoveQuantity.Font = New System.Drawing.Font("Segoe UI Semibold", 15.75!, System.Drawing.FontStyle.Bold)
-        Me.btnRemoveQuantity.Location = New System.Drawing.Point(668, 9)
-        Me.btnRemoveQuantity.Name = "btnRemoveQuantity"
-        Me.btnRemoveQuantity.Size = New System.Drawing.Size(41, 34)
-        Me.btnRemoveQuantity.TabIndex = 67
-        Me.btnRemoveQuantity.UseVisualStyleBackColor = True
-        '
-        'btnAddQuantity
-        '
-        Me.btnAddQuantity.BackgroundImage = Global.POS.My.Resources.Resources.add
-        Me.btnAddQuantity.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
-        Me.btnAddQuantity.Font = New System.Drawing.Font("Segoe UI Semibold", 15.75!, System.Drawing.FontStyle.Bold)
-        Me.btnAddQuantity.Location = New System.Drawing.Point(622, 10)
-        Me.btnAddQuantity.Name = "btnAddQuantity"
-        Me.btnAddQuantity.Size = New System.Drawing.Size(41, 34)
-        Me.btnAddQuantity.TabIndex = 66
-        Me.btnAddQuantity.UseVisualStyleBackColor = True
-        '
         'Button1
         '
         Me.Button1.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
@@ -1084,6 +898,192 @@ Partial Class frmPOS
         Me.TextBox1.ReadOnly = True
         Me.TextBox1.Size = New System.Drawing.Size(447, 104)
         Me.TextBox1.TabIndex = 112
+        '
+        'btnReceipts
+        '
+        Me.btnReceipts.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
+        Me.btnReceipts.Font = New System.Drawing.Font("Segoe UI", 15.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.btnReceipts.ForeColor = System.Drawing.SystemColors.ControlText
+        Me.btnReceipts.Image = Global.POS.My.Resources.Resources.receipts
+        Me.btnReceipts.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
+        Me.btnReceipts.Location = New System.Drawing.Point(726, 8)
+        Me.btnReceipts.Name = "btnReceipts"
+        Me.btnReceipts.Size = New System.Drawing.Size(136, 60)
+        Me.btnReceipts.TabIndex = 87
+        Me.btnReceipts.Text = "Αποδειξεις"
+        Me.btnReceipts.UseVisualStyleBackColor = False
+        '
+        'btnHold
+        '
+        Me.btnHold.BackColor = System.Drawing.Color.LightGray
+        Me.btnHold.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
+        Me.btnHold.Font = New System.Drawing.Font("Segoe UI Semibold", 14.25!, System.Drawing.FontStyle.Bold)
+        Me.btnHold.Image = Global.POS.My.Resources.Resources.wait_hold
+        Me.btnHold.ImageAlign = System.Drawing.ContentAlignment.TopLeft
+        Me.btnHold.Location = New System.Drawing.Point(601, 651)
+        Me.btnHold.Name = "btnHold"
+        Me.btnHold.Size = New System.Drawing.Size(139, 52)
+        Me.btnHold.TabIndex = 85
+        Me.btnHold.Text = "Κράτημα"
+        Me.btnHold.TextAlign = System.Drawing.ContentAlignment.MiddleRight
+        Me.btnHold.UseVisualStyleBackColor = False
+        '
+        'btnKronosSearch
+        '
+        Me.btnKronosSearch.BackgroundImage = Global.POS.My.Resources.Resources.search1
+        Me.btnKronosSearch.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
+        Me.btnKronosSearch.Font = New System.Drawing.Font("Segoe UI Semibold", 15.75!, System.Drawing.FontStyle.Bold)
+        Me.btnKronosSearch.Location = New System.Drawing.Point(385, 11)
+        Me.btnKronosSearch.Name = "btnKronosSearch"
+        Me.btnKronosSearch.Size = New System.Drawing.Size(38, 34)
+        Me.btnKronosSearch.TabIndex = 84
+        Me.btnKronosSearch.UseVisualStyleBackColor = True
+        '
+        'btnClearBarcode
+        '
+        Me.btnClearBarcode.BackgroundImage = Global.POS.My.Resources.Resources.reset
+        Me.btnClearBarcode.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
+        Me.btnClearBarcode.Font = New System.Drawing.Font("Segoe UI Semibold", 15.75!, System.Drawing.FontStyle.Bold)
+        Me.btnClearBarcode.Location = New System.Drawing.Point(341, 11)
+        Me.btnClearBarcode.Name = "btnClearBarcode"
+        Me.btnClearBarcode.Size = New System.Drawing.Size(38, 34)
+        Me.btnClearBarcode.TabIndex = 80
+        Me.btnClearBarcode.UseVisualStyleBackColor = True
+        '
+        'btnCash
+        '
+        Me.btnCash.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
+        Me.btnCash.BackgroundImage = Global.POS.My.Resources.Resources.cash1
+        Me.btnCash.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center
+        Me.btnCash.Font = New System.Drawing.Font("Segoe UI", 15.75!, CType((System.Drawing.FontStyle.Bold Or System.Drawing.FontStyle.Italic), System.Drawing.FontStyle), System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.btnCash.ForeColor = System.Drawing.SystemColors.ControlLightLight
+        Me.btnCash.Location = New System.Drawing.Point(801, 584)
+        Me.btnCash.Name = "btnCash"
+        Me.btnCash.Size = New System.Drawing.Size(193, 49)
+        Me.btnCash.TabIndex = 76
+        Me.btnCash.UseVisualStyleBackColor = False
+        '
+        'btnClear
+        '
+        Me.btnClear.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
+        Me.btnClear.Font = New System.Drawing.Font("Segoe UI Semibold", 15.75!, System.Drawing.FontStyle.Bold)
+        Me.btnClear.ForeColor = System.Drawing.SystemColors.ControlText
+        Me.btnClear.Image = Global.POS.My.Resources.Resources.reset
+        Me.btnClear.ImageAlign = System.Drawing.ContentAlignment.TopCenter
+        Me.btnClear.Location = New System.Drawing.Point(896, 410)
+        Me.btnClear.Name = "btnClear"
+        Me.btnClear.Size = New System.Drawing.Size(99, 47)
+        Me.btnClear.TabIndex = 74
+        Me.btnClear.UseVisualStyleBackColor = False
+        '
+        'btnPayment
+        '
+        Me.btnPayment.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
+        Me.btnPayment.BackgroundImage = Global.POS.My.Resources.Resources.payment1
+        Me.btnPayment.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center
+        Me.btnPayment.Font = New System.Drawing.Font("Segoe UI", 15.75!, CType((System.Drawing.FontStyle.Bold Or System.Drawing.FontStyle.Italic), System.Drawing.FontStyle), System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.btnPayment.ForeColor = System.Drawing.SystemColors.ControlText
+        Me.btnPayment.Location = New System.Drawing.Point(801, 526)
+        Me.btnPayment.Name = "btnPayment"
+        Me.btnPayment.Size = New System.Drawing.Size(193, 52)
+        Me.btnPayment.TabIndex = 72
+        Me.btnPayment.UseVisualStyleBackColor = False
+        '
+        'btnVisa
+        '
+        Me.btnVisa.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
+        Me.btnVisa.BackgroundImage = Global.POS.My.Resources.Resources.card
+        Me.btnVisa.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center
+        Me.btnVisa.Font = New System.Drawing.Font("Segoe UI", 15.75!, CType((System.Drawing.FontStyle.Bold Or System.Drawing.FontStyle.Italic), System.Drawing.FontStyle), System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.btnVisa.Location = New System.Drawing.Point(801, 467)
+        Me.btnVisa.Name = "btnVisa"
+        Me.btnVisa.Size = New System.Drawing.Size(89, 52)
+        Me.btnVisa.TabIndex = 58
+        Me.btnVisa.UseVisualStyleBackColor = False
+        '
+        'btnDiscount
+        '
+        Me.btnDiscount.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
+        Me.btnDiscount.Font = New System.Drawing.Font("Segoe UI Semibold", 15.75!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.btnDiscount.ForeColor = System.Drawing.SystemColors.ControlText
+        Me.btnDiscount.Image = Global.POS.My.Resources.Resources.discount
+        Me.btnDiscount.Location = New System.Drawing.Point(896, 468)
+        Me.btnDiscount.Name = "btnDiscount"
+        Me.btnDiscount.Size = New System.Drawing.Size(99, 52)
+        Me.btnDiscount.TabIndex = 57
+        Me.btnDiscount.UseVisualStyleBackColor = False
+        '
+        'btnExit
+        '
+        Me.btnExit.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
+        Me.btnExit.Font = New System.Drawing.Font("Segoe UI", 15.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.btnExit.ForeColor = System.Drawing.SystemColors.ControlText
+        Me.btnExit.Image = Global.POS.My.Resources.Resources._exit
+        Me.btnExit.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
+        Me.btnExit.Location = New System.Drawing.Point(868, 8)
+        Me.btnExit.Name = "btnExit"
+        Me.btnExit.Size = New System.Drawing.Size(136, 60)
+        Me.btnExit.TabIndex = 70
+        Me.btnExit.Text = "        Έξοδος"
+        Me.btnExit.UseVisualStyleBackColor = False
+        '
+        'btnBackspace
+        '
+        Me.btnBackspace.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
+        Me.btnBackspace.Font = New System.Drawing.Font("Segoe UI Semibold", 15.75!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.btnBackspace.Image = Global.POS.My.Resources.Resources.back1
+        Me.btnBackspace.Location = New System.Drawing.Point(801, 410)
+        Me.btnBackspace.Name = "btnBackspace"
+        Me.btnBackspace.Size = New System.Drawing.Size(89, 47)
+        Me.btnBackspace.TabIndex = 62
+        Me.btnBackspace.UseVisualStyleBackColor = False
+        '
+        'btnCancelPayment
+        '
+        Me.btnCancelPayment.BackgroundImage = Global.POS.My.Resources.Resources.cancel
+        Me.btnCancelPayment.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
+        Me.btnCancelPayment.Font = New System.Drawing.Font("Segoe UI Semibold", 15.75!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.btnCancelPayment.ForeColor = System.Drawing.Color.FromArgb(CType(CType(192, Byte), Integer), CType(CType(0, Byte), Integer), CType(CType(0, Byte), Integer))
+        Me.btnCancelPayment.Location = New System.Drawing.Point(236, 122)
+        Me.btnCancelPayment.Name = "btnCancelPayment"
+        Me.btnCancelPayment.Size = New System.Drawing.Size(52, 34)
+        Me.btnCancelPayment.TabIndex = 83
+        Me.btnCancelPayment.UseVisualStyleBackColor = True
+        '
+        'btnCancelDiscount
+        '
+        Me.btnCancelDiscount.BackgroundImage = Global.POS.My.Resources.Resources.cancel
+        Me.btnCancelDiscount.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
+        Me.btnCancelDiscount.Font = New System.Drawing.Font("Segoe UI Semibold", 15.75!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.btnCancelDiscount.ForeColor = System.Drawing.Color.FromArgb(CType(CType(192, Byte), Integer), CType(CType(0, Byte), Integer), CType(CType(0, Byte), Integer))
+        Me.btnCancelDiscount.Location = New System.Drawing.Point(236, 78)
+        Me.btnCancelDiscount.Name = "btnCancelDiscount"
+        Me.btnCancelDiscount.Size = New System.Drawing.Size(52, 34)
+        Me.btnCancelDiscount.TabIndex = 82
+        Me.btnCancelDiscount.TextAlign = System.Drawing.ContentAlignment.TopCenter
+        Me.btnCancelDiscount.UseVisualStyleBackColor = True
+        '
+        'btnRemoveQuantity
+        '
+        Me.btnRemoveQuantity.BackgroundImage = Global.POS.My.Resources.Resources.minus
+        Me.btnRemoveQuantity.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
+        Me.btnRemoveQuantity.Font = New System.Drawing.Font("Segoe UI Semibold", 15.75!, System.Drawing.FontStyle.Bold)
+        Me.btnRemoveQuantity.Location = New System.Drawing.Point(668, 9)
+        Me.btnRemoveQuantity.Name = "btnRemoveQuantity"
+        Me.btnRemoveQuantity.Size = New System.Drawing.Size(41, 34)
+        Me.btnRemoveQuantity.TabIndex = 67
+        Me.btnRemoveQuantity.UseVisualStyleBackColor = True
+        '
+        'btnAddQuantity
+        '
+        Me.btnAddQuantity.BackgroundImage = Global.POS.My.Resources.Resources.add
+        Me.btnAddQuantity.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
+        Me.btnAddQuantity.Font = New System.Drawing.Font("Segoe UI Semibold", 15.75!, System.Drawing.FontStyle.Bold)
+        Me.btnAddQuantity.Location = New System.Drawing.Point(622, 10)
+        Me.btnAddQuantity.Name = "btnAddQuantity"
+        Me.btnAddQuantity.Size = New System.Drawing.Size(41, 34)
+        Me.btnAddQuantity.TabIndex = 66
+        Me.btnAddQuantity.UseVisualStyleBackColor = True
         '
         'frmPOS
         '

@@ -1,20 +1,21 @@
-﻿Imports Oracle.DataAccess.Client
+﻿Imports System.Data.SQLite
+Imports Oracle.DataAccess.Client
 Public Class frmPosButtonModal
     Dim tableIndex As String = ""
 
-    Private Sub btnExit_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnExit.Click
+    Private Sub BtnExit_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnExit.Click
         Me.Dispose()
     End Sub
 
-    Private Sub frmNewProduct_Disposed(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Disposed
+    Private Sub FrmNewProduct_Disposed(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Disposed
         Me.Dispose()
     End Sub
 
-    Private Sub frmNewProduct_FormClosed(ByVal sender As Object, ByVal e As System.Windows.Forms.FormClosedEventArgs) Handles Me.FormClosed
+    Private Sub FrmNewProduct_FormClosed(ByVal sender As Object, ByVal e As System.Windows.Forms.FormClosedEventArgs) Handles Me.FormClosed
         Me.Dispose()
     End Sub
 
-    Private Sub btnSave_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnSave.Click
+    Private Sub BtnSave_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnSave.Click
         Dim sql As String = ""
         Dim cmd As New OracleCommand(sql, conn)
         Dim dr As OracleDataReader
@@ -40,50 +41,61 @@ Public Class frmPosButtonModal
         If chkBoxVisibleOnPOS.Checked Then
             isVisible = 1
         End If
-        Try
-            sql = "select count(*) from BTN_POS" + tableIndex
-            cmd = New OracleCommand(sql, conn)
-            cmd.CommandType = CommandType.Text
-            dr = cmd.ExecuteReader()
-            If dr.Read() Then
-                If CInt(dr(0)) = 0 Then
-                    'First setup, insert
-                    sql = "Insert into BTN_POS" + tableIndex + " (DISP_NAME, IS_VISIBLE) " & _
-                          "Values ('" & txtBoxButtonName.Text.Replace("'", "`") & "'," & isVisible & ")"
-                Else
-                    sql = "Update BTN_POS" + tableIndex + " Set " & _
-                          "DISP_NAME = '" & txtBoxButtonName.Text.Replace("'", "`") & "', " & _
-                          "IS_VISIBLE = " & isVisible & " "
+        If SqlLite Then
+            Using conn As New SQLiteConnection("Data Source=kiosk.db")
+                conn.Open()
+                'TODO IMPLEMENT
+            End Using
+        Else
+            Try
+                sql = "select count(*) from BTN_POS" + tableIndex
+                cmd = New OracleCommand(sql, conn)
+                cmd.CommandType = CommandType.Text
+                dr = cmd.ExecuteReader()
+                If dr.Read() Then
+                    If CInt(dr(0)) = 0 Then
+                        'First setup, insert
+                        sql = "Insert into BTN_POS" + tableIndex + " (DISP_NAME, IS_VISIBLE) " &
+                              "Values ('" & txtBoxButtonName.Text.Replace("'", "`") & "'," & isVisible & ")"
+                    Else
+                        sql = "Update BTN_POS" + tableIndex + " Set " &
+                              "DISP_NAME = '" & txtBoxButtonName.Text.Replace("'", "`") & "', " &
+                              "IS_VISIBLE = " & isVisible & " "
+                    End If
+                    cmd = New OracleCommand(sql, conn)
+                    cmd.CommandType = CommandType.Text
+                    Using cmd
+                        cmd.ExecuteNonQuery()
+                    End Using
                 End If
+
+                sql = "delete from BTN_POS" + tableIndex + "_DET"
                 cmd = New OracleCommand(sql, conn)
                 cmd.CommandType = CommandType.Text
-                Using cmd                    cmd.ExecuteNonQuery()                End Using
-            End If
+                cmd.ExecuteNonQuery()
 
-            sql = "delete from BTN_POS" + tableIndex + "_DET"
-            cmd = New OracleCommand(sql, conn)
-            cmd.CommandType = CommandType.Text
-            cmd.ExecuteNonQuery()
-
-            For i = 0 To dgvLinkedProducts.Rows.Count - 1
-                sql = "insert into BTN_POS" + tableIndex + "_DET (seqno, product_serno, DISPLAY_DESC) " & _
-                      "values (" & i & ", " & dgvLinkedProducts.Rows(i).Cells("productSerno").Value & ", " & _
-                      "'" & dgvLinkedProducts.Rows(i).Cells("posDescription").Value & "')"
-                cmd = New OracleCommand(sql, conn)
-                cmd.CommandType = CommandType.Text
-                Using cmd                    cmd.ExecuteNonQuery()                End Using
-            Next
-            dr.Close()
-        Catch ex As Exception
-            createExceptionFile(ex.Message, sql)
-            MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
-            cmd.Dispose()
-        End Try
+                For i = 0 To dgvLinkedProducts.Rows.Count - 1
+                    sql = "insert into BTN_POS" + tableIndex + "_DET (seqno, product_serno, DISPLAY_DESC) " &
+                          "values (" & i & ", " & dgvLinkedProducts.Rows(i).Cells("productSerno").Value & ", " &
+                          "'" & dgvLinkedProducts.Rows(i).Cells("posDescription").Value & "')"
+                    cmd = New OracleCommand(sql, conn)
+                    cmd.CommandType = CommandType.Text
+                    Using cmd
+                        cmd.ExecuteNonQuery()
+                    End Using
+                Next
+                dr.Close()
+            Catch ex As Exception
+                CreateExceptionFile(ex.Message, sql)
+                MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Finally
+                cmd.Dispose()
+            End Try
+        End If
         Me.Dispose()
     End Sub
 
-    Private Sub lnkLblBarcodes_LinkClicked(ByVal sender As System.Object, ByVal e As System.Windows.Forms.LinkLabelLinkClickedEventArgs) Handles lnkLblBarcodes.LinkClicked
+    Private Sub LnkLblBarcodes_LinkClicked(ByVal sender As System.Object, ByVal e As System.Windows.Forms.LinkLabelLinkClickedEventArgs) Handles lnkLblBarcodes.LinkClicked
         If dgvLinkedProducts.Rows.Count = 10 Then
             MessageBox.Show("Δεν μπορείτε να συνδέσετε περισσότερα από 10 προϊόντα ανά κουμπί")
             Exit Sub
@@ -102,70 +114,87 @@ Public Class frmPosButtonModal
         Dim sql As String = ""
         Dim cmd As New OracleCommand(sql, conn)
         Dim dr As OracleDataReader
-        Try
-            sql = "select product_serno, description " & _
-                  "from barcodes b " & _
-                  "inner join products p on p.serno = b.product_serno " & _
-                  "where UPPER(barcode) = '" & newBarcode.ToUpper & "'"
-            cmd = New OracleCommand(sql, conn)
-            cmd.CommandType = CommandType.Text
-            dr = cmd.ExecuteReader()
-            If dr.Read() Then
-                For i = 0 To dgvLinkedProducts.Rows.Count - 1
-                    If CInt(dgvLinkedProducts.Rows(i).Cells("productSerno").Value) = CInt(dr(0)) Then
-                        MessageBox.Show("Το προϊόν είναι ήδη συνδεμένο με του κουμπί", "Καταχώρηση Barcode/Προϊόντος", MessageBoxButtons.OK, MessageBoxIcon.Stop)
-                        Exit Sub
-                    End If
-                Next
-                Dim row As String() = New String() {dr(0), dr(1), dr(1)}
-                dgvLinkedProducts.Rows.Add(row)
-            Else
-                MessageBox.Show("Το barcode δεν είναι καταχωρημένο στην διαχείρηση προϊόντων")
-            End If
-            dr.Close()
-        Catch ex As Exception
-        Finally
-            cmd.Dispose()
-        End Try
-    End Sub
 
-    Private Sub btnClear_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnDelete.Click
-        If MessageBox.Show("Να διαγραφεί το κουμπί;", "Διαγραφή Κουμπιού", MessageBoxButtons.YesNo) = Windows.Forms.DialogResult.Yes Then
-            Dim sql As String = ""
-            Dim cmd = New OracleCommand("", conn)
+        If SqlLite Then
+            'TODO IMPLEMENT
+            Using conn As New SQLiteConnection("Data Source=kiosk.db")
+                conn.Open()
+            End Using
+        Else
             Try
-                sql = "delete from BTN_POS" + tableIndex + "_DET"
+                sql = "select product_serno, description " &
+                      "from barcodes b " &
+                      "inner join products p on p.serno = b.product_serno " &
+                      "where UPPER(barcode) = '" & newBarcode.ToUpper & "'"
                 cmd = New OracleCommand(sql, conn)
                 cmd.CommandType = CommandType.Text
-                cmd.ExecuteNonQuery()
-                sql = "delete from BTN_POS" + tableIndex
-                cmd = New OracleCommand(sql, conn)
-                cmd.CommandType = CommandType.Text
-                cmd.ExecuteNonQuery()
-                cmd.Dispose()
-                Me.Dispose()
+                dr = cmd.ExecuteReader()
+                If dr.Read() Then
+                    For i = 0 To dgvLinkedProducts.Rows.Count - 1
+                        If CInt(dgvLinkedProducts.Rows(i).Cells("productSerno").Value) = CInt(dr(0)) Then
+                            MessageBox.Show("Το προϊόν είναι ήδη συνδεμένο με του κουμπί", "Καταχώρηση Barcode/Προϊόντος", MessageBoxButtons.OK, MessageBoxIcon.Stop)
+                            Exit Sub
+                        End If
+                    Next
+                    Dim row As String() = New String() {dr(0), dr(1), dr(1)}
+                    dgvLinkedProducts.Rows.Add(row)
+                Else
+                    MessageBox.Show("Το barcode δεν είναι καταχωρημένο στην διαχείρηση προϊόντων")
+                End If
+                dr.Close()
             Catch ex As Exception
-                MessageBox.Show(ex.Message + sql, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Finally
+                cmd.Dispose()
             End Try
         End If
     End Sub
 
-    Private Sub txtBoxSearchBox_MouseEnter(ByVal sender As Object, ByVal e As System.EventArgs) Handles txtBoxButtonName.MouseEnter
+    Private Sub BtnClear_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnDelete.Click
+        If MessageBox.Show("Να διαγραφεί το κουμπί;", "Διαγραφή Κουμπιού", MessageBoxButtons.YesNo) = Windows.Forms.DialogResult.Yes Then
+            Dim sql As String = ""
+            Dim cmd = New OracleCommand("", conn)
+
+            If SqlLite Then
+                'TODO IMPLEMENT
+                Using conn As New SQLiteConnection("Data Source=kiosk.db")
+                    conn.Open()
+                End Using
+            Else
+                Try
+                    sql = "delete from BTN_POS" + tableIndex + "_DET"
+                    cmd = New OracleCommand(sql, conn)
+                    cmd.CommandType = CommandType.Text
+                    cmd.ExecuteNonQuery()
+                    sql = "delete from BTN_POS" + tableIndex
+                    cmd = New OracleCommand(sql, conn)
+                    cmd.CommandType = CommandType.Text
+                    cmd.ExecuteNonQuery()
+                    cmd.Dispose()
+                    Me.Dispose()
+                Catch ex As Exception
+                    MessageBox.Show(ex.Message + sql, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                End Try
+            End If
+
+        End If
+    End Sub
+
+    Private Sub TxtBoxSearchBox_MouseEnter(ByVal sender As Object, ByVal e As System.EventArgs) Handles txtBoxButtonName.MouseEnter
         txtBoxButtonName.BackColor = Color.Bisque
     End Sub
 
-    Private Sub txtBoxSearchBox_MouseLeave(ByVal sender As Object, ByVal e As System.EventArgs) Handles txtBoxButtonName.MouseLeave
+    Private Sub TxtBoxSearchBox_MouseLeave(ByVal sender As Object, ByVal e As System.EventArgs) Handles txtBoxButtonName.MouseLeave
         txtBoxButtonName.BackColor = Color.LemonChiffon
     End Sub
 
-    Private Sub frmProducts_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
+    Private Sub FrmProducts_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
         setCurrentTableIndex()
         loadButtonDetails()
     End Sub
 
-    Private Sub setCurrentTableIndex()
-        If currentBtnPosEdit.Equals("btnPos1") Or currentBtnPosEdit.Equals("btnPos2") Or currentBtnPosEdit.Equals("btnPos3") Or _
-           currentBtnPosEdit.Equals("btnPos4") Or currentBtnPosEdit.Equals("btnPos5") Or currentBtnPosEdit.Equals("btnPos6") Or _
+    Private Sub SetCurrentTableIndex()
+        If currentBtnPosEdit.Equals("btnPos1") Or currentBtnPosEdit.Equals("btnPos2") Or currentBtnPosEdit.Equals("btnPos3") Or
+           currentBtnPosEdit.Equals("btnPos4") Or currentBtnPosEdit.Equals("btnPos5") Or currentBtnPosEdit.Equals("btnPos6") Or
            currentBtnPosEdit.Equals("btnPos7") Or currentBtnPosEdit.Equals("btnPos8") Or currentBtnPosEdit.Equals("btnPos9") Then
             tableIndex = currentBtnPosEdit.Substring(6, 1)
         Else
@@ -173,45 +202,53 @@ Public Class frmPosButtonModal
         End If
     End Sub
 
-    Private Sub loadButtonDetails()
+    Private Sub LoadButtonDetails()
         Dim sql As String = ""
         Dim cmd As New OracleCommand("", conn)
         Dim dr As OracleDataReader
         dgvLinkedProducts.Rows.Clear()
         txtBoxButtonName.Clear()
         chkBoxVisibleOnPOS.Checked = False
-        Try
-            sql = "select * from BTN_POS" + tableIndex
-            cmd = New OracleCommand(sql, conn)
-            cmd.CommandType = CommandType.Text
-            dr = cmd.ExecuteReader()
-            If dr.Read() Then
-                txtBoxButtonName.Text = CStr(dr(0))
-                If CInt(dr(1)) = 1 Then
-                    chkBoxVisibleOnPOS.Checked = True
-                Else
-                    chkBoxVisibleOnPOS.Checked = False
-                End If
 
-                sql = "select product_serno, description, display_desc  " & _
-                      "from BTN_POS" + tableIndex + "_DET b " & _
-                      "inner join products p on p.serno = b.product_serno " & _
-                      "order by nvl(seqno, -1)"
+        If SqlLite Then
+            'TODO IMPLEMENT
+            Using conn As New SQLiteConnection("Data Source=kiosk.db")
+                conn.Open()
+            End Using
+        Else
+            Try
+                sql = "select * from BTN_POS" + tableIndex
                 cmd = New OracleCommand(sql, conn)
                 cmd.CommandType = CommandType.Text
                 dr = cmd.ExecuteReader()
-                While dr.Read()
-                    Dim row As String() = New String() {dr(0), dr(1), dr(2)}
-                    dgvLinkedProducts.Rows.Add(row)
-                End While
-            End If
-            dr.Close()
-        Catch ex As Exception
-            createExceptionFile(ex.Message, sql)
-            MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
-            cmd.Dispose()
-        End Try
+                If dr.Read() Then
+                    txtBoxButtonName.Text = CStr(dr(0))
+                    If CInt(dr(1)) = 1 Then
+                        chkBoxVisibleOnPOS.Checked = True
+                    Else
+                        chkBoxVisibleOnPOS.Checked = False
+                    End If
+
+                    sql = "select product_serno, description, display_desc  " &
+                          "from BTN_POS" + tableIndex + "_DET b " &
+                          "inner join products p on p.serno = b.product_serno " &
+                          "order by nvl(seqno, -1)"
+                    cmd = New OracleCommand(sql, conn)
+                    cmd.CommandType = CommandType.Text
+                    dr = cmd.ExecuteReader()
+                    While dr.Read()
+                        Dim row As String() = New String() {dr(0), dr(1), dr(2)}
+                        dgvLinkedProducts.Rows.Add(row)
+                    End While
+                End If
+                dr.Close()
+            Catch ex As Exception
+                CreateExceptionFile(ex.Message, sql)
+                MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Finally
+                cmd.Dispose()
+            End Try
+        End If
     End Sub
 
     Private Sub dgvLinkedProducts_CellClick(ByVal sender As System.Object, ByVal e As System.Windows.Forms.DataGridViewCellEventArgs) Handles dgvLinkedProducts.CellClick
@@ -219,7 +256,6 @@ Public Class frmPosButtonModal
         Try
             index = dgvLinkedProducts.SelectedRows.Item(0).Index
         Catch ex As Exception
-            index = -1
             Exit Sub
         End Try
 

@@ -22,32 +22,32 @@ Partial Class frmNewUser
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
-        Me.lstBoxUsers = New System.Windows.Forms.ListBox
-        Me.GroupBox1 = New System.Windows.Forms.GroupBox
-        Me.rdbExisting = New System.Windows.Forms.RadioButton
-        Me.rdbNewUser = New System.Windows.Forms.RadioButton
-        Me.lblFullName = New System.Windows.Forms.Label
-        Me.lblPhone = New System.Windows.Forms.Label
-        Me.lblAddress = New System.Windows.Forms.Label
-        Me.lblIdentity = New System.Windows.Forms.Label
-        Me.lblUsername = New System.Windows.Forms.Label
-        Me.lblPassword = New System.Windows.Forms.Label
-        Me.txtBoxFullName = New System.Windows.Forms.TextBox
-        Me.txtBoxPhone = New System.Windows.Forms.TextBox
-        Me.txtBoxAddress = New System.Windows.Forms.TextBox
-        Me.txtBoxIdentity = New System.Windows.Forms.TextBox
-        Me.txtBoxUsername = New System.Windows.Forms.TextBox
-        Me.txtBoxPassword = New System.Windows.Forms.TextBox
-        Me.lnkLabelChangePass = New System.Windows.Forms.LinkLabel
-        Me.chkBoxAdmin = New System.Windows.Forms.CheckBox
-        Me.lblNewPassword = New System.Windows.Forms.Label
-        Me.btnDelete = New System.Windows.Forms.Button
-        Me.cmdExit = New System.Windows.Forms.Button
-        Me.btnSave = New System.Windows.Forms.Button
-        Me.btnClear = New System.Windows.Forms.Button
-        Me.chkBoxReports = New System.Windows.Forms.CheckBox
-        Me.chkBoxEditProd = New System.Windows.Forms.CheckBox
-        Me.chkBoxEditProdFull = New System.Windows.Forms.CheckBox
+        Me.lstBoxUsers = New System.Windows.Forms.ListBox()
+        Me.GroupBox1 = New System.Windows.Forms.GroupBox()
+        Me.rdbExisting = New System.Windows.Forms.RadioButton()
+        Me.rdbNewUser = New System.Windows.Forms.RadioButton()
+        Me.lblFullName = New System.Windows.Forms.Label()
+        Me.lblPhone = New System.Windows.Forms.Label()
+        Me.lblAddress = New System.Windows.Forms.Label()
+        Me.lblIdentity = New System.Windows.Forms.Label()
+        Me.lblUsername = New System.Windows.Forms.Label()
+        Me.lblPassword = New System.Windows.Forms.Label()
+        Me.txtBoxFullName = New System.Windows.Forms.TextBox()
+        Me.txtBoxPhone = New System.Windows.Forms.TextBox()
+        Me.txtBoxAddress = New System.Windows.Forms.TextBox()
+        Me.txtBoxIdentity = New System.Windows.Forms.TextBox()
+        Me.txtBoxUsername = New System.Windows.Forms.TextBox()
+        Me.txtBoxPassword = New System.Windows.Forms.TextBox()
+        Me.lnkLabelChangePass = New System.Windows.Forms.LinkLabel()
+        Me.chkBoxAdmin = New System.Windows.Forms.CheckBox()
+        Me.lblNewPassword = New System.Windows.Forms.Label()
+        Me.chkBoxReports = New System.Windows.Forms.CheckBox()
+        Me.chkBoxEditProd = New System.Windows.Forms.CheckBox()
+        Me.chkBoxEditProdFull = New System.Windows.Forms.CheckBox()
+        Me.btnClear = New System.Windows.Forms.Button()
+        Me.btnDelete = New System.Windows.Forms.Button()
+        Me.cmdExit = New System.Windows.Forms.Button()
+        Me.btnSave = New System.Windows.Forms.Button()
         Me.GroupBox1.SuspendLayout()
         Me.SuspendLayout()
         '
@@ -78,7 +78,7 @@ Partial Class frmNewUser
         Me.rdbExisting.AutoSize = True
         Me.rdbExisting.Location = New System.Drawing.Point(6, 81)
         Me.rdbExisting.Name = "rdbExisting"
-        Me.rdbExisting.Size = New System.Drawing.Size(318, 36)
+        Me.rdbExisting.Size = New System.Drawing.Size(317, 36)
         Me.rdbExisting.TabIndex = 2
         Me.rdbExisting.TabStop = True
         Me.rdbExisting.Text = "Επεξεργασία Υφιστάμενου"
@@ -90,7 +90,7 @@ Partial Class frmNewUser
         Me.rdbNewUser.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.rdbNewUser.Location = New System.Drawing.Point(6, 39)
         Me.rdbNewUser.Name = "rdbNewUser"
-        Me.rdbNewUser.Size = New System.Drawing.Size(219, 36)
+        Me.rdbNewUser.Size = New System.Drawing.Size(218, 36)
         Me.rdbNewUser.TabIndex = 1
         Me.rdbNewUser.TabStop = True
         Me.rdbNewUser.Text = "Δημιουργία Νέου"
@@ -102,7 +102,7 @@ Partial Class frmNewUser
         Me.lblFullName.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.lblFullName.Location = New System.Drawing.Point(15, 180)
         Me.lblFullName.Name = "lblFullName"
-        Me.lblFullName.Size = New System.Drawing.Size(200, 32)
+        Me.lblFullName.Size = New System.Drawing.Size(199, 32)
         Me.lblFullName.TabIndex = 2
         Me.lblFullName.Text = "Ονοματεπώνυμο"
         '
@@ -112,7 +112,7 @@ Partial Class frmNewUser
         Me.lblPhone.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.lblPhone.Location = New System.Drawing.Point(15, 226)
         Me.lblPhone.Name = "lblPhone"
-        Me.lblPhone.Size = New System.Drawing.Size(128, 32)
+        Me.lblPhone.Size = New System.Drawing.Size(127, 32)
         Me.lblPhone.TabIndex = 3
         Me.lblPhone.Text = "Τηλέφωνο"
         '
@@ -122,7 +122,7 @@ Partial Class frmNewUser
         Me.lblAddress.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.lblAddress.Location = New System.Drawing.Point(15, 276)
         Me.lblAddress.Name = "lblAddress"
-        Me.lblAddress.Size = New System.Drawing.Size(128, 32)
+        Me.lblAddress.Size = New System.Drawing.Size(127, 32)
         Me.lblAddress.TabIndex = 4
         Me.lblAddress.Text = "Διεύθυνση"
         '
@@ -132,7 +132,7 @@ Partial Class frmNewUser
         Me.lblIdentity.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.lblIdentity.Location = New System.Drawing.Point(15, 322)
         Me.lblIdentity.Name = "lblIdentity"
-        Me.lblIdentity.Size = New System.Drawing.Size(135, 32)
+        Me.lblIdentity.Size = New System.Drawing.Size(134, 32)
         Me.lblIdentity.TabIndex = 5
         Me.lblIdentity.Text = "Ταυτότητα"
         '
@@ -142,7 +142,7 @@ Partial Class frmNewUser
         Me.lblUsername.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.lblUsername.Location = New System.Drawing.Point(12, 368)
         Me.lblUsername.Name = "lblUsername"
-        Me.lblUsername.Size = New System.Drawing.Size(178, 32)
+        Me.lblUsername.Size = New System.Drawing.Size(177, 32)
         Me.lblUsername.TabIndex = 6
         Me.lblUsername.Text = "Όνομα χρήστη"
         '
@@ -152,7 +152,7 @@ Partial Class frmNewUser
         Me.lblPassword.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.lblPassword.Location = New System.Drawing.Point(15, 572)
         Me.lblPassword.Name = "lblPassword"
-        Me.lblPassword.Size = New System.Drawing.Size(106, 32)
+        Me.lblPassword.Size = New System.Drawing.Size(105, 32)
         Me.lblPassword.TabIndex = 7
         Me.lblPassword.Text = "Κωδικός"
         '
@@ -222,7 +222,7 @@ Partial Class frmNewUser
         Me.lnkLabelChangePass.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.lnkLabelChangePass.Location = New System.Drawing.Point(249, 522)
         Me.lnkLabelChangePass.Name = "lnkLabelChangePass"
-        Me.lnkLabelChangePass.Size = New System.Drawing.Size(195, 32)
+        Me.lnkLabelChangePass.Size = New System.Drawing.Size(194, 32)
         Me.lnkLabelChangePass.TabIndex = 9
         Me.lnkLabelChangePass.TabStop = True
         Me.lnkLabelChangePass.Text = "Αλλαγή Κωδικού"
@@ -235,7 +235,7 @@ Partial Class frmNewUser
         Me.chkBoxAdmin.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.chkBoxAdmin.Location = New System.Drawing.Point(18, 461)
         Me.chkBoxAdmin.Name = "chkBoxAdmin"
-        Me.chkBoxAdmin.Size = New System.Drawing.Size(171, 36)
+        Me.chkBoxAdmin.Size = New System.Drawing.Size(170, 36)
         Me.chkBoxAdmin.TabIndex = 8
         Me.chkBoxAdmin.Text = "Διαχειριστής"
         Me.chkBoxAdmin.UseVisualStyleBackColor = True
@@ -246,10 +246,60 @@ Partial Class frmNewUser
         Me.lblNewPassword.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.lblNewPassword.Location = New System.Drawing.Point(15, 572)
         Me.lblNewPassword.Name = "lblNewPassword"
-        Me.lblNewPassword.Size = New System.Drawing.Size(167, 32)
+        Me.lblNewPassword.Size = New System.Drawing.Size(166, 32)
         Me.lblNewPassword.TabIndex = 19
         Me.lblNewPassword.Text = "Νέος Κωδικός"
         Me.lblNewPassword.Visible = False
+        '
+        'chkBoxReports
+        '
+        Me.chkBoxReports.AutoSize = True
+        Me.chkBoxReports.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.chkBoxReports.Location = New System.Drawing.Point(18, 419)
+        Me.chkBoxReports.Name = "chkBoxReports"
+        Me.chkBoxReports.Size = New System.Drawing.Size(258, 36)
+        Me.chkBoxReports.TabIndex = 57
+        Me.chkBoxReports.Text = "Προβολή Αναφορών"
+        Me.chkBoxReports.UseVisualStyleBackColor = True
+        '
+        'chkBoxEditProd
+        '
+        Me.chkBoxEditProd.AutoSize = True
+        Me.chkBoxEditProd.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.chkBoxEditProd.Location = New System.Drawing.Point(283, 419)
+        Me.chkBoxEditProd.Name = "chkBoxEditProd"
+        Me.chkBoxEditProd.Size = New System.Drawing.Size(346, 36)
+        Me.chkBoxEditProd.TabIndex = 58
+        Me.chkBoxEditProd.Text = "Επεξ. Προϊόντων (Read Only)"
+        Me.chkBoxEditProd.UseVisualStyleBackColor = True
+        '
+        'chkBoxEditProdFull
+        '
+        Me.chkBoxEditProdFull.AutoSize = True
+        Me.chkBoxEditProdFull.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.chkBoxEditProdFull.Location = New System.Drawing.Point(283, 461)
+        Me.chkBoxEditProdFull.Name = "chkBoxEditProdFull"
+        Me.chkBoxEditProdFull.Size = New System.Drawing.Size(298, 36)
+        Me.chkBoxEditProdFull.TabIndex = 59
+        Me.chkBoxEditProdFull.Text = "Επεξεργασία Προϊόντων"
+        Me.chkBoxEditProdFull.UseVisualStyleBackColor = True
+        '
+        'btnClear
+        '
+        Me.btnClear.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
+        Me.btnClear.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom
+        Me.btnClear.FlatStyle = System.Windows.Forms.FlatStyle.Popup
+        Me.btnClear.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.btnClear.ForeColor = System.Drawing.SystemColors.ControlText
+        Me.btnClear.Image = Global.POS.My.Resources.Resources.reset
+        Me.btnClear.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
+        Me.btnClear.Location = New System.Drawing.Point(789, 562)
+        Me.btnClear.Name = "btnClear"
+        Me.btnClear.Size = New System.Drawing.Size(215, 75)
+        Me.btnClear.TabIndex = 56
+        Me.btnClear.Text = "   Καθαρισμός Πεδίων"
+        Me.btnClear.UseVisualStyleBackColor = False
+        Me.btnClear.Visible = False
         '
         'btnDelete
         '
@@ -257,7 +307,7 @@ Partial Class frmNewUser
         Me.btnDelete.FlatStyle = System.Windows.Forms.FlatStyle.Popup
         Me.btnDelete.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.btnDelete.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.btnDelete.Image = Global.POS.My.Resources.Resources.delete
+        Me.btnDelete.Image = Global.POS.My.Resources.Resources.delete1
         Me.btnDelete.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
         Me.btnDelete.Location = New System.Drawing.Point(567, 562)
         Me.btnDelete.Name = "btnDelete"
@@ -273,7 +323,7 @@ Partial Class frmNewUser
         Me.cmdExit.FlatStyle = System.Windows.Forms.FlatStyle.Popup
         Me.cmdExit.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.cmdExit.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.cmdExit.Image = Global.POS.My.Resources.Resources.Logout
+        Me.cmdExit.Image = Global.POS.My.Resources.Resources._exit
         Me.cmdExit.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
         Me.cmdExit.Location = New System.Drawing.Point(789, 643)
         Me.cmdExit.Name = "cmdExit"
@@ -288,7 +338,7 @@ Partial Class frmNewUser
         Me.btnSave.FlatStyle = System.Windows.Forms.FlatStyle.Popup
         Me.btnSave.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.btnSave.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.btnSave.Image = Global.POS.My.Resources.Resources.save
+        Me.btnSave.Image = Global.POS.My.Resources.Resources.save1
         Me.btnSave.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
         Me.btnSave.Location = New System.Drawing.Point(567, 643)
         Me.btnSave.Name = "btnSave"
@@ -297,62 +347,12 @@ Partial Class frmNewUser
         Me.btnSave.Text = "     Αποθήκευση"
         Me.btnSave.UseVisualStyleBackColor = False
         '
-        'btnClear
-        '
-        Me.btnClear.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
-        Me.btnClear.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom
-        Me.btnClear.FlatStyle = System.Windows.Forms.FlatStyle.Popup
-        Me.btnClear.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.btnClear.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.btnClear.Image = Global.POS.My.Resources.Resources.undo
-        Me.btnClear.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
-        Me.btnClear.Location = New System.Drawing.Point(789, 562)
-        Me.btnClear.Name = "btnClear"
-        Me.btnClear.Size = New System.Drawing.Size(215, 75)
-        Me.btnClear.TabIndex = 56
-        Me.btnClear.Text = "   Καθαρισμός Πεδίων"
-        Me.btnClear.UseVisualStyleBackColor = False
-        Me.btnClear.Visible = False
-        '
-        'chkBoxReports
-        '
-        Me.chkBoxReports.AutoSize = True
-        Me.chkBoxReports.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.chkBoxReports.Location = New System.Drawing.Point(18, 419)
-        Me.chkBoxReports.Name = "chkBoxReports"
-        Me.chkBoxReports.Size = New System.Drawing.Size(259, 36)
-        Me.chkBoxReports.TabIndex = 57
-        Me.chkBoxReports.Text = "Προβολή Αναφορών"
-        Me.chkBoxReports.UseVisualStyleBackColor = True
-        '
-        'chkBoxEditProd
-        '
-        Me.chkBoxEditProd.AutoSize = True
-        Me.chkBoxEditProd.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.chkBoxEditProd.Location = New System.Drawing.Point(283, 419)
-        Me.chkBoxEditProd.Name = "chkBoxEditProd"
-        Me.chkBoxEditProd.Size = New System.Drawing.Size(348, 36)
-        Me.chkBoxEditProd.TabIndex = 58
-        Me.chkBoxEditProd.Text = "Επεξ. Προϊόντων (Read Only)"
-        Me.chkBoxEditProd.UseVisualStyleBackColor = True
-        '
-        'chkBoxEditProdFull
-        '
-        Me.chkBoxEditProdFull.AutoSize = True
-        Me.chkBoxEditProdFull.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.chkBoxEditProdFull.Location = New System.Drawing.Point(283, 461)
-        Me.chkBoxEditProdFull.Name = "chkBoxEditProdFull"
-        Me.chkBoxEditProdFull.Size = New System.Drawing.Size(299, 36)
-        Me.chkBoxEditProdFull.TabIndex = 59
-        Me.chkBoxEditProdFull.Text = "Επεξεργασία Προϊόντων"
-        Me.chkBoxEditProdFull.UseVisualStyleBackColor = True
-        '
         'frmNewUser
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
-        Me.ClientSize = New System.Drawing.Size(1014, 739)
+        Me.ClientSize = New System.Drawing.Size(1004, 725)
         Me.Controls.Add(Me.chkBoxEditProdFull)
         Me.Controls.Add(Me.chkBoxEditProd)
         Me.Controls.Add(Me.chkBoxReports)

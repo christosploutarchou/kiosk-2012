@@ -32,9 +32,6 @@ Partial Class frmInvoices
         Me.rdbNewInvoice = New System.Windows.Forms.RadioButton()
         Me.lstBoxInvNumber = New System.Windows.Forms.ListBox()
         Me.lblContactName = New System.Windows.Forms.Label()
-        Me.btnExit = New System.Windows.Forms.Button()
-        Me.btnSave = New System.Windows.Forms.Button()
-        Me.btnClear = New System.Windows.Forms.Button()
         Me.txtBoxBarcode = New System.Windows.Forms.TextBox()
         Me.Label2 = New System.Windows.Forms.Label()
         Me.DateTimePicker1 = New System.Windows.Forms.DateTimePicker()
@@ -53,11 +50,9 @@ Partial Class frmInvoices
         Me.txtBoxInvDateRO = New System.Windows.Forms.TextBox()
         Me.txtBoxSNameRO = New System.Windows.Forms.TextBox()
         Me.chkBoxTmpSave = New System.Windows.Forms.CheckBox()
-        Me.btnOverrideExisting = New System.Windows.Forms.Button()
         Me.PrintDocument1 = New System.Drawing.Printing.PrintDocument()
         Me.Label3 = New System.Windows.Forms.Label()
         Me.txtBoxExtraDiscount = New System.Windows.Forms.TextBox()
-        Me.btnSearch = New System.Windows.Forms.Button()
         Me.grbBoxInvType = New System.Windows.Forms.GroupBox()
         Me.dtpDate = New System.Windows.Forms.DateTimePicker()
         Me.chkBoxDate = New System.Windows.Forms.CheckBox()
@@ -66,6 +61,11 @@ Partial Class frmInvoices
         Me.rdbClosedInvoices = New System.Windows.Forms.RadioButton()
         Me.rdbOpenInvoices = New System.Windows.Forms.RadioButton()
         Me.rdbAllInvoices = New System.Windows.Forms.RadioButton()
+        Me.btnSearch = New System.Windows.Forms.Button()
+        Me.btnOverrideExisting = New System.Windows.Forms.Button()
+        Me.btnClear = New System.Windows.Forms.Button()
+        Me.btnExit = New System.Windows.Forms.Button()
+        Me.btnSave = New System.Windows.Forms.Button()
         Me.GroupBox1.SuspendLayout()
         CType(Me.dgvProductsAndQnt, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.grbBoxInvType.SuspendLayout()
@@ -93,7 +93,7 @@ Partial Class frmInvoices
         Me.lblInvDate.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.lblInvDate.Location = New System.Drawing.Point(12, 281)
         Me.lblInvDate.Name = "lblInvDate"
-        Me.lblInvDate.Size = New System.Drawing.Size(147, 32)
+        Me.lblInvDate.Size = New System.Drawing.Size(146, 32)
         Me.lblInvDate.TabIndex = 22
         Me.lblInvDate.Text = "Ημερομηνία"
         '
@@ -103,7 +103,7 @@ Partial Class frmInvoices
         Me.lblPhone1.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.lblPhone1.Location = New System.Drawing.Point(12, 235)
         Me.lblPhone1.Name = "lblPhone1"
-        Me.lblPhone1.Size = New System.Drawing.Size(153, 32)
+        Me.lblPhone1.Size = New System.Drawing.Size(152, 32)
         Me.lblPhone1.TabIndex = 21
         Me.lblPhone1.Text = "Ολικό Ποσό/"
         '
@@ -113,7 +113,7 @@ Partial Class frmInvoices
         Me.Label1.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.Label1.Location = New System.Drawing.Point(12, 143)
         Me.Label1.Name = "Label1"
-        Me.Label1.Size = New System.Drawing.Size(228, 32)
+        Me.Label1.Size = New System.Drawing.Size(227, 32)
         Me.Label1.TabIndex = 20
         Me.Label1.Text = "Αριθμός Τιμολογίου"
         '
@@ -134,7 +134,7 @@ Partial Class frmInvoices
         Me.rdbExisting.AutoSize = True
         Me.rdbExisting.Location = New System.Drawing.Point(88, 38)
         Me.rdbExisting.Name = "rdbExisting"
-        Me.rdbExisting.Size = New System.Drawing.Size(163, 36)
+        Me.rdbExisting.Size = New System.Drawing.Size(162, 36)
         Me.rdbExisting.TabIndex = 14
         Me.rdbExisting.TabStop = True
         Me.rdbExisting.Text = "Υφιστάμενα"
@@ -145,7 +145,7 @@ Partial Class frmInvoices
         Me.rdbNewInvoice.AutoSize = True
         Me.rdbNewInvoice.Location = New System.Drawing.Point(6, 39)
         Me.rdbNewInvoice.Name = "rdbNewInvoice"
-        Me.rdbNewInvoice.Size = New System.Drawing.Size(76, 36)
+        Me.rdbNewInvoice.Size = New System.Drawing.Size(75, 36)
         Me.rdbNewInvoice.TabIndex = 13
         Me.rdbNewInvoice.TabStop = True
         Me.rdbNewInvoice.Text = "Νέο"
@@ -169,53 +169,9 @@ Partial Class frmInvoices
         Me.lblContactName.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.lblContactName.Location = New System.Drawing.Point(12, 189)
         Me.lblContactName.Name = "lblContactName"
-        Me.lblContactName.Size = New System.Drawing.Size(163, 32)
+        Me.lblContactName.Size = New System.Drawing.Size(162, 32)
         Me.lblContactName.TabIndex = 37
         Me.lblContactName.Text = "Προμηθευτής"
-        '
-        'btnExit
-        '
-        Me.btnExit.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
-        Me.btnExit.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.btnExit.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.btnExit.Image = Global.POS.My.Resources.Resources.Logout
-        Me.btnExit.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
-        Me.btnExit.Location = New System.Drawing.Point(789, 643)
-        Me.btnExit.Name = "btnExit"
-        Me.btnExit.Size = New System.Drawing.Size(215, 75)
-        Me.btnExit.TabIndex = 15
-        Me.btnExit.Text = "Έξοδος"
-        Me.btnExit.UseVisualStyleBackColor = False
-        '
-        'btnSave
-        '
-        Me.btnSave.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
-        Me.btnSave.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.btnSave.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.btnSave.Image = Global.POS.My.Resources.Resources.save
-        Me.btnSave.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
-        Me.btnSave.Location = New System.Drawing.Point(567, 643)
-        Me.btnSave.Name = "btnSave"
-        Me.btnSave.Size = New System.Drawing.Size(215, 75)
-        Me.btnSave.TabIndex = 12
-        Me.btnSave.Text = "     Αποθήκευση"
-        Me.btnSave.UseVisualStyleBackColor = False
-        '
-        'btnClear
-        '
-        Me.btnClear.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
-        Me.btnClear.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom
-        Me.btnClear.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.btnClear.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.btnClear.Image = Global.POS.My.Resources.Resources.undo
-        Me.btnClear.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
-        Me.btnClear.Location = New System.Drawing.Point(346, 643)
-        Me.btnClear.Name = "btnClear"
-        Me.btnClear.Size = New System.Drawing.Size(215, 75)
-        Me.btnClear.TabIndex = 13
-        Me.btnClear.Text = "   Καθαρισμός Πεδίων"
-        Me.btnClear.UseVisualStyleBackColor = False
-        Me.btnClear.Visible = False
         '
         'txtBoxBarcode
         '
@@ -231,7 +187,7 @@ Partial Class frmInvoices
         Me.Label2.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.Label2.Location = New System.Drawing.Point(12, 326)
         Me.Label2.Name = "Label2"
-        Me.Label2.Size = New System.Drawing.Size(101, 32)
+        Me.Label2.Size = New System.Drawing.Size(100, 32)
         Me.Label2.TabIndex = 62
         Me.Label2.Text = "Barcode"
         '
@@ -356,25 +312,10 @@ Partial Class frmInvoices
         Me.chkBoxTmpSave.Font = New System.Drawing.Font("Segoe UI", 18.0!)
         Me.chkBoxTmpSave.Location = New System.Drawing.Point(18, 379)
         Me.chkBoxTmpSave.Name = "chkBoxTmpSave"
-        Me.chkBoxTmpSave.Size = New System.Drawing.Size(303, 36)
+        Me.chkBoxTmpSave.Size = New System.Drawing.Size(302, 36)
         Me.chkBoxTmpSave.TabIndex = 66
         Me.chkBoxTmpSave.Text = "Προσωρινή Αποθήκευση"
         Me.chkBoxTmpSave.UseVisualStyleBackColor = True
-        '
-        'btnOverrideExisting
-        '
-        Me.btnOverrideExisting.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
-        Me.btnOverrideExisting.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.btnOverrideExisting.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.btnOverrideExisting.Image = Global.POS.My.Resources.Resources.save
-        Me.btnOverrideExisting.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
-        Me.btnOverrideExisting.Location = New System.Drawing.Point(568, 643)
-        Me.btnOverrideExisting.Name = "btnOverrideExisting"
-        Me.btnOverrideExisting.Size = New System.Drawing.Size(215, 75)
-        Me.btnOverrideExisting.TabIndex = 67
-        Me.btnOverrideExisting.Text = "     Αποθήκευση"
-        Me.btnOverrideExisting.UseVisualStyleBackColor = False
-        Me.btnOverrideExisting.Visible = False
         '
         'PrintDocument1
         '
@@ -385,7 +326,7 @@ Partial Class frmInvoices
         Me.Label3.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.Label3.Location = New System.Drawing.Point(158, 235)
         Me.Label3.Name = "Label3"
-        Me.Label3.Size = New System.Drawing.Size(148, 32)
+        Me.Label3.Size = New System.Drawing.Size(147, 32)
         Me.Label3.TabIndex = 68
         Me.Label3.Text = "Επ.Έκπτωση"
         '
@@ -396,19 +337,6 @@ Partial Class frmInvoices
         Me.txtBoxExtraDiscount.Name = "txtBoxExtraDiscount"
         Me.txtBoxExtraDiscount.Size = New System.Drawing.Size(144, 39)
         Me.txtBoxExtraDiscount.TabIndex = 69
-        '
-        'btnSearch
-        '
-        Me.btnSearch.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
-        Me.btnSearch.BackgroundImage = Global.POS.My.Resources.Resources.search
-        Me.btnSearch.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
-        Me.btnSearch.FlatStyle = System.Windows.Forms.FlatStyle.Popup
-        Me.btnSearch.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.btnSearch.Location = New System.Drawing.Point(593, 326)
-        Me.btnSearch.Name = "btnSearch"
-        Me.btnSearch.Size = New System.Drawing.Size(37, 39)
-        Me.btnSearch.TabIndex = 6
-        Me.btnSearch.UseVisualStyleBackColor = False
         '
         'grbBoxInvType
         '
@@ -440,7 +368,7 @@ Partial Class frmInvoices
         Me.chkBoxDate.AutoSize = True
         Me.chkBoxDate.Location = New System.Drawing.Point(6, 81)
         Me.chkBoxDate.Name = "chkBoxDate"
-        Me.chkBoxDate.Size = New System.Drawing.Size(166, 36)
+        Me.chkBoxDate.Size = New System.Drawing.Size(165, 36)
         Me.chkBoxDate.TabIndex = 71
         Me.chkBoxDate.Text = "Ημερομηνία"
         Me.chkBoxDate.UseVisualStyleBackColor = True
@@ -463,7 +391,7 @@ Partial Class frmInvoices
         Me.Label4.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.Label4.Location = New System.Drawing.Point(341, 40)
         Me.Label4.Name = "Label4"
-        Me.Label4.Size = New System.Drawing.Size(163, 32)
+        Me.Label4.Size = New System.Drawing.Size(162, 32)
         Me.Label4.TabIndex = 70
         Me.Label4.Text = "Προμηθευτής"
         '
@@ -472,7 +400,7 @@ Partial Class frmInvoices
         Me.rdbClosedInvoices.AutoSize = True
         Me.rdbClosedInvoices.Location = New System.Drawing.Point(218, 39)
         Me.rdbClosedInvoices.Name = "rdbClosedInvoices"
-        Me.rdbClosedInvoices.Size = New System.Drawing.Size(117, 36)
+        Me.rdbClosedInvoices.Size = New System.Drawing.Size(116, 36)
         Me.rdbClosedInvoices.TabIndex = 15
         Me.rdbClosedInvoices.Text = "Κλειστά"
         Me.rdbClosedInvoices.UseVisualStyleBackColor = True
@@ -482,7 +410,7 @@ Partial Class frmInvoices
         Me.rdbOpenInvoices.AutoSize = True
         Me.rdbOpenInvoices.Location = New System.Drawing.Point(91, 39)
         Me.rdbOpenInvoices.Name = "rdbOpenInvoices"
-        Me.rdbOpenInvoices.Size = New System.Drawing.Size(121, 36)
+        Me.rdbOpenInvoices.Size = New System.Drawing.Size(120, 36)
         Me.rdbOpenInvoices.TabIndex = 14
         Me.rdbOpenInvoices.Text = "Ανοιχτά"
         Me.rdbOpenInvoices.UseVisualStyleBackColor = True
@@ -493,18 +421,90 @@ Partial Class frmInvoices
         Me.rdbAllInvoices.Checked = True
         Me.rdbAllInvoices.Location = New System.Drawing.Point(6, 39)
         Me.rdbAllInvoices.Name = "rdbAllInvoices"
-        Me.rdbAllInvoices.Size = New System.Drawing.Size(79, 36)
+        Me.rdbAllInvoices.Size = New System.Drawing.Size(78, 36)
         Me.rdbAllInvoices.TabIndex = 13
         Me.rdbAllInvoices.TabStop = True
         Me.rdbAllInvoices.Text = "Όλα"
         Me.rdbAllInvoices.UseVisualStyleBackColor = True
+        '
+        'btnSearch
+        '
+        Me.btnSearch.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
+        Me.btnSearch.BackgroundImage = Global.POS.My.Resources.Resources.search1
+        Me.btnSearch.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
+        Me.btnSearch.FlatStyle = System.Windows.Forms.FlatStyle.Popup
+        Me.btnSearch.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.btnSearch.Location = New System.Drawing.Point(593, 326)
+        Me.btnSearch.Name = "btnSearch"
+        Me.btnSearch.Size = New System.Drawing.Size(37, 39)
+        Me.btnSearch.TabIndex = 6
+        Me.btnSearch.UseVisualStyleBackColor = False
+        '
+        'btnOverrideExisting
+        '
+        Me.btnOverrideExisting.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
+        Me.btnOverrideExisting.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.btnOverrideExisting.ForeColor = System.Drawing.SystemColors.ControlText
+        Me.btnOverrideExisting.Image = Global.POS.My.Resources.Resources.save1
+        Me.btnOverrideExisting.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
+        Me.btnOverrideExisting.Location = New System.Drawing.Point(568, 643)
+        Me.btnOverrideExisting.Name = "btnOverrideExisting"
+        Me.btnOverrideExisting.Size = New System.Drawing.Size(215, 75)
+        Me.btnOverrideExisting.TabIndex = 67
+        Me.btnOverrideExisting.Text = "     Αποθήκευση"
+        Me.btnOverrideExisting.UseVisualStyleBackColor = False
+        Me.btnOverrideExisting.Visible = False
+        '
+        'btnClear
+        '
+        Me.btnClear.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
+        Me.btnClear.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom
+        Me.btnClear.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.btnClear.ForeColor = System.Drawing.SystemColors.ControlText
+        Me.btnClear.Image = Global.POS.My.Resources.Resources.reset
+        Me.btnClear.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
+        Me.btnClear.Location = New System.Drawing.Point(346, 643)
+        Me.btnClear.Name = "btnClear"
+        Me.btnClear.Size = New System.Drawing.Size(215, 75)
+        Me.btnClear.TabIndex = 13
+        Me.btnClear.Text = "   Καθαρισμός Πεδίων"
+        Me.btnClear.UseVisualStyleBackColor = False
+        Me.btnClear.Visible = False
+        '
+        'btnExit
+        '
+        Me.btnExit.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
+        Me.btnExit.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.btnExit.ForeColor = System.Drawing.SystemColors.ControlText
+        Me.btnExit.Image = Global.POS.My.Resources.Resources._exit
+        Me.btnExit.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
+        Me.btnExit.Location = New System.Drawing.Point(789, 643)
+        Me.btnExit.Name = "btnExit"
+        Me.btnExit.Size = New System.Drawing.Size(215, 75)
+        Me.btnExit.TabIndex = 15
+        Me.btnExit.Text = "Έξοδος"
+        Me.btnExit.UseVisualStyleBackColor = False
+        '
+        'btnSave
+        '
+        Me.btnSave.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
+        Me.btnSave.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.btnSave.ForeColor = System.Drawing.SystemColors.ControlText
+        Me.btnSave.Image = Global.POS.My.Resources.Resources.save
+        Me.btnSave.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
+        Me.btnSave.Location = New System.Drawing.Point(567, 643)
+        Me.btnSave.Name = "btnSave"
+        Me.btnSave.Size = New System.Drawing.Size(215, 75)
+        Me.btnSave.TabIndex = 12
+        Me.btnSave.Text = "     Αποθήκευση"
+        Me.btnSave.UseVisualStyleBackColor = False
         '
         'frmInvoices
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
-        Me.ClientSize = New System.Drawing.Size(1014, 739)
+        Me.ClientSize = New System.Drawing.Size(1004, 725)
         Me.Controls.Add(Me.grbBoxInvType)
         Me.Controls.Add(Me.btnSearch)
         Me.Controls.Add(Me.txtBoxExtraDiscount)

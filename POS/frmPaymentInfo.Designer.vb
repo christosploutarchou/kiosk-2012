@@ -22,25 +22,14 @@ Partial Class frmPaymentInfo
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
-        Me.btnSelect = New System.Windows.Forms.Button()
         Me.grbVAT = New System.Windows.Forms.GroupBox()
+        Me.rdb3Percent = New System.Windows.Forms.RadioButton()
         Me.rdb19Percent = New System.Windows.Forms.RadioButton()
         Me.rdb5Percent = New System.Windows.Forms.RadioButton()
         Me.rdb0Percent = New System.Windows.Forms.RadioButton()
-        Me.rdb3Percent = New System.Windows.Forms.RadioButton()
+        Me.btnSelect = New System.Windows.Forms.Button()
         Me.grbVAT.SuspendLayout()
         Me.SuspendLayout()
-        '
-        'btnSelect
-        '
-        Me.btnSelect.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
-        Me.btnSelect.Font = New System.Drawing.Font("Segoe UI Semibold", 15.75!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.btnSelect.Image = Global.POS.My.Resources.Resources._select
-        Me.btnSelect.Location = New System.Drawing.Point(401, 296)
-        Me.btnSelect.Name = "btnSelect"
-        Me.btnSelect.Size = New System.Drawing.Size(89, 47)
-        Me.btnSelect.TabIndex = 63
-        Me.btnSelect.UseVisualStyleBackColor = False
         '
         'grbVAT
         '
@@ -55,6 +44,17 @@ Partial Class frmPaymentInfo
         Me.grbVAT.TabIndex = 64
         Me.grbVAT.TabStop = False
         Me.grbVAT.Text = "Επιλογή Φ.Π.Α. Τιμολογίου"
+        '
+        'rdb3Percent
+        '
+        Me.rdb3Percent.AutoSize = True
+        Me.rdb3Percent.Location = New System.Drawing.Point(181, 72)
+        Me.rdb3Percent.Name = "rdb3Percent"
+        Me.rdb3Percent.Size = New System.Drawing.Size(60, 27)
+        Me.rdb3Percent.TabIndex = 3
+        Me.rdb3Percent.TabStop = True
+        Me.rdb3Percent.Text = "3%"
+        Me.rdb3Percent.UseVisualStyleBackColor = True
         '
         'rdb19Percent
         '
@@ -89,29 +89,29 @@ Partial Class frmPaymentInfo
         Me.rdb0Percent.Text = "0%"
         Me.rdb0Percent.UseVisualStyleBackColor = True
         '
-        'rdb3Percent
+        'btnSelect
         '
-        Me.rdb3Percent.AutoSize = True
-        Me.rdb3Percent.Location = New System.Drawing.Point(181, 72)
-        Me.rdb3Percent.Name = "rdb3Percent"
-        Me.rdb3Percent.Size = New System.Drawing.Size(60, 27)
-        Me.rdb3Percent.TabIndex = 3
-        Me.rdb3Percent.TabStop = True
-        Me.rdb3Percent.Text = "3%"
-        Me.rdb3Percent.UseVisualStyleBackColor = True
+        Me.btnSelect.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
+        Me.btnSelect.Font = New System.Drawing.Font("Segoe UI Semibold", 15.75!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.btnSelect.Image = Global.POS.My.Resources.Resources.select1
+        Me.btnSelect.Location = New System.Drawing.Point(401, 296)
+        Me.btnSelect.Name = "btnSelect"
+        Me.btnSelect.Size = New System.Drawing.Size(89, 47)
+        Me.btnSelect.TabIndex = 63
+        Me.btnSelect.UseVisualStyleBackColor = False
         '
         'frmPaymentInfo
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.ClientSize = New System.Drawing.Size(502, 355)
+        Me.ClientSize = New System.Drawing.Size(492, 347)
         Me.Controls.Add(Me.grbVAT)
         Me.Controls.Add(Me.btnSelect)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D
         Me.MaximizeBox = False
-        Me.MaximumSize = New System.Drawing.Size(512, 384)
+        Me.MaximumSize = New System.Drawing.Size(512, 390)
         Me.MinimizeBox = False
-        Me.MinimumSize = New System.Drawing.Size(512, 384)
+        Me.MinimumSize = New System.Drawing.Size(512, 390)
         Me.Name = "frmPaymentInfo"
         Me.ShowInTaskbar = False
         Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen

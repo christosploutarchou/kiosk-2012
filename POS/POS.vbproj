@@ -675,6 +675,12 @@
     <None Include="Resources\kronos.JPG" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\payment1.png" />
+    <None Include="Resources\wait-hold.png" />
+    <None Include="Resources\receipts.png" />
+    <None Include="Resources\select1.png" />
+    <None Include="Resources\search1.png" />
+    <None Include="Resources\unlock1.png" />
     <None Include="Resources\lottery.png" />
     <None Include="Resources\suppliers.png" />
     <None Include="Resources\reset.png" />
@@ -682,6 +688,11 @@
     <None Include="Resources\exit.png" />
     <None Include="Resources\back1.png" />
     <None Include="Resources\categories1.png" />
+    <None Include="Resources\delete1.png" />
+    <None Include="Resources\card.png" />
+    <None Include="Resources\discount.png" />
+    <None Include="Resources\cash.png" />
+    <None Include="Resources\cash1.png" />
     <Content Include="Resources\hold.jpg" />
     <None Include="Resources\save1.png" />
     <None Include="Resources\IMG_2691.JPG" />
