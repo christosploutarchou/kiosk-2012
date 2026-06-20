@@ -37,7 +37,7 @@ Public Class frmUnlockUser
 
 
     Private Sub frmUnlockUser_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
-        fillLists()
+        FillLists()
     End Sub
 
     Private Sub btnUnlock_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnUnlock.Click
@@ -47,7 +47,7 @@ Public Class frmUnlockUser
 
         Dim cmd As New OracleCommand("", conn)
         Try
-            generateXreport(lstBoxUUIDS.Items.Item(lstBoxLockedUsers.SelectedIndex).ToString())
+            GenerateXreport(lstBoxUUIDS.Items.Item(lstBoxLockedUsers.SelectedIndex).ToString())
             PrintDocument1.PrinterSettings.Copies = 1
             PrintDocument1.Print()
 
@@ -59,9 +59,9 @@ Public Class frmUnlockUser
             cmd.CommandType = CommandType.Text
             cmd.ExecuteReader()
 
-            fillLists()
+            FillLists()
         Catch ex As Exception
-            createExceptionFile(ex.Message, " " & UNLOCK_USER)
+            CreateExceptionFile(ex.Message, " " & UNLOCK_USER)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Finally
             cmd.Dispose()
@@ -80,7 +80,7 @@ Public Class frmUnlockUser
         e.Graphics.DrawString(COMPANY_VAT, reportFont, Brushes.Black, 60, 80)
 
         e.Graphics.DrawString(SINGE_DASHED_LINE, reportFont, Brushes.Black, 0, 95)
-        e.Graphics.DrawString("Χρήστης: " & getUserByUsername(lstBoxLockedUsers.Text), reportFont, Brushes.Black, 0, 110)
+        e.Graphics.DrawString("Χρήστης: " & GetUserByUsername(lstBoxLockedUsers.Text), reportFont, Brushes.Black, 0, 110)
 
         Dim cmd As New OracleCommand("", conn)
         Dim dr As OracleDataReader
@@ -121,7 +121,7 @@ Public Class frmUnlockUser
             End If
             dr.Close()
         Catch ex As Exception
-            createExceptionFile(ex.Message, " " & GET_TOTALS_FOR_X_REPORT)
+            CreateExceptionFile(ex.Message, " " & GET_TOTALS_FOR_X_REPORT)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Finally
             cmd.Dispose()

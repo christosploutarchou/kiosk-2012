@@ -1069,6 +1069,7 @@ Module connectionModule
         Public ProductPrice As Double
         Public IsBox As Integer
         Public BoxQnt As Integer
+        Public ProductUUID As String
     End Structure
 
     Public Structure BtnItem

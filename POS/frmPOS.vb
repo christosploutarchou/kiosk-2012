@@ -1,4 +1,5 @@
 ﻿Imports System.ComponentModel
+Imports System.Data.SQLite
 Imports System.Threading.Tasks
 Imports Newtonsoft.Json
 Imports Newtonsoft.Json.Linq
@@ -297,92 +298,195 @@ Public Class frmPOS
         e.Cancel = True
     End Sub
 
-    Private Sub frmPOS_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
+    Private Sub FrmPOS_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
         txtBoxQuantity.Text = "1"
         returnProduct = 1
-        setAmounts()
-        setPosButtons(1)
+        SetAmounts()
+        SetPosButtons(1)
         txtBoxBarcode.Focus()
         lblCurrentUser.Text = "User: " & username
     End Sub
 
-    Private Sub setPosButtons(ByVal all As Integer)
+    Private Sub SetPosButtons(ByVal all As Integer)
+        Dim WhoAmI As String = "SetPosButtons"
         Dim sql As String = ""
-        'Dim cmd As New OracleCommand("", conn)
-        'Dim dr As OracleDataReader
+
         btnItemsMap.Clear()
+
         Try
-            If all = 1 Then
-                For i As Integer = 1 To 23
-                    sql = "select disp_name, NVL(is_visible,0) from BTN_POS" + i.ToString
-                    Dim cmdBtn = New OracleCommand(sql, conn)
-                    Using dr = cmdBtn.ExecuteReader
-                        If dr.Read() Then
-                            If CInt(dr(1)) = 1 Then
-                                CType(Me.Controls("btnPos" & i), Button).Visible = True
-                                CType(Me.Controls("btnPos" & i), Button).Text = dr(0)
-                            End If
+            If SqlLite Then
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
 
-                            Dim tmpBtnItem = New BtnItem
-                            tmpBtnItem.Id = "btnPos" & i
-                            tmpBtnItem.Name = dr(0)
-                            'TODO: DISCOUNT ON POS BUTTONS
-                            sql = "select DISPLAY_DESC, product_serno, p.DESCRIPTION, " & _
-                                  "(select vat from vat_types where uuid=p.VATTYPE_ID), p.SELL_AMT, NVL(p.isbox,0), NVL(p.box_qnt,0), " & _
-                                  "nvl(p.offer,-1), nvl(p.offer_type,-1), nvl(p.offer_x,0), nvl(p.offer_y,0), nvl(p.offer_disc,0), nvl(p.offer_at,0), " & _
-                                  "nvl(p.offerfromdate, sysdate) offerfromdate , nvl(p.offertodate, sysdate) offertodate " & _
-                                  "from BTN_POS" + i.ToString + "_DET d " & _
-                                  "inner join PRODUCTS p on p.serno = d.PRODUCT_SERNO " & _
-                                  "order by nvl(seqno, -1)"
-                            Dim cmdBtnPos = New OracleCommand(sql, conn)
-                            Dim tmpBtnItemDetails As BtnItemDetails
-                            Dim tmpDetailsArrayList As New ArrayList
-                            Using drBtnPos = cmdBtnPos.ExecuteReader
-                                While drBtnPos.Read
-                                    tmpBtnItemDetails = New BtnItemDetails
-                                    tmpBtnItemDetails.DisplayDesc = drBtnPos(0)
-                                    tmpBtnItemDetails.ProductSerno = CInt(drBtnPos(1))
-                                    tmpBtnItemDetails.Description = drBtnPos(2)
-                                    tmpBtnItemDetails.Vat = CInt(drBtnPos(3))
-                                    tmpBtnItemDetails.ProductPrice = CDbl(drBtnPos(4))
-                                    tmpBtnItemDetails.IsBox = CInt(drBtnPos(5))
-                                    tmpBtnItemDetails.BoxQnt = CInt(drBtnPos(6))
-                                    tmpDetailsArrayList.Add(tmpBtnItemDetails)
-                                End While
+                    If all = 1 Then
+                        For i As Integer = 1 To 23
+
+                            sql = "SELECT DISP_NAME, IFNULL(IS_VISIBLE,0) FROM BTN_POS" & i & " WHERE KIOSKID=@KIOSKID"
+
+                            Using cmdBtn As New SQLiteCommand(sql, sqliteConn)
+                                cmdBtn.Parameters.AddWithValue("@KIOSKID", kioskId)
+
+                                Using dr = cmdBtn.ExecuteReader()
+                                    If dr.Read() Then
+                                        If Convert.ToInt32(dr(1)) = 1 Then
+                                            CType(Me.Controls("btnPos" & i), Button).Visible = True
+                                            CType(Me.Controls("btnPos" & i), Button).Text = dr(0).ToString()
+                                        End If
+
+                                        Dim tmpBtnItem As New BtnItem
+                                        tmpBtnItem.Id = "btnPos" & i
+                                        tmpBtnItem.Name = dr(0).ToString()
+
+                                        sql =
+                                            "SELECT
+                                                    d.DISPLAY_DESC,
+                                                    p.UUID,
+                                                    p.DESCRIPTION,
+                                                    v.VAT,
+                                                    p.SELL_AMT,
+                                                    IFNULL(p.ISBOX,0) ISBOX,
+                                                    IFNULL(p.BOX_QNT,0) BOX_QNT,
+                                                    IFNULL(p.OFFER,-1),
+                                                    IFNULL(p.OFFER_TYPE,-1),
+                                                    IFNULL(p.OFFER_X,0),
+                                                    IFNULL(p.OFFER_Y,0),
+                                                    IFNULL(p.OFFER_DISC,0),
+                                                    IFNULL(p.OFFER_AT,0),
+                                                    IFNULL(p.OFFERFROMDATE,date('now')),
+                                                    IFNULL(p.OFFERTODATE,date('now'))
+                                                FROM BTN_POS" & i & "_DET d
+                                                INNER JOIN PRODUCTS p
+                                                        ON p.UUID=d.PRODUCT_UUID
+                                                LEFT JOIN VAT_TYPES v
+                                                    ON v.UUID=p.VATTYPE_ID
+                                                WHERE d.KIOSKID=@KIOSKID
+                                                ORDER BY IFNULL(d.SEQNO,-1)"
+
+                                        Using cmdPos As New SQLiteCommand(sql, sqliteConn)
+                                            cmdPos.Parameters.AddWithValue("@KIOSKID", kioskId)
+
+                                            Dim tmpDetailsArrayList As New ArrayList
+                                            Using drPos = cmdPos.ExecuteReader()
+                                                While drPos.Read()
+                                                    Dim det As New BtnItemDetails
+                                                    det.DisplayDesc = drPos("DISPLAY_DESC").ToString()
+                                                    'Store UUID instead of SERNO
+                                                    det.ProductUUID = drPos("UUID").ToString()
+                                                    det.Description = drPos("DESCRIPTION").ToString()
+                                                    det.Vat = Convert.ToInt32(drPos("VAT"))
+                                                    det.ProductPrice = Convert.ToDouble(drPos("SELL_AMT"))
+                                                    det.IsBox = Convert.ToInt32(drPos("ISBOX"))
+                                                    det.BoxQnt = Convert.ToInt32(drPos("BOX_QNT"))
+                                                    tmpDetailsArrayList.Add(det)
+                                                End While
+                                            End Using
+
+                                            tmpBtnItem.LinkedItemsDetails = tmpDetailsArrayList
+                                            tmpBtnItem.LinkedItems = tmpDetailsArrayList.Count
+                                            btnItemsMap.Add("btnPos" & i, tmpBtnItem)
+                                        End Using
+                                    End If
+                                End Using
                             End Using
-
-                            tmpBtnItem.LinkedItemsDetails = tmpDetailsArrayList
-                            tmpBtnItem.LinkedItems = tmpBtnItem.LinkedItemsDetails.Count
-                            btnItemsMap.Add("btnPos" & i, tmpBtnItem)
-                        End If
-                    End Using
-                Next
-            Else
-                sql = "select disp_name, is_visible from BTN_POS" + setCurrentTableIndex()
-                Dim cmdIsVis = New OracleCommand(sql, conn)
-                Using drVisible = cmdIsVis.ExecuteReader
-                    If drVisible.Read() Then
-                        CType(Me.Controls("btnPos" & setCurrentTableIndex()), Button).Text = drVisible(0)
-                        If CInt(drVisible(1)) = 0 Then
-                            CType(Me.Controls("btnPos" & setCurrentTableIndex()), Button).BackColor = Color.Red
-                        Else
-                            CType(Me.Controls("btnPos" & setCurrentTableIndex()), Button).BackColor = Color.Blue
-                        End If
+                        Next
                     Else
-                        CType(Me.Controls("btnPos" & setCurrentTableIndex()), Button).BackColor = Color.Red
-                        CType(Me.Controls("btnPos" & setCurrentTableIndex()), Button).Text = ""
+                        sql = "SELECT DISP_NAME, IFNULL(IS_VISIBLE,0) FROM BTN_POS" & setCurrentTableIndex() & " WHERE KIOSKID=@KIOSKID"
+
+                        Using cmd As New SQLiteCommand(sql, sqliteConn)
+                            cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                            Using dr = cmd.ExecuteReader()
+
+                                If dr.Read() Then
+                                    CType(Me.Controls("btnPos" & setCurrentTableIndex()), Button).Text = dr(0).ToString()
+                                    If Convert.ToInt32(dr(1)) = 0 Then
+                                        CType(Me.Controls("btnPos" & setCurrentTableIndex()), Button).BackColor = Color.Red
+                                    Else
+                                        CType(Me.Controls("btnPos" & setCurrentTableIndex()), Button).BackColor = Color.Blue
+                                    End If
+                                Else
+                                    CType(Me.Controls("btnPos" & setCurrentTableIndex()), Button).BackColor = Color.Red
+                                    CType(Me.Controls("btnPos" & setCurrentTableIndex()), Button).Text = ""
+                                End If
+                            End Using
+                        End Using
                     End If
                 End Using
+            Else
+                Try
+                    If all = 1 Then
+                        For i As Integer = 1 To 23
+                            sql = "select disp_name, NVL(is_visible,0) from BTN_POS" + i.ToString
+                            Dim cmdBtn = New OracleCommand(sql, conn)
+                            Using dr = cmdBtn.ExecuteReader
+                                If dr.Read() Then
+                                    If CInt(dr(1)) = 1 Then
+                                        CType(Me.Controls("btnPos" & i), Button).Visible = True
+                                        CType(Me.Controls("btnPos" & i), Button).Text = dr(0)
+                                    End If
+
+                                    Dim tmpBtnItem = New BtnItem
+                                    tmpBtnItem.Id = "btnPos" & i
+                                    tmpBtnItem.Name = dr(0)
+                                    sql = "select DISPLAY_DESC, product_serno, p.DESCRIPTION, " &
+                                          "(select vat from vat_types where uuid=p.VATTYPE_ID), p.SELL_AMT, NVL(p.isbox,0), NVL(p.box_qnt,0), " &
+                                          "nvl(p.offer,-1), nvl(p.offer_type,-1), nvl(p.offer_x,0), nvl(p.offer_y,0), nvl(p.offer_disc,0), nvl(p.offer_at,0), " &
+                                          "nvl(p.offerfromdate, sysdate) offerfromdate , nvl(p.offertodate, sysdate) offertodate " &
+                                          "from BTN_POS" + i.ToString + "_DET d " &
+                                          "inner join PRODUCTS p on p.serno = d.PRODUCT_SERNO " &
+                                          "order by nvl(seqno, -1)"
+                                    Dim cmdBtnPos = New OracleCommand(sql, conn)
+                                    Dim tmpBtnItemDetails As BtnItemDetails
+                                    Dim tmpDetailsArrayList As New ArrayList
+                                    Using drBtnPos = cmdBtnPos.ExecuteReader
+                                        While drBtnPos.Read
+                                            tmpBtnItemDetails = New BtnItemDetails
+                                            tmpBtnItemDetails.DisplayDesc = drBtnPos(0)
+                                            tmpBtnItemDetails.ProductSerno = CInt(drBtnPos(1))
+                                            tmpBtnItemDetails.Description = drBtnPos(2)
+                                            tmpBtnItemDetails.Vat = CInt(drBtnPos(3))
+                                            tmpBtnItemDetails.ProductPrice = CDbl(drBtnPos(4))
+                                            tmpBtnItemDetails.IsBox = CInt(drBtnPos(5))
+                                            tmpBtnItemDetails.BoxQnt = CInt(drBtnPos(6))
+                                            tmpDetailsArrayList.Add(tmpBtnItemDetails)
+                                        End While
+                                    End Using
+
+                                    tmpBtnItem.LinkedItemsDetails = tmpDetailsArrayList
+                                    tmpBtnItem.LinkedItems = tmpBtnItem.LinkedItemsDetails.Count
+                                    btnItemsMap.Add("btnPos" & i, tmpBtnItem)
+                                End If
+                            End Using
+                        Next
+                    Else
+                        sql = "select disp_name, is_visible from BTN_POS" + setCurrentTableIndex()
+                        Dim cmdIsVis = New OracleCommand(sql, conn)
+                        Using drVisible = cmdIsVis.ExecuteReader
+                            If drVisible.Read() Then
+                                CType(Me.Controls("btnPos" & setCurrentTableIndex()), Button).Text = drVisible(0)
+                                If CInt(drVisible(1)) = 0 Then
+                                    CType(Me.Controls("btnPos" & setCurrentTableIndex()), Button).BackColor = Color.Red
+                                Else
+                                    CType(Me.Controls("btnPos" & setCurrentTableIndex()), Button).BackColor = Color.Blue
+                                End If
+                            Else
+                                CType(Me.Controls("btnPos" & setCurrentTableIndex()), Button).BackColor = Color.Red
+                                CType(Me.Controls("btnPos" & setCurrentTableIndex()), Button).Text = ""
+                            End If
+                        End Using
+                    End If
+                Catch ex As Exception
+                    MessageBox.Show(ex.Message + sql, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                Finally
+                End Try
             End If
         Catch ex As Exception
-            MessageBox.Show(ex.Message + sql, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
+            MessageBox.Show(ex.Message & vbCrLf & sql, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
     Private Function setCurrentTableIndex() As String
-        If currentBtnPos.Equals("btnPos1") Or currentBtnPos.Equals("btnPos2") Or currentBtnPos.Equals("btnPos3") Or _
-           currentBtnPos.Equals("btnPos4") Or currentBtnPos.Equals("btnPos5") Or currentBtnPos.Equals("btnPos6") Or _
+        If currentBtnPos.Equals("btnPos1") Or currentBtnPos.Equals("btnPos2") Or currentBtnPos.Equals("btnPos3") Or
+           currentBtnPos.Equals("btnPos4") Or currentBtnPos.Equals("btnPos5") Or currentBtnPos.Equals("btnPos6") Or
            currentBtnPos.Equals("btnPos7") Or currentBtnPos.Equals("btnPos8") Or currentBtnPos.Equals("btnPos9") Then
             Return currentBtnPos.Substring(6, 1)
         Else
@@ -390,7 +494,7 @@ Public Class frmPOS
         End If
     End Function
 
-    Private Sub setAmounts()
+    Private Sub SetAmounts()
         totalWithDiscount = 0.0
         totalAmt = 0.0
         totalDiscount = 0.0

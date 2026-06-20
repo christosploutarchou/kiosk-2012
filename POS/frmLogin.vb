@@ -42,6 +42,7 @@ Public Class frmLogin
                 sync.SyncCategories()
                 sync.SyncProducts()
                 sync.SyncBarcodes()
+                sync.SyncButtonTables()
                 'drop primary key once all references to product serno removed (other tables)
 
                 StartSyncService()

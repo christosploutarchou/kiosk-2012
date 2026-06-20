@@ -68,6 +68,50 @@ Module SqliteModule
         End Using
     End Sub
 
+    Private Sub CreateButtonTables()
+        Using conn As New SQLiteConnection("Data Source=kiosk.db")
+            conn.Open()
+            For i As Integer = 1 To 23
+
+                Dim sql As String =
+                                $"
+                            CREATE TABLE IF NOT EXISTS BTN_POS{i}
+                            (
+                                DISP_NAME      TEXT,
+                                IS_VISIBLE     INTEGER,
+                                KIOSKID        TEXT NOT NULL,
+                                UPDATED_AT     TEXT DEFAULT CURRENT_TIMESTAMP,
+                                SYNC_STATUS    INTEGER NOT NULL DEFAULT 0,
+                                PRIMARY KEY (KIOSKID),
+                                FOREIGN KEY (KIOSKID) REFERENCES KIOSK(KIOSKID)
+                            );
+
+                            CREATE TABLE IF NOT EXISTS BTN_POS{i}_DET
+                            (
+                                PRODUCT_SERNO  INTEGER,
+                                PRODUCT_UUID   TEXT,
+                                DISPLAY_DESC   TEXT,
+                                SEQNO          INTEGER,
+                                KIOSKID        TEXT NOT NULL,
+                                UPDATED_AT     TEXT DEFAULT CURRENT_TIMESTAMP,
+                                SYNC_STATUS    INTEGER NOT NULL DEFAULT 0,
+                                PRIMARY KEY (KIOSKID, PRODUCT_UUID),
+                                FOREIGN KEY (PRODUCT_UUID) REFERENCES PRODUCTS(UUID),
+                                FOREIGN KEY (KIOSKID) REFERENCES KIOSK(KIOSKID)
+                            );
+
+                            CREATE INDEX IF NOT EXISTS IDX_BTN_POS{i}_DET_PRODUCT_UUID ON BTN_POS{i}_DET(PRODUCT_UUID);
+                            CREATE INDEX IF NOT EXISTS IDX_BTN_POS{i}_DET_SEQNO ON BTN_POS{i}_DET(SEQNO);
+                            CREATE INDEX IF NOT EXISTS IDX_BTN_POS{i}_DET_SYNC ON BTN_POS{i}_DET(KIOSKID, UPDATED_AT);
+                        "
+
+                Using cmd As New SQLiteCommand(sql, conn)
+                    cmd.ExecuteNonQuery()
+                End Using
+            Next
+        End Using
+    End Sub
+
     Private Sub CreateGlobalParamsTable()
         Using conn As New SQLiteConnection("Data Source=kiosk.db")
             conn.Open()
@@ -390,6 +434,7 @@ Module SqliteModule
             CreateSuppliersTable()
             CreateCategoriesTable()
             CreateBarcodesTable()
+            CreateButtonTables()
         Catch ex As Exception
             CreateExceptionFile(WhoAmI + ": " + ex.Message, " ")
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
@@ -1993,5 +2038,168 @@ Module SqliteModule
                 cmd.ExecuteNonQuery()
             End Using
         End Sub
+
+        Public Sub SyncButtonTables()
+            Using conn As New SQLiteConnection("Data Source=kiosk.db")
+                conn.Open()
+                Dim x As Integer = 0
+                Try
+                    Using trans = conn.BeginTransaction()
+                        For i As Integer = 1 To 23
+                            x = i
+                            SyncButtonTable(conn, trans, i)
+                        Next
+                        trans.Commit()
+                    End Using
+                Catch ex As Exception
+                End Try
+            End Using
+        End Sub
+
+        Private Sub SyncButtonTable(sqliteConn As SQLiteConnection, trans As SQLiteTransaction, buttonNo As Integer)
+            SyncButtonHeader(sqliteConn, trans, buttonNo)
+            SyncButtonDetails(sqliteConn, trans, buttonNo)
+        End Sub
+
+        Private Sub SyncButtonHeader(sqliteConn As SQLiteConnection, trans As SQLiteTransaction, buttonNo As Integer)
+            Dim sql As String =
+                                $"SELECT DISP_NAME,
+                                 IS_VISIBLE,
+                                 KIOSKID,
+                                 UPDATED_AT
+                                 FROM BTN_POS{buttonNo}
+                                 WHERE KIOSKID=:KIOSKID"
+
+            Using oraCmd As New OracleCommand(sql, conn)
+
+                oraCmd.Parameters.Add("KIOSKID", OracleDbType.Varchar2).Value = kioskId
+                Using dr = oraCmd.ExecuteReader()
+                    Dim sqliteCmd = CreateButtonHeaderUpsert(sqliteConn, trans, buttonNo)
+                    While dr.Read()
+                        sqliteCmd.Parameters("@DISP_NAME").Value = If(dr.IsDBNull(0), DBNull.Value, dr("DISP_NAME"))
+                        sqliteCmd.Parameters("@IS_VISIBLE").Value = If(dr.IsDBNull(1), DBNull.Value, dr("IS_VISIBLE"))
+                        sqliteCmd.Parameters("@KIOSKID").Value = dr("KIOSKID").ToString()
+                        sqliteCmd.Parameters("@UPDATED_AT").Value = Convert.ToDateTime(dr("UPDATED_AT")).ToString("yyyy-MM-dd HH:mm:ss")
+                        sqliteCmd.ExecuteNonQuery()
+                    End While
+                End Using
+            End Using
+        End Sub
+
+        Private Function CreateButtonHeaderUpsert(conn As SQLiteConnection, trans As SQLiteTransaction, buttonNo As Integer) As SQLiteCommand
+            Dim sql As String =
+                                $"
+                                INSERT INTO BTN_POS{buttonNo}
+                                (
+                                    DISP_NAME,
+                                    IS_VISIBLE,
+                                    KIOSKID,
+                                    UPDATED_AT,
+                                    SYNC_STATUS
+                                )
+                                VALUES
+                                (
+                                    @DISP_NAME,
+                                    @IS_VISIBLE,
+                                    @KIOSKID,
+                                    @UPDATED_AT,
+                                    0
+                                )
+                                ON CONFLICT(KIOSKID)
+                                DO UPDATE SET
+
+                                    DISP_NAME=excluded.DISP_NAME,
+                                    IS_VISIBLE=excluded.IS_VISIBLE,
+                                    UPDATED_AT=excluded.UPDATED_AT
+                                "
+
+            Dim cmd As New SQLiteCommand(sql, conn, trans)
+
+            cmd.Parameters.Add("@DISP_NAME", DbType.String)
+            cmd.Parameters.Add("@IS_VISIBLE", DbType.Int32)
+            cmd.Parameters.Add("@KIOSKID", DbType.String)
+            cmd.Parameters.Add("@UPDATED_AT", DbType.String)
+            Return cmd
+        End Function
+
+        Private Sub SyncButtonDetails(sqliteConn As SQLiteConnection, trans As SQLiteTransaction, buttonNo As Integer)
+
+            Dim sql As String =
+                                $"
+                                SELECT
+                                    PRODUCT_SERNO,
+                                    PRODUCT_UUID,
+                                    DISPLAY_DESC,
+                                    SEQNO,
+                                    KIOSKID,
+                                    UPDATED_AT
+                                FROM BTN_POS{buttonNo}_DET
+                                WHERE KIOSKID=:KIOSKID
+                        "
+
+            Using oraCmd As New OracleCommand(sql, conn)
+
+                oraCmd.Parameters.Add("KIOSKID", OracleDbType.Varchar2).Value = kioskId
+                Using dr = oraCmd.ExecuteReader()
+                    Dim sqliteCmd = CreateButtonDetailUpsert(sqliteConn, trans, buttonNo)
+
+                    While dr.Read()
+                        sqliteCmd.Parameters("@PRODUCT_SERNO").Value = If(dr.IsDBNull(0), DBNull.Value, dr("PRODUCT_SERNO"))
+                        sqliteCmd.Parameters("@PRODUCT_UUID").Value = dr("PRODUCT_UUID").ToString()
+                        sqliteCmd.Parameters("@DISPLAY_DESC").Value = If(dr.IsDBNull(2), DBNull.Value, dr("DISPLAY_DESC"))
+                        sqliteCmd.Parameters("@SEQNO").Value = dr("SEQNO")
+                        sqliteCmd.Parameters("@KIOSKID").Value = dr("KIOSKID").ToString()
+                        sqliteCmd.Parameters("@UPDATED_AT").Value = Convert.ToDateTime(dr("UPDATED_AT")).ToString("yyyy-MM-dd HH:mm:ss")
+                        sqliteCmd.ExecuteNonQuery()
+                    End While
+                End Using
+            End Using
+        End Sub
+
+        Private Function CreateButtonDetailUpsert(conn As SQLiteConnection, trans As SQLiteTransaction, buttonNo As Integer) As SQLiteCommand
+
+            Dim sql As String =
+                                $"
+                                INSERT INTO BTN_POS{buttonNo}_DET
+                                (
+                                    PRODUCT_SERNO,
+                                    PRODUCT_UUID,
+                                    DISPLAY_DESC,
+                                    SEQNO,
+                                    KIOSKID,
+                                    UPDATED_AT,
+                                    SYNC_STATUS
+                                )
+                                VALUES
+                                (
+                                    @PRODUCT_SERNO,
+                                    @PRODUCT_UUID,
+                                    @DISPLAY_DESC,
+                                    @SEQNO,
+                                    @KIOSKID,
+                                    @UPDATED_AT,
+                                    0
+                                )
+
+                                ON CONFLICT(KIOSKID,PRODUCT_UUID)
+
+                                DO UPDATE SET
+
+                                    PRODUCT_SERNO=excluded.PRODUCT_SERNO,
+                                    DISPLAY_DESC=excluded.DISPLAY_DESC,
+                                    SEQNO=excluded.SEQNO,
+                                    UPDATED_AT=excluded.UPDATED_AT
+                        "
+
+            Dim cmd As New SQLiteCommand(sql, conn, trans)
+
+            cmd.Parameters.Add("@PRODUCT_SERNO", DbType.Int64)
+            cmd.Parameters.Add("@PRODUCT_UUID", DbType.String)
+            cmd.Parameters.Add("@DISPLAY_DESC", DbType.String)
+            cmd.Parameters.Add("@SEQNO", DbType.Int32)
+            cmd.Parameters.Add("@KIOSKID", DbType.String)
+            cmd.Parameters.Add("@UPDATED_AT", DbType.String)
+            Return cmd
+        End Function
     End Class
 End Module
