@@ -2148,6 +2148,73 @@ Public Class frmPOS
         End If
     End Sub
 
+    Private Sub InsertReceiptHeader(receiptUUID As String, transaction As SQLiteTransaction)
+
+        Dim sql As String =
+    "INSERT INTO RECEIPTS
+    (
+        UUID,
+        SERNO,
+        PAYMENT_TYPE,
+        TOTAL_DISCOUNT,
+        TOTAL_VAT19,
+        TOTAL_VAT5,
+        TOTAL_VAT0,
+        RETURN_AMT,
+        TOTAL_AMT_WITH_DISC,
+        TOTAL_AMT,
+        PAYMENT_AMT,
+        CREATED_ON,
+        TOTAL_VAT3,
+        CREATED_BY,
+        KIOSKID,
+        UPDATED_AT,
+        SYNC_STATUS
+    )
+    VALUES
+    (
+        @UUID,
+        null,
+        @PAYMENT_TYPE,
+        @TOTAL_DISCOUNT,
+        @VAT19,
+        @VAT5,
+        @VAT0,
+        @RETURN_AMT,
+        @AMT_WITH_DISC,
+        @TOTAL_AMT,
+        @PAYMENT_AMT,
+        CURRENT_TIMESTAMP,
+        @VAT3,
+        @CREATED_BY,
+        @KIOSKID,
+        CURRENT_TIMESTAMP,
+        1
+    )"
+        Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+            Using cmd As New SQLiteCommand(sql, sqliteConn)
+                cmd.Transaction = transaction
+
+                cmd.Parameters.AddWithValue("@UUID", receiptUUID)
+                'cmd.Parameters.AddWithValue("@SERNO", receiptSerno)
+                cmd.Parameters.AddWithValue("@PAYMENT_TYPE", paymentMethod)
+                cmd.Parameters.AddWithValue("@TOTAL_DISCOUNT", totalDiscount)
+                cmd.Parameters.AddWithValue("@VAT19", totalAmt19)
+                cmd.Parameters.AddWithValue("@VAT5", totalAmt5)
+                cmd.Parameters.AddWithValue("@VAT0", totalAmt0)
+                cmd.Parameters.AddWithValue("@RETURN_AMT", returnAmount)
+                cmd.Parameters.AddWithValue("@AMT_WITH_DISC", totalWithDiscount)
+                cmd.Parameters.AddWithValue("@TOTAL_AMT", totalAmt)
+                cmd.Parameters.AddWithValue("@PAYMENT_AMT", payment)
+                cmd.Parameters.AddWithValue("@VAT3", totalAmt3)
+                cmd.Parameters.AddWithValue("@CREATED_BY", whois)
+                cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+
+                cmd.ExecuteNonQuery()
+            End Using
+        End Using
+    End Sub
+
     Private Sub InsertReceiptHeader(receiptSerno As Integer, transaction As OracleTransaction)
         Dim sql As String = "INSERT INTO receipts 
                     (serno, payment_type, total_discount, total_vat19, total_vat5, total_vat0, return_amt, total_amt_with_disc, total_amt, payment_amt, created_on, total_vat3, created_by)
@@ -2220,6 +2287,100 @@ Public Class frmPOS
     End Sub
 
 
+    Private Sub InsertReceiptDetailsAndUpdateQuantities(receiptUUID As String, transaction As SQLiteTransaction)
+
+        Dim productsNotUpdateQuantity As New HashSet(Of String) From {
+        "-313", "-312", "-311", "-310", "-309", "-308", "-307",
+        "-306", "-305", "-304", "-303", "-302", "-301", "-300"
+    }
+
+        For Each row As DataGridViewRow In dgvReceipt.Rows
+
+            If row.IsNewRow Then Continue For
+
+            Dim productUUID As String = ""
+
+            If row.Cells("productUUID").Value IsNot Nothing Then
+                productUUID = row.Cells("productUUID").Value.ToString()
+            End If
+
+            If String.IsNullOrWhiteSpace(productUUID) Then Continue For
+
+            Dim qty As Integer = 1
+            Integer.TryParse(row.Cells("quantity").Value?.ToString(), qty)
+
+            Dim amount As Double = 0
+            Double.TryParse(row.Cells("amount").Value?.ToString(), amount)
+
+            Dim vat As Integer = 0
+            Integer.TryParse(row.Cells("vat").Value?.ToString(), vat)
+
+            Dim isBox As Integer = 0
+            Integer.TryParse(row.Cells("isbox").Value?.ToString(), isBox)
+
+            Dim boxQnt As Integer = 0
+            Integer.TryParse(row.Cells("box_qnt").Value?.ToString(), boxQnt)
+
+            Dim sqlDet As String =
+        "
+        INSERT INTO RECEIPTS_DET
+        (
+            RECEIPT_UUID,
+            RECEIPT_SERNO,
+            PRODUCT_UUID,
+            QUANTITY,
+            AMOUNT,
+            VAT,
+            CREATED_ON,
+            KIOSKID,
+            UPDATED_AT,
+            SYNC_STATUS
+        )
+        VALUES
+        (
+            @RECEIPT_UUID,
+            @RECEIPT_SERNO,
+            @PRODUCT_UUID,
+            @QUANTITY,
+            @AMOUNT,
+            @VAT,
+            CURRENT_TIMESTAMP,
+            @KIOSKID,
+            CURRENT_TIMESTAMP,
+            1
+        )"
+
+            Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                Using cmd As New SQLiteCommand(sqlDet, sqliteConn)
+
+                    cmd.Transaction = transaction
+
+                    cmd.Parameters.AddWithValue("@RECEIPT_UUID", receiptUUID)
+                    cmd.Parameters.AddWithValue("@RECEIPT_SERNO", receiptSerno)
+                    cmd.Parameters.AddWithValue("@PRODUCT_UUID", productUUID)
+                    cmd.Parameters.AddWithValue("@QUANTITY", qty)
+                    cmd.Parameters.AddWithValue("@AMOUNT", amount)
+                    cmd.Parameters.AddWithValue("@VAT", vat)
+                    cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+
+                    cmd.ExecuteNonQuery()
+
+                End Using
+            End Using
+
+            If Not productsNotUpdateQuantity.Contains(productUUID) Then
+                UpdateProductQuantity(productUUID,
+                                  qty,
+                                  amount,
+                                  isBox,
+                                  boxQnt,
+                                  transaction)
+            End If
+
+        Next
+
+    End Sub
+
     Private Sub UpdateProductQuantity(productSerno As String, quantity As Integer, amount As Double, isBox As Integer, boxQnt As Integer, transaction As OracleTransaction)
         Dim isBoxFlag As Boolean = (isBox = 1)
 
@@ -2264,6 +2425,133 @@ Public Class frmPOS
                 cmdLog.ExecuteNonQuery()
             End Using
         End If
+    End Sub
+
+    Private Sub UpdateProductQuantity(productUUID As String,
+                                  quantity As Integer,
+                                  amount As Double,
+                                  isBox As Integer,
+                                  boxQnt As Integer,
+                                  transaction As SQLiteTransaction)
+
+        Dim isBoxFlag As Boolean = (isBox = 1)
+
+        'Verify from DB if necessary
+        If Not isBoxFlag Then
+
+            Const sqlCheck As String =
+            "SELECT IFNULL(ISBOX,0)
+               FROM PRODUCTS
+              WHERE UUID=@UUID"
+
+            Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                sqliteConn.Open()
+                Using cmd As New SQLiteCommand(sqlCheck, sqliteConn)
+
+                    cmd.Transaction = transaction
+                    cmd.Parameters.AddWithValue("@UUID", productUUID)
+
+                    Dim result = cmd.ExecuteScalar()
+
+                    If result IsNot Nothing AndAlso result IsNot DBNull.Value Then
+                        isBoxFlag = (Convert.ToInt32(result) = 1)
+                    End If
+
+                End Using
+            End Using
+
+
+        End If
+
+        If Not isBoxFlag Then
+
+            Const sqlUpdate As String =
+            "
+            UPDATE PRODUCTS
+               SET AVAIL_QUANTITY = AVAIL_QUANTITY + @QTYCHANGE,
+                   LASTMODIFIEDSCREEN = 0,
+                   UPDATED_AT = CURRENT_TIMESTAMP,
+                   SYNC_STATUS = 1
+             WHERE UUID = @UUID
+            "
+
+            Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                sqliteConn.Open()
+                Using cmd As New SQLiteCommand(sqlUpdate, sqliteConn)
+
+                    cmd.Transaction = transaction
+
+                    cmd.Parameters.AddWithValue("@QTYCHANGE",
+                    If(amount >= 0, -quantity, quantity))
+
+                    cmd.Parameters.AddWithValue("@UUID", productUUID)
+
+                    cmd.ExecuteNonQuery()
+
+                End Using
+            End Using
+        Else
+
+            Const sqlBox As String =
+            "
+            UPDATE PRODUCTS
+               SET AVAIL_QUANTITY = AVAIL_QUANTITY + @QTYCHANGE,
+                   LASTMODIFIEDSCREEN = 0,
+                   UPDATED_AT = CURRENT_TIMESTAMP,
+                   SYNC_STATUS = 1
+             WHERE UUID IN
+             (
+                 SELECT PRODUCT_UUID
+                   FROM BARCODES
+                  WHERE UPPER(BARCODE) IN
+                  (
+                      SELECT UPPER(BARCODE)
+                        FROM BOXBARCODES
+                       WHERE PRODUCT_UUID = @UUID
+                  )
+             )
+            "
+            Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                sqliteConn.Open()
+
+                Using cmd As New SQLiteCommand(sqlBox, sqliteConn)
+
+                    cmd.Transaction = transaction
+
+                    cmd.Parameters.AddWithValue("@QTYCHANGE",
+                    If(amount >= 0,
+                       -(boxQnt * quantity),
+                       boxQnt * quantity))
+
+                    cmd.Parameters.AddWithValue("@UUID", productUUID)
+
+                    cmd.ExecuteNonQuery()
+
+                End Using
+            End Using
+
+
+            'Optional log
+            Const sqlLog As String =
+            "INSERT INTO ISBOX_LOG(LOGMSG) VALUES(@LOGMSG)"
+            Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                sqliteConn.Open()
+                Using cmd As New SQLiteCommand(sqlLog, sqliteConn)
+
+                    cmd.Transaction = transaction
+
+                    cmd.Parameters.AddWithValue(
+                    "@LOGMSG",
+                    $"Product {productUUID}, QtyChange: {If(amount >= 0, -(boxQnt * quantity), boxQnt * quantity)}")
+
+                    cmd.ExecuteNonQuery()
+
+                End Using
+            End Using
+
+
+        End If
+
     End Sub
 
     Private Sub PrintReceipt()

@@ -200,6 +200,126 @@ with a unique constraint:
 ALTER TABLE PRODUCTS
 ADD CONSTRAINT PRODUCTS_SERNO_UK
 UNIQUE (SERNO);
+
+DECLARE
+    v_count NUMBER;
+BEGIN
+
+    ------------------------------------------------------------------
+    -- ADD UUID COLUMN
+    ------------------------------------------------------------------
+    SELECT COUNT(*)
+    INTO v_count
+    FROM USER_TAB_COLUMNS
+    WHERE TABLE_NAME = 'RECEIPTS'
+    AND COLUMN_NAME = 'UUID';
+
+    IF v_count = 0 THEN
+        EXECUTE IMMEDIATE
+        'ALTER TABLE RECEIPTS ADD UUID VARCHAR2(32)';
+    END IF;
+
+
+    ------------------------------------------------------------------
+    -- POPULATE EXISTING RECEIPTS
+    ------------------------------------------------------------------
+    EXECUTE IMMEDIATE
+    '
+    UPDATE RECEIPTS
+       SET UUID = RAWTOHEX(SYS_GUID())
+     WHERE UUID IS NULL
+    ';
+
+
+    ------------------------------------------------------------------
+    -- MAKE UUID NOT NULL
+    ------------------------------------------------------------------
+    EXECUTE IMMEDIATE
+    '
+    ALTER TABLE RECEIPTS MODIFY UUID NOT NULL
+    ';
+
+
+    ------------------------------------------------------------------
+    -- ADD UNIQUE CONSTRAINT
+    ------------------------------------------------------------------
+    SELECT COUNT(*)
+    INTO v_count
+    FROM USER_CONSTRAINTS
+    WHERE TABLE_NAME = 'RECEIPTS'
+    AND CONSTRAINT_NAME = 'UK_RECEIPTS_UUID';
+
+    IF v_count = 0 THEN
+
+        EXECUTE IMMEDIATE
+        '
+        ALTER TABLE RECEIPTS
+        ADD CONSTRAINT UK_RECEIPTS_UUID
+        UNIQUE(UUID)
+        ';
+
+    END IF;
+
+
+    ------------------------------------------------------------------
+    -- ADD KIOSKID IF MISSING
+    ------------------------------------------------------------------
+    SELECT COUNT(*)
+    INTO v_count
+    FROM USER_TAB_COLUMNS
+    WHERE TABLE_NAME = 'RECEIPTS'
+    AND COLUMN_NAME = 'KIOSKID';
+
+    IF v_count = 0 THEN
+        EXECUTE IMMEDIATE
+        '
+        ALTER TABLE RECEIPTS
+        ADD KIOSKID VARCHAR2(32)
+        ';
+    END IF;
+
+
+    ------------------------------------------------------------------
+    -- ADD UPDATED_AT IF MISSING
+    ------------------------------------------------------------------
+    SELECT COUNT(*)
+    INTO v_count
+    FROM USER_TAB_COLUMNS
+    WHERE TABLE_NAME = 'RECEIPTS'
+    AND COLUMN_NAME = 'UPDATED_AT';
+
+    IF v_count = 0 THEN
+
+        EXECUTE IMMEDIATE
+        '
+        ALTER TABLE RECEIPTS
+        ADD UPDATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ';
+
+    END IF;
+
+
+    ------------------------------------------------------------------
+    -- INITIALIZE UPDATED_AT
+    ------------------------------------------------------------------
+    EXECUTE IMMEDIATE
+    '
+    UPDATE RECEIPTS
+       SET UPDATED_AT = CREATED_ON
+     WHERE UPDATED_AT IS NULL
+    ';
+
+
+    COMMIT;
+
+END;
+/
+
+CREATE INDEX IDX_RECEIPTS_SYNC
+ON RECEIPTS(KIOSKID, UPDATED_AT);
+
+CREATE INDEX IDX_RECEIPTS_UUID
+ON RECEIPTS(UUID);
  -----------
 
 -- SUPPLIERS 
@@ -223,6 +343,30 @@ ADD (
 );
 
 ALTER TABLE CATEGORIES
+ADD UPDATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+
+-- PAYMENTS
+ALTER TABLE PAYMENTS
+ADD (
+    KIOSKID VARCHAR2(32),
+    CONSTRAINT PAYMENTS_FK_KIOSKID
+        FOREIGN KEY (KIOSKID)
+        REFERENCES KIOSK (KIOSKID)
+);
+ALTER TABLE PAYMENTS
+ADD UPDATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+
+-- RECEIPTS
+ALTER TABLE RECEIPTS
+ADD (
+    KIOSKID VARCHAR2(32),
+    CONSTRAINT RECEIPTS_FK_KIOSKID
+        FOREIGN KEY (KIOSKID)
+        REFERENCES KIOSK (KIOSKID)
+);
+
+UPDATE RECEIPTS SET KIOSKID = '55F3FEB197474ECAA84867CFB8CD8CC6' ;
+ALTER TABLE RECEIPTS 
 ADD UPDATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
 
 -- BUTTONS, ADD KIOSKID

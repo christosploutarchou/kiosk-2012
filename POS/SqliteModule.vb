@@ -52,6 +52,86 @@ Module SqliteModule
             Return True
         End If
     End Function
+
+    Private Sub CreatePaymentsTable()
+
+        Dim sql As String =
+                            "
+                            CREATE TABLE IF NOT EXISTS PAYMENTS
+                            (
+                                CREATED_BY TEXT,
+                                CREATED_ON TEXT,
+                                AMOUNT REAL,
+                                VAT TEXT,
+                                AMOUNTVAT REAL,
+                                INV_NUMBER TEXT,
+                                SUPPLIER_ID TEXT,
+                                KIOSKID TEXT,
+                                UPDATED_AT TEXT DEFAULT CURRENT_TIMESTAMP,
+                                SYNC_STATUS INTEGER NOT NULL DEFAULT 0,
+                                PRIMARY KEY
+                                (
+                                    CREATED_BY,
+                                    CREATED_ON,
+                                    INV_NUMBER,
+                                    SUPPLIER_ID,
+                                    KIOSKID
+                                ),
+                                FOREIGN KEY (CREATED_BY) REFERENCES USERS(UUID),
+                                FOREIGN KEY (SUPPLIER_ID) REFERENCES SUPPLIERS(UUID),
+                                FOREIGN KEY (KIOSKID) REFERENCES KIOSK(KIOSKID)
+                            );
+
+                            CREATE INDEX IF NOT EXISTS IDX_PAYMENTS_SYNC ON PAYMENTS(SYNC_STATUS);
+                            CREATE INDEX IF NOT EXISTS IDX_PAYMENTS_DATE ON PAYMENTS(CREATED_ON);
+                            "
+        Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+            sqliteConn.Open()
+            Using cmd As New SQLiteCommand(sql, sqliteConn)
+                cmd.ExecuteNonQuery()
+            End Using
+        End Using
+    End Sub
+
+    Private Sub CreateReceiptsTable()
+        Dim sql As String =
+                            "
+                            CREATE TABLE IF NOT EXISTS RECEIPTS
+                            (
+                                UUID TEXT PRIMARY KEY,
+                                SERNO INTEGER,
+                                PAYMENT_TYPE TEXT,
+                                TOTAL_DISCOUNT REAL,
+                                TOTAL_VAT19 REAL,
+                                TOTAL_VAT5 REAL,
+                                TOTAL_VAT3 REAL,
+                                TOTAL_VAT0 REAL,
+                                RETURN_AMT REAL,
+                                TOTAL_AMT_WITH_DISC REAL,
+                                TOTAL_AMT REAL,
+                                PAYMENT_AMT REAL,
+                                CREATED_ON TEXT,
+                                CREATED_BY TEXT,
+                                KIOSKID TEXT,
+                                UPDATED_AT TEXT DEFAULT CURRENT_TIMESTAMP,
+                                SYNC_STATUS INTEGER NOT NULL DEFAULT 0,
+                                FOREIGN KEY (CREATED_BY) REFERENCES USERS(UUID),
+                                FOREIGN KEY (KIOSKID) REFERENCES KIOSK(KIOSKID)
+                            );
+
+                            CREATE INDEX IF NOT EXISTS IDX_RECEIPTS_SERNO ON RECEIPTS(SERNO);
+                            CREATE INDEX IF NOT EXISTS IDX_RECEIPTS_USER ON RECEIPTS(CREATED_BY);
+                            CREATE INDEX IF NOT EXISTS IDX_RECEIPTS_DATE ON RECEIPTS(CREATED_ON);
+                            CREATE INDEX IF NOT EXISTS IDX_RECEIPTS_SYNC ON RECEIPTS(SYNC_STATUS);
+                            "
+        Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+            sqliteConn.Open()
+            Using cmd As New SQLiteCommand(sql, sqliteConn)
+                cmd.ExecuteNonQuery()
+            End Using
+        End Using
+    End Sub
+
     Private Sub CreateSyncMetadataTable()
         Using conn As New SQLiteConnection("Data Source=kiosk.db")
             conn.Open()
@@ -175,6 +255,7 @@ Module SqliteModule
                         LOGOUT_WHEN TEXT,
                         AMOUNTLAXEIAONLOGIN REAL,
                         KIOSKID TEXT,
+                        SYNC_STATUS INTEGER NOT NULL DEFAULT 0,
                         UPDATED_AT TEXT DEFAULT CURRENT_TIMESTAMP,
                         FOREIGN KEY (USER_ID) REFERENCES USERS(UUID),
                         FOREIGN KEY (KIOSKID) REFERENCES KIOSK(KIOSKID)
@@ -435,6 +516,9 @@ Module SqliteModule
             CreateCategoriesTable()
             CreateBarcodesTable()
             CreateButtonTables()
+            CreatePaymentsTable()
+            CreateReceiptsTable()
+            'CreateReceiptsDetTable()
         Catch ex As Exception
             CreateExceptionFile(WhoAmI + ": " + ex.Message, " ")
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
@@ -2201,5 +2285,883 @@ Module SqliteModule
             cmd.Parameters.Add("@UPDATED_AT", DbType.String)
             Return cmd
         End Function
+
+        Public Sub SyncSessions()
+
+            Dim sql As String =
+                                "SELECT " &
+                                "UUID, " &
+                                "LOGIN_WHEN, " &
+                                "IS_ACTIVE, " &
+                                "MACHINE_NAME, " &
+                                "USER_ID, " &
+                                "LOGOUT_WHEN, " &
+                                "AMOUNTLAXEIAONLOGIN, " &
+                                "KIOSKID, " &
+                                "UPDATED_AT " &
+                                "FROM SESSIONS " &
+                                "WHERE KIOSKID = :KIOSKID"
+
+            Using cmdOracle As New OracleCommand(sql, conn)
+
+                cmdOracle.BindByName = True
+                cmdOracle.Parameters.Add("KIOSKID", OracleDbType.Varchar2).Value = kioskId
+
+                Using dr As OracleDataReader = cmdOracle.ExecuteReader()
+                    Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                        sqliteConn.Open()
+
+                        Using trans = sqliteConn.BeginTransaction()
+
+                            Dim upsertCmd As SQLiteCommand = CreateSessionUpsertCommand(sqliteConn)
+                            upsertCmd.Transaction = trans
+
+                            While dr.Read()
+                                upsertCmd.Parameters("@UUID").Value = dr("UUID").ToString()
+                                upsertCmd.Parameters("@LOGIN_WHEN").Value = If(dr.IsDBNull(dr.GetOrdinal("LOGIN_WHEN")), DBNull.Value, CType(dr("LOGIN_WHEN"), DateTime).ToString("yyyy-MM-dd HH:mm:ss"))
+                                upsertCmd.Parameters("@IS_ACTIVE").Value = If(dr.IsDBNull(dr.GetOrdinal("IS_ACTIVE")), 0, Convert.ToInt32(dr("IS_ACTIVE")))
+                                upsertCmd.Parameters("@MACHINE_NAME").Value = If(dr.IsDBNull(dr.GetOrdinal("MACHINE_NAME")), DBNull.Value, dr("MACHINE_NAME").ToString())
+                                upsertCmd.Parameters("@USER_ID").Value = If(dr.IsDBNull(dr.GetOrdinal("USER_ID")), DBNull.Value, dr("USER_ID").ToString())
+                                upsertCmd.Parameters("@LOGOUT_WHEN").Value = If(dr.IsDBNull(dr.GetOrdinal("LOGOUT_WHEN")), DBNull.Value, CType(dr("LOGOUT_WHEN"), DateTime).ToString("yyyy-MM-dd HH:mm:ss"))
+                                upsertCmd.Parameters("@AMOUNTLAXEIAONLOGIN").Value = If(dr.IsDBNull(dr.GetOrdinal("AMOUNTLAXEIAONLOGIN")), 0, Convert.ToDouble(dr("AMOUNTLAXEIAONLOGIN")))
+                                upsertCmd.Parameters("@KIOSKID").Value = dr("KIOSKID").ToString()
+                                upsertCmd.Parameters("@UPDATED_AT").Value = If(dr.IsDBNull(dr.GetOrdinal("UPDATED_AT")), DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), CType(dr("UPDATED_AT"), DateTime).ToString("yyyy-MM-dd HH:mm:ss"))
+                                upsertCmd.ExecuteNonQuery()
+                            End While
+
+                            trans.Commit()
+                        End Using
+                    End Using
+                End Using
+            End Using
+        End Sub
+
+        Private Function CreateSessionUpsertCommand(conn As SQLiteConnection) As SQLiteCommand
+            Dim sql As String =
+                                "
+                                INSERT INTO SESSIONS
+                                (
+                                    UUID,
+                                    LOGIN_WHEN,
+                                    IS_ACTIVE,
+                                    MACHINE_NAME,
+                                    USER_ID,
+                                    LOGOUT_WHEN,
+                                    AMOUNTLAXEIAONLOGIN,
+                                    KIOSKID,
+                                    UPDATED_AT,
+                                    SYNC_STATUS
+                                )
+                                VALUES
+                                (
+                                    @UUID,
+                                    @LOGIN_WHEN,
+                                    @IS_ACTIVE,
+                                    @MACHINE_NAME,
+                                    @USER_ID,
+                                    @LOGOUT_WHEN,
+                                    @AMOUNTLAXEIAONLOGIN,
+                                    @KIOSKID,
+                                    @UPDATED_AT,
+                                    0
+                                )
+
+                                ON CONFLICT(UUID)
+                                DO UPDATE SET
+
+                                LOGIN_WHEN=excluded.LOGIN_WHEN,
+                                IS_ACTIVE=excluded.IS_ACTIVE,
+                                MACHINE_NAME=excluded.MACHINE_NAME,
+                                USER_ID=excluded.USER_ID,
+                                LOGOUT_WHEN=excluded.LOGOUT_WHEN,
+                                AMOUNTLAXEIAONLOGIN=excluded.AMOUNTLAXEIAONLOGIN,
+                                KIOSKID=excluded.KIOSKID,
+                                UPDATED_AT=excluded.UPDATED_AT
+                                "
+
+            Dim cmd As New SQLiteCommand(sql, conn)
+
+            cmd.Parameters.Add("@UUID", DbType.String)
+            cmd.Parameters.Add("@LOGIN_WHEN", DbType.String)
+            cmd.Parameters.Add("@IS_ACTIVE", DbType.Int32)
+            cmd.Parameters.Add("@MACHINE_NAME", DbType.String)
+            cmd.Parameters.Add("@USER_ID", DbType.String)
+            cmd.Parameters.Add("@LOGOUT_WHEN", DbType.String)
+            cmd.Parameters.Add("@AMOUNTLAXEIAONLOGIN", DbType.Double)
+            cmd.Parameters.Add("@KIOSKID", DbType.String)
+            cmd.Parameters.Add("@UPDATED_AT", DbType.String)
+
+            Return cmd
+        End Function
+
+        Public Sub UploadSessions()
+
+            Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                sqliteConn.Open()
+
+                Const sql As String =
+                    "
+                        SELECT *
+                        FROM SESSIONS
+                        WHERE SYNC_STATUS = 1
+                        ORDER BY UPDATED_AT
+                    "
+
+                Using cmd As New SQLiteCommand(sql, sqliteConn)
+                    Using reader As SQLiteDataReader = cmd.ExecuteReader()
+                        While reader.Read()
+                            UploadSession(sqliteConn, reader)
+                        End While
+                    End Using
+                End Using
+            End Using
+        End Sub
+
+        Private Sub UploadSession(sqliteConn As SQLiteConnection, reader As SQLiteDataReader)
+
+            Const mergeSql As String =
+                                        "
+                                MERGE INTO SESSIONS s
+
+                                USING
+                                (
+                                    SELECT
+                                        :UUID UUID,
+                                        :LOGIN_WHEN LOGIN_WHEN,
+                                        :IS_ACTIVE IS_ACTIVE,
+                                        :MACHINE_NAME MACHINE_NAME,
+                                        :USER_ID USER_ID,
+                                        :LOGOUT_WHEN LOGOUT_WHEN,
+                                        :AMOUNTLAXEIAONLOGIN AMOUNTLAXEIAONLOGIN,
+                                        :KIOSKID KIOSKID,
+                                        :UPDATED_AT UPDATED_AT
+                                    FROM dual
+                                ) x
+
+                                ON
+                                (
+                                    s.UUID = x.UUID
+                                )
+
+                                WHEN MATCHED THEN
+
+                                UPDATE SET
+
+                                    s.LOGIN_WHEN = x.LOGIN_WHEN,
+                                    s.IS_ACTIVE = x.IS_ACTIVE,
+                                    s.MACHINE_NAME = x.MACHINE_NAME,
+                                    s.USER_ID = x.USER_ID,
+                                    s.LOGOUT_WHEN = x.LOGOUT_WHEN,
+                                    s.AMOUNTLAXEIAONLOGIN = x.AMOUNTLAXEIAONLOGIN,
+                                    s.KIOSKID = x.KIOSKID,
+                                    s.UPDATED_AT = x.UPDATED_AT
+
+                                WHEN NOT MATCHED THEN
+
+                                INSERT
+                                (
+                                    UUID,
+                                    LOGIN_WHEN,
+                                    IS_ACTIVE,
+                                    MACHINE_NAME,
+                                    USER_ID,
+                                    LOGOUT_WHEN,
+                                    AMOUNTLAXEIAONLOGIN,
+                                    KIOSKID,
+                                    UPDATED_AT
+                                )
+
+                                VALUES
+                                (
+                                    x.UUID,
+                                    x.LOGIN_WHEN,
+                                    x.IS_ACTIVE,
+                                    x.MACHINE_NAME,
+                                    x.USER_ID,
+                                    x.LOGOUT_WHEN,
+                                    x.AMOUNTLAXEIAONLOGIN,
+                                    x.KIOSKID,
+                                    x.UPDATED_AT
+                                )
+                                "
+
+            Using cmd As New OracleCommand(mergeSql, conn)
+
+                cmd.BindByName = True
+
+                cmd.Parameters.Add("UUID", OracleDbType.Varchar2).Value = reader("UUID").ToString()
+                cmd.Parameters.Add("LOGIN_WHEN", OracleDbType.TimeStamp).Value = Convert.ToDateTime(reader("LOGIN_WHEN"))
+                cmd.Parameters.Add("IS_ACTIVE", OracleDbType.Int32).Value = Convert.ToInt32(reader("IS_ACTIVE"))
+                cmd.Parameters.Add("MACHINE_NAME", OracleDbType.Varchar2).Value = If(IsDBNull(reader("MACHINE_NAME")), DBNull.Value, reader("MACHINE_NAME").ToString())
+                cmd.Parameters.Add("USER_ID", OracleDbType.Varchar2).Value = If(IsDBNull(reader("USER_ID")), DBNull.Value, reader("USER_ID").ToString())
+
+                If IsDBNull(reader("LOGOUT_WHEN")) OrElse String.IsNullOrWhiteSpace(reader("LOGOUT_WHEN").ToString()) Then
+                    cmd.Parameters.Add("LOGOUT_WHEN", OracleDbType.TimeStamp).Value = DBNull.Value
+                Else
+                    cmd.Parameters.Add("LOGOUT_WHEN", OracleDbType.TimeStamp).Value = Convert.ToDateTime(reader("LOGOUT_WHEN"))
+                End If
+
+                cmd.Parameters.Add("AMOUNTLAXEIAONLOGIN", OracleDbType.Decimal).Value = If(IsDBNull(reader("AMOUNTLAXEIAONLOGIN")), DBNull.Value, Convert.ToDecimal(reader("AMOUNTLAXEIAONLOGIN")))
+                cmd.Parameters.Add("KIOSKID", OracleDbType.Varchar2).Value = reader("KIOSKID").ToString()
+                cmd.Parameters.Add("UPDATED_AT", OracleDbType.TimeStamp).Value = Convert.ToDateTime(reader("UPDATED_AT"))
+                cmd.ExecuteNonQuery()
+
+            End Using
+
+            MarkSessionSynced(sqliteConn, reader("UUID").ToString())
+        End Sub
+
+        Private Sub MarkSessionSynced(sqliteConn As SQLiteConnection, uuid As String)
+
+            Const sql As String =
+                            "
+                                UPDATE SESSIONS
+                                SET SYNC_STATUS = 0
+                                WHERE UUID = @UUID
+                            "
+
+            Using cmd As New SQLiteCommand(sql, sqliteConn)
+                cmd.Parameters.AddWithValue("@UUID", uuid)
+                cmd.ExecuteNonQuery()
+            End Using
+        End Sub
+
+        Private Function GetLastSyncValue(syncKey As String) As DateTime
+
+            Dim WhoAmI As String = "GetLastSyncValue"
+
+            Dim sql As String =
+        "SELECT VALUE " &
+        "FROM SYNC_METADATA " &
+        "WHERE KEY=@KEY " &
+        "AND KIOSKID=@KIOSKID"
+
+            Try
+
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+
+                    sqliteConn.Open()
+
+                    Using cmd As New SQLiteCommand(sql, sqliteConn)
+
+                        cmd.Parameters.AddWithValue("@KEY", syncKey)
+                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+
+                        Dim result = cmd.ExecuteScalar()
+
+                        If result IsNot Nothing AndAlso
+                   result IsNot DBNull.Value Then
+
+                            Return Convert.ToDateTime(result)
+
+                        End If
+
+                    End Using
+
+                End Using
+
+
+            Catch ex As Exception
+
+                CreateExceptionFile(
+            WhoAmI & ": " & ex.Message,
+            sql)
+
+            End Try
+
+
+            'first sync - get everything
+            Return New DateTime(2000, 1, 1)
+
+        End Function
+        Public Sub SyncReceipts()
+
+            Dim WhoAmI As String = "SyncReceipts"
+
+            Dim lastSync As String = GetLastSyncValue("RECEIPTS_LAST_SYNC")
+
+
+
+            Dim sql As String =
+    "
+    SELECT
+        UUID,
+        SERNO,
+        PAYMENT_TYPE,
+        TOTAL_DISCOUNT,
+        TOTAL_VAT19,
+        TOTAL_VAT5,
+        TOTAL_VAT3,
+        TOTAL_VAT0,
+        RETURN_AMT,
+        TOTAL_AMT_WITH_DISC,
+        TOTAL_AMT,
+        PAYMENT_AMT,
+        CREATED_ON,
+        CREATED_BY,
+        KIOSKID,
+        UPDATED_AT
+    FROM RECEIPTS
+    WHERE KIOSKID=:KIOSKID
+    AND UPDATED_AT > :LASTSYNC
+    ORDER BY UPDATED_AT
+    "
+
+
+            Try
+
+                Using oraCmd As New OracleCommand(sql, conn)
+
+                    oraCmd.BindByName = True
+
+                    oraCmd.Parameters.Add("KIOSKID",
+                OracleDbType.Varchar2).Value = kioskId
+
+
+                    oraCmd.Parameters.Add("LASTSYNC",
+                OracleDbType.TimeStamp).Value =
+                Convert.ToDateTime(lastSync)
+
+
+                    Using dr = oraCmd.ExecuteReader()
+
+
+                        Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+
+                            sqliteConn.Open()
+
+
+                            Using tr = sqliteConn.BeginTransaction()
+
+
+                                Dim upsert =
+                            CreateReceiptUpsertCommand(sqliteConn)
+
+                                upsert.Transaction = tr
+
+
+                                Dim newestSync As DateTime =
+                            Convert.ToDateTime(lastSync)
+
+
+                                While dr.Read()
+
+
+                                    For i = 0 To dr.FieldCount - 1
+
+                                        upsert.Parameters(
+                                    "@" & dr.GetName(i)
+                                ).Value =
+                                If(IsDBNull(dr(i)),
+                                   DBNull.Value,
+                                   dr(i))
+
+                                    Next
+
+
+                                    upsert.ExecuteNonQuery()
+
+
+                                    Dim upd =
+                                Convert.ToDateTime(
+                                    dr("UPDATED_AT"))
+
+                                    If upd > newestSync Then
+                                        newestSync = upd
+                                    End If
+
+
+                                End While
+
+
+                                tr.Commit()
+
+                                SaveLastSync(sqliteConn, newestSync, "RECEIPTS")
+
+
+
+                            End Using
+
+
+            End Using
+
+
+            End Using
+
+
+            End Using
+
+
+            Catch ex As Exception
+
+            CreateExceptionFile(
+        WhoAmI & ": " & ex.Message,
+        Sql)
+
+            End Try
+
+
+        End Sub
+
+        Private Function CreateReceiptUpsertCommand(
+    conn As SQLiteConnection) As SQLiteCommand
+
+
+            Dim sql As String =
+"
+INSERT INTO RECEIPTS
+(
+UUID,
+SERNO,
+PAYMENT_TYPE,
+TOTAL_DISCOUNT,
+TOTAL_VAT19,
+TOTAL_VAT5,
+TOTAL_VAT3,
+TOTAL_VAT0,
+RETURN_AMT,
+TOTAL_AMT_WITH_DISC,
+TOTAL_AMT,
+PAYMENT_AMT,
+CREATED_ON,
+CREATED_BY,
+KIOSKID,
+UPDATED_AT,
+SYNC_STATUS
+)
+VALUES
+(
+@UUID,
+@SERNO,
+@PAYMENT_TYPE,
+@TOTAL_DISCOUNT,
+@TOTAL_VAT19,
+@TOTAL_VAT5,
+@TOTAL_VAT3,
+@TOTAL_VAT0,
+@RETURN_AMT,
+@TOTAL_AMT_WITH_DISC,
+@TOTAL_AMT,
+@PAYMENT_AMT,
+@CREATED_ON,
+@CREATED_BY,
+@KIOSKID,
+@UPDATED_AT,
+0
+)
+
+ON CONFLICT(UUID)
+
+DO UPDATE SET
+
+PAYMENT_TYPE=excluded.PAYMENT_TYPE,
+TOTAL_AMT=excluded.TOTAL_AMT,
+TOTAL_AMT_WITH_DISC=excluded.TOTAL_AMT_WITH_DISC,
+UPDATED_AT=excluded.UPDATED_AT
+"
+
+
+            Dim cmd As New SQLiteCommand(sql, conn)
+
+
+            For Each p In
+{
+"UUID",
+"SERNO",
+"PAYMENT_TYPE",
+"TOTAL_DISCOUNT",
+"TOTAL_VAT19",
+"TOTAL_VAT5",
+"TOTAL_VAT3",
+"TOTAL_VAT0",
+"RETURN_AMT",
+"TOTAL_AMT_WITH_DISC",
+"TOTAL_AMT",
+"PAYMENT_AMT",
+"CREATED_ON",
+"CREATED_BY",
+"KIOSKID",
+"UPDATED_AT"
+}
+
+                cmd.Parameters.Add("@" & p, DbType.Object)
+
+            Next
+
+
+            Return cmd
+
+
+        End Function
+
+
+        Public Sub SyncPayments()
+
+            Dim sql As String =
+            "
+    SELECT
+        CREATED_BY,
+        CREATED_ON,
+        AMOUNT,
+        VAT,
+        AMOUNTVAT,
+        INV_NUMBER,
+        SUPPLIER_ID,
+        KIOSKID,
+        UPDATED_AT
+    FROM PAYMENTS
+    WHERE KIOSKID=:KIOSKID
+    "
+
+            Using cmd As New OracleCommand(sql, conn)
+
+                cmd.BindByName = True
+
+                cmd.Parameters.Add(
+                    "KIOSKID",
+                    OracleDbType.Varchar2).Value = kioskId
+
+
+                Using dr = cmd.ExecuteReader()
+
+                    Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+
+                        sqliteConn.Open()
+
+
+                        While dr.Read()
+
+
+                            Dim sqlLite =
+                            "
+                    INSERT INTO PAYMENTS
+                    (
+                    CREATED_BY,
+                    CREATED_ON,
+                    AMOUNT,
+                    VAT,
+                    AMOUNTVAT,
+                    INV_NUMBER,
+                    SUPPLIER_ID,
+                    KIOSKID,
+                    UPDATED_AT,
+                    SYNC_STATUS
+                    )
+                    VALUES
+                    (
+                    @CREATED_BY,
+                    @CREATED_ON,
+                    @AMOUNT,
+                    @VAT,
+                    @AMOUNTVAT,
+                    @INV_NUMBER,
+                    @SUPPLIER_ID,
+                    @KIOSKID,
+                    @UPDATED_AT,
+                    0
+                    )
+
+                    ON CONFLICT
+                    (
+                    CREATED_BY,
+                    CREATED_ON,
+                    INV_NUMBER,
+                    SUPPLIER_ID,
+                    KIOSKID
+                    )
+
+                    DO UPDATE SET
+
+                    AMOUNT=excluded.AMOUNT,
+                    VAT=excluded.VAT,
+                    AMOUNTVAT=excluded.AMOUNTVAT,
+                    UPDATED_AT=excluded.UPDATED_AT
+                    "
+
+
+                            Using ins As New SQLiteCommand(sqlLite, sqliteConn)
+
+                                ins.Parameters.AddWithValue("@CREATED_BY",
+                                    dr("CREATED_BY"))
+
+                                ins.Parameters.AddWithValue("@CREATED_ON",
+                                    CDate(dr("CREATED_ON")).ToString("yyyy-MM-dd HH:mm:ss"))
+
+                                ins.Parameters.AddWithValue("@AMOUNT",
+                                    dr("AMOUNT"))
+
+                                ins.Parameters.AddWithValue("@VAT",
+                                    dr("VAT"))
+
+                                ins.Parameters.AddWithValue("@AMOUNTVAT",
+                                    dr("AMOUNTVAT"))
+
+                                ins.Parameters.AddWithValue("@INV_NUMBER",
+                                    dr("INV_NUMBER"))
+
+                                ins.Parameters.AddWithValue("@SUPPLIER_ID",
+                                    dr("SUPPLIER_ID"))
+
+                                ins.Parameters.AddWithValue("@KIOSKID",
+                                    dr("KIOSKID"))
+
+                                ins.Parameters.AddWithValue("@UPDATED_AT",
+                                    dr("UPDATED_AT"))
+
+                                ins.ExecuteNonQuery()
+
+                            End Using
+
+
+                        End While
+
+                    End Using
+
+                End Using
+
+            End Using
+
+        End Sub
+
+        Public Sub UploadPayments()
+            Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                sqliteConn.Open()
+
+                Dim sql As String =
+                                    "SELECT *
+                                     FROM PAYMENTS
+                                     WHERE SYNC_STATUS=1"
+
+                Using cmd As New SQLiteCommand(sql, sqliteConn)
+                    Using dr = cmd.ExecuteReader()
+                        While dr.Read()
+                            UploadPayment(sqliteConn, dr)
+                        End While
+                    End Using
+                End Using
+            End Using
+        End Sub
+
+        Private Sub UploadPayment(sqliteConn As SQLiteConnection, dr As SQLiteDataReader)
+            Dim sql As String =
+                                "
+                                INSERT INTO PAYMENTS
+                                (
+                                CREATED_BY,
+                                CREATED_ON,
+                                AMOUNT,
+                                VAT,
+                                AMOUNTVAT,
+                                INV_NUMBER,
+                                SUPPLIER_ID,
+                                KIOSKID,
+                                UPDATED_AT
+                                )
+                                VALUES
+                                (
+                                :CREATED_BY,
+                                :CREATED_ON,
+                                :AMOUNT,
+                                :VAT,
+                                :AMOUNTVAT,
+                                :INV_NUMBER,
+                                :SUPPLIER_ID,
+                                :KIOSKID,
+                                :UPDATED_AT
+                                )
+                        "
+            Using cmd As New OracleCommand(sql, conn)
+                cmd.BindByName = True
+
+                cmd.Parameters.Add("CREATED_BY", OracleDbType.Varchar2).Value = dr("CREATED_BY")
+                cmd.Parameters.Add("CREATED_ON", OracleDbType.TimeStamp).Value = Convert.ToDateTime(dr("CREATED_ON"))
+                cmd.Parameters.Add("AMOUNT", OracleDbType.Decimal).Value = Convert.ToDecimal(dr("AMOUNT"))
+                cmd.Parameters.Add("VAT", OracleDbType.Varchar2).Value = dr("VAT")
+                cmd.Parameters.Add("AMOUNTVAT", OracleDbType.Decimal).Value = Convert.ToDecimal(dr("AMOUNTVAT"))
+                cmd.Parameters.Add("INV_NUMBER", OracleDbType.Varchar2).Value = dr("INV_NUMBER")
+                cmd.Parameters.Add("SUPPLIER_ID", OracleDbType.Varchar2).Value = dr("SUPPLIER_ID")
+                cmd.Parameters.Add("KIOSKID", OracleDbType.Varchar2).Value = dr("KIOSKID")
+                cmd.Parameters.Add("UPDATED_AT", OracleDbType.TimeStamp).Value = Convert.ToDateTime(dr("UPDATED_AT"))
+                cmd.ExecuteNonQuery()
+            End Using
+            MarkPaymentSynced(sqliteConn, dr("CREATED_BY").ToString(), dr("CREATED_ON").ToString())
+        End Sub
+
+        Private Sub MarkPaymentSynced(sqliteConn As SQLiteConnection, createdBy As String, createdOn As String)
+            Dim sql As String =
+                                "
+                                UPDATE PAYMENTS
+                                SET SYNC_STATUS=0
+                                WHERE CREATED_BY=@CREATED_BY
+                                AND CREATED_ON=@CREATED_ON
+                                "
+
+            Using cmd As New SQLiteCommand(sql, sqliteConn)
+                cmd.Parameters.AddWithValue("@CREATED_BY", createdBy)
+                cmd.Parameters.AddWithValue("@CREATED_ON", createdOn)
+                cmd.ExecuteNonQuery()
+            End Using
+        End Sub
+
+        Private Sub UploadReceipts()
+
+            Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+
+                sqliteConn.Open()
+
+                Using cmd As New SQLiteCommand(
+                    "SELECT * FROM RECEIPTS WHERE SYNC_STATUS=1",
+                    sqliteConn)
+
+                    Using dr = cmd.ExecuteReader()
+
+                        While dr.Read()
+
+                            UploadReceipt(sqliteConn, dr)
+
+                        End While
+
+                    End Using
+
+                End Using
+
+            End Using
+
+        End Sub
+
+        Private Sub UploadReceipt(sqliteConn As SQLiteConnection,
+                          dr As SQLiteDataReader)
+
+
+            Dim sql As String =
+            "
+MERGE INTO RECEIPTS r
+
+USING
+(
+SELECT
+:UUID UUID
+FROM dual
+)x
+
+ON
+(
+r.UUID=x.UUID
+)
+
+WHEN NOT MATCHED THEN
+
+INSERT
+(
+UUID,
+SERNO,
+PAYMENT_TYPE,
+TOTAL_DISCOUNT,
+TOTAL_VAT19,
+TOTAL_VAT5,
+TOTAL_VAT3,
+TOTAL_VAT0,
+RETURN_AMT,
+TOTAL_AMT_WITH_DISC,
+TOTAL_AMT,
+PAYMENT_AMT,
+CREATED_ON,
+CREATED_BY,
+KIOSKID,
+UPDATED_AT
+)
+
+VALUES
+(
+:UUID,
+:SERNO,
+:PAYMENT_TYPE,
+:TOTAL_DISCOUNT,
+:TOTAL_VAT19,
+:TOTAL_VAT5,
+:TOTAL_VAT3,
+:TOTAL_VAT0,
+:RETURN_AMT,
+:TOTAL_AMT_WITH_DISC,
+:TOTAL_AMT,
+:PAYMENT_AMT,
+:CREATED_ON,
+:CREATED_BY,
+:KIOSKID,
+:UPDATED_AT
+)
+"
+
+
+            Using cmd As New OracleCommand(sql, conn)
+
+                cmd.BindByName = True
+
+
+                For Each col As String In
+                {
+                "UUID",
+                "PAYMENT_TYPE",
+                "CREATED_BY",
+                "KIOSKID"
+                }
+
+                    cmd.Parameters.Add(
+                        col,
+                        OracleDbType.Varchar2).Value =
+                        dr(col)
+
+                Next
+
+
+                cmd.Parameters.Add("SERNO",
+                    OracleDbType.Int32).Value =
+                    dr("SERNO")
+
+
+                For Each col As String In
+                {
+                "TOTAL_DISCOUNT",
+                "TOTAL_VAT19",
+                "TOTAL_VAT5",
+                "TOTAL_VAT3",
+                "TOTAL_VAT0",
+                "RETURN_AMT",
+                "TOTAL_AMT_WITH_DISC",
+                "TOTAL_AMT",
+                "PAYMENT_AMT"
+                }
+
+                    cmd.Parameters.Add(
+                        col,
+                        OracleDbType.Decimal).Value =
+                        dr(col)
+
+                Next
+
+
+                cmd.Parameters.Add("CREATED_ON",
+                    OracleDbType.TimeStamp).Value =
+                    Convert.ToDateTime(dr("CREATED_ON"))
+
+
+                cmd.Parameters.Add("UPDATED_AT",
+                    OracleDbType.TimeStamp).Value =
+                    Convert.ToDateTime(dr("UPDATED_AT"))
+
+
+                cmd.ExecuteNonQuery()
+
+
+            End Using
+            MarkReceiptSynced(sqliteConn, dr("UUID").ToString())
+        End Sub
+
+        Private Sub MarkReceiptSynced(sqliteConn As SQLiteConnection, uuid As String)
+            Using cmd As New SQLiteCommand("UPDATE RECEIPTS SET SYNC_STATUS=0 WHERE UUID=@UUID", sqliteConn)
+                cmd.Parameters.AddWithValue("@UUID", uuid)
+                cmd.ExecuteNonQuery()
+            End Using
+        End Sub
     End Class
 End Module

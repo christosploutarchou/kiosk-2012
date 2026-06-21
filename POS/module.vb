@@ -84,8 +84,10 @@ Module connectionModule
             sync.UploadCategories()
             sync.UploadSuppliers()
             sync.UploadLottery()
+            sync.UploadSessions()
+            sync.UploadPayments()
             'TODO
-            'sync.UploadSessions()
+
             'UploadProducts()
             'UploadUsers()
 
@@ -419,88 +421,234 @@ Module connectionModule
         Public TotalVat19 As Double
     End Structure
 
-
     Private Function GetReceiptTotals(userid As String) As ReceiptTotals
         Dim WhoAmI As String = "GetReceiptTotals"
         Dim totals As New ReceiptTotals
-        Dim sql As String =
-        "select count(*), " &
-        "       NVL(sum(total_amt_with_disc),0), " &
-        "       NVL(sum(total_vat5),0), " &
-        "       NVL(sum(total_vat19),0), " &
-        "       NVL(sum(total_vat0),0), " &
-        "       NVL(sum(total_vat3),0) " &
-        "from receipts " &
-        "where created_by = :userid " &
-        "and created_on between (select max(login_when) from sessions where user_id = :userid) " &
-        "and systimestamp"
+        Dim sql As String = ""
 
         Try
-            Using cmd As New OracleCommand(sql, conn)
-                cmd.Parameters.Add("userid", OracleDbType.Varchar2).Value = userid
+            If SqlLite Then
+                sql =
+                    "SELECT COUNT(*), " &
+                    "       IFNULL(SUM(TOTAL_AMT_WITH_DISC),0), " &
+                    "       IFNULL(SUM(TOTAL_VAT5),0), " &
+                    "       IFNULL(SUM(TOTAL_VAT19),0), " &
+                    "       IFNULL(SUM(TOTAL_VAT0),0), " &
+                    "       IFNULL(SUM(TOTAL_VAT3),0) " &
+                    "FROM RECEIPTS " &
+                    "WHERE CREATED_BY = @USERID " &
+                    "AND KIOSKID = @KIOSKID " &
+                    "AND CREATED_ON BETWEEN " &
+                    "(SELECT MAX(LOGIN_WHEN) " &
+                    " FROM SESSIONS " &
+                    " WHERE USER_ID = @USERID " &
+                    " AND KIOSKID = @KIOSKID) " &
+                    "AND CURRENT_TIMESTAMP"
 
-                Using dr = cmd.ExecuteReader()
-                    If dr.Read() Then
-                        totals.TotalReceipts = Convert.ToInt32(dr(0))
-                        totals.TotalAmt = Convert.ToDouble(dr(1))
-                        totals.TotalVat5 = Convert.ToDouble(dr(2))
-                        totals.TotalVat19 = Convert.ToDouble(dr(3))
-                        totals.TotalVat0 = Convert.ToDouble(dr(4))
-                        totals.TotalVat3 = Convert.ToDouble(dr(5))
-                    End If
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+
+                    sqliteConn.Open()
+
+                    Using cmd As New SQLiteCommand(sql, sqliteConn)
+                        cmd.Parameters.AddWithValue("@USERID", userid)
+                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+
+                        Using dr As SQLiteDataReader = cmd.ExecuteReader()
+                            If dr.Read() Then
+                                totals.TotalReceipts = Convert.ToInt32(dr(0))
+                                totals.TotalAmt = Convert.ToDouble(dr(1))
+                                totals.TotalVat5 = Convert.ToDouble(dr(2))
+                                totals.TotalVat19 = Convert.ToDouble(dr(3))
+                                totals.TotalVat0 = Convert.ToDouble(dr(4))
+                                totals.TotalVat3 = Convert.ToDouble(dr(5))
+                            End If
+                        End Using
+                    End Using
                 End Using
-            End Using
+            Else
+                sql =
+                        "select count(*), " &
+                        "       NVL(sum(total_amt_with_disc),0), " &
+                        "       NVL(sum(total_vat5),0), " &
+                        "       NVL(sum(total_vat19),0), " &
+                        "       NVL(sum(total_vat0),0), " &
+                        "       NVL(sum(total_vat3),0) " &
+                        "from receipts " &
+                        "where created_by = :userid " &
+                        "and created_on between " &
+                        "(select max(login_when) " &
+                        " from sessions " &
+                        " where user_id = :userid) " &
+                        "and systimestamp"
+
+                Using cmd As New OracleCommand(sql, conn)
+                    cmd.Parameters.Add("userid", OracleDbType.Varchar2).Value = userid
+
+                    Using dr = cmd.ExecuteReader()
+                        If dr.Read() Then
+                            totals.TotalReceipts = Convert.ToInt32(dr(0))
+                            totals.TotalAmt = Convert.ToDouble(dr(1))
+                            totals.TotalVat5 = Convert.ToDouble(dr(2))
+                            totals.TotalVat19 = Convert.ToDouble(dr(3))
+                            totals.TotalVat0 = Convert.ToDouble(dr(4))
+                            totals.TotalVat3 = Convert.ToDouble(dr(5))
+                        End If
+                    End Using
+                End Using
+            End If
         Catch ex As Exception
-            CreateExceptionFile(WhoAmI + ": " + ex.Message, sql)
+            CreateExceptionFile(WhoAmI & ": " & ex.Message, sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
         Return totals
     End Function
 
-
     Private Function GetTotalPayments(userid As String) As Double
         Dim WhoAmI As String = "GetTotalPayments"
-        Dim sql As String =
-        "select NVL(sum(amount),0) from payments " &
-        "where created_by = :userid " &
-        "and created_on between (select max(login_when) from sessions where user_id = :userid) " &
-        "and systimestamp"
+        Dim sql As String = ""
 
         Try
-            Using cmd As New OracleCommand(sql, conn)
-                cmd.Parameters.Add("userid", OracleDbType.Varchar2).Value = userid
-                Return CDbl(cmd.ExecuteScalar())
-            End Using
+            If SqlLite Then
+                sql =
+                    "SELECT IFNULL(SUM(AMOUNT),0) " &
+                    "FROM PAYMENTS " &
+                    "WHERE CREATED_BY = @USERID " &
+                    "AND KIOSKID = @KIOSKID " &
+                    "AND CREATED_ON BETWEEN " &
+                    "(SELECT MAX(LOGIN_WHEN) " &
+                    " FROM SESSIONS " &
+                    " WHERE USER_ID = @USERID " &
+                    " AND KIOSKID = @KIOSKID) " &
+                    "AND CURRENT_TIMESTAMP"
+
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
+
+                    Using cmd As New SQLiteCommand(sql, sqliteConn)
+                        cmd.Parameters.AddWithValue("@USERID", userid)
+                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+
+                        Dim result = cmd.ExecuteScalar()
+
+                        If result IsNot Nothing AndAlso result IsNot DBNull.Value Then
+                            Return Convert.ToDouble(result)
+                        End If
+                    End Using
+                End Using
+            Else
+                sql =
+                    "select NVL(sum(amount),0) " &
+                    "from payments " &
+                    "where created_by = :userid " &
+                    "and created_on between " &
+                    "(select max(login_when) " &
+                    " from sessions " &
+                    " where user_id = :userid) " &
+                    "and systimestamp"
+
+                Using cmd As New OracleCommand(sql, conn)
+                    cmd.Parameters.Add("userid", OracleDbType.Varchar2).Value = userid
+
+                    Dim result = cmd.ExecuteScalar()
+
+                    If result IsNot Nothing AndAlso result IsNot DBNull.Value Then
+                        Return Convert.ToDouble(result)
+                    End If
+                End Using
+            End If
         Catch ex As Exception
-            CreateExceptionFile(WhoAmI + ": " + ex.Message, sql)
+            CreateExceptionFile(WhoAmI & ": " & ex.Message, sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
+        Return 0
     End Function
 
     Private Function GetSalesDescription(userid As String) As String
         Dim WhoAmI As String = "GetSalesDescription"
-        Dim sql As String =
-        "select product_serno, description, count(product_serno), sum(quantity) " &
-        "from receipts_det rd " &
-        "join products p on p.serno = rd.product_serno " &
-        "where receipt_serno in (select serno from receipts " &
-        "       where created_by = :userid " &
-        "       and created_on between (select max(login_when) from sessions where user_id = :userid) " &
-        "       and systimestamp) " &
-        "group by product_serno, description"
-
+        Dim sql As String = ""
         Dim result As String = ""
+
         Try
-            Using cmd As New OracleCommand(sql, conn)
-                cmd.Parameters.Add("userid", OracleDbType.Varchar2).Value = userid
-                Using dr = cmd.ExecuteReader()
-                    While dr.Read()
-                        result &= vbCrLf & dr("description") & ": " & dr("sum(quantity)")
-                    End While
+            If SqlLite Then
+                sql =
+                    "SELECT " &
+                    "   p.UUID PRODUCT_ID, " &
+                    "   p.DESCRIPTION DESCRIPTION, " &
+                    "   COUNT(rd.PRODUCT_UUID) TOTAL_LINES, " &
+                    "   IFNULL(SUM(rd.QUANTITY),0) TOTAL_QTY " &
+                    "FROM RECEIPTS_DET rd " &
+                    "INNER JOIN PRODUCTS p " &
+                    "   ON p.UUID = rd.PRODUCT_UUID " &
+                    "WHERE rd.RECEIPT_UUID IN " &
+                    "( " &
+                    "   SELECT UUID " &
+                    "   FROM RECEIPTS " &
+                    "   WHERE CREATED_BY = @USERID " &
+                    "   AND KIOSKID = @KIOSKID " &
+                    "   AND CREATED_ON BETWEEN " &
+                    "       (SELECT MAX(LOGIN_WHEN) " &
+                    "          FROM SESSIONS " &
+                    "         WHERE USER_ID = @USERID " &
+                    "           AND KIOSKID = @KIOSKID) " &
+                    "       AND CURRENT_TIMESTAMP " &
+                    ") " &
+                    "GROUP BY p.UUID, p.DESCRIPTION " &
+                    "ORDER BY p.DESCRIPTION"
+
+
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
+
+                    Using cmd As New SQLiteCommand(sql, sqliteConn)
+                        cmd.Parameters.AddWithValue("@USERID", userid)
+                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+
+                        Using dr As SQLiteDataReader = cmd.ExecuteReader()
+                            While dr.Read()
+                                result &= vbCrLf & dr("DESCRIPTION").ToString() & ": " & Convert.ToInt32(dr("TOTAL_QTY")).ToString()
+                            End While
+                        End Using
+                    End Using
                 End Using
-            End Using
+            Else
+                sql =
+                    "SELECT " &
+                    "   p.SERNO PRODUCT_ID, " &
+                    "   p.DESCRIPTION DESCRIPTION, " &
+                    "   COUNT(rd.PRODUCT_SERNO) TOTAL_LINES, " &
+                    "   NVL(SUM(rd.QUANTITY),0) TOTAL_QTY " &
+                    "FROM RECEIPTS_DET rd " &
+                    "INNER JOIN PRODUCTS p " &
+                    "   ON p.SERNO = rd.PRODUCT_SERNO " &
+                    "WHERE rd.RECEIPT_SERNO IN " &
+                    "( " &
+                    "   SELECT SERNO " &
+                    "   FROM RECEIPTS " &
+                    "   WHERE CREATED_BY = :USERID " &
+                    "   AND CREATED_ON BETWEEN " &
+                    "       (SELECT MAX(LOGIN_WHEN) " &
+                    "          FROM SESSIONS " &
+                    "         WHERE USER_ID = :USERID) " &
+                    "       AND SYSTIMESTAMP " &
+                    ") " &
+                    "GROUP BY p.SERNO, p.DESCRIPTION " &
+                    "ORDER BY p.DESCRIPTION"
+
+
+                Using cmd As New OracleCommand(sql, conn)
+                    cmd.BindByName = True
+                    cmd.Parameters.Add("USERID", OracleDbType.Varchar2).Value = userid
+
+                    Using dr As OracleDataReader = cmd.ExecuteReader()
+                        While dr.Read()
+                            result &= vbCrLf & dr("DESCRIPTION").ToString() & ": " & Convert.ToInt32(dr("TOTAL_QTY")).ToString()
+                        End While
+                    End Using
+                End Using
+            End If
+
         Catch ex As Exception
-            CreateExceptionFile(WhoAmI + ": " + ex.Message, sql)
+            CreateExceptionFile(WhoAmI & ": " & ex.Message, sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
         Return result
@@ -508,106 +656,358 @@ Module connectionModule
 
     Private Function GetAmountLaxeia(userid As String) As Double
         Dim WhoAmI As String = "GetAmountLaxeia"
-        Dim sql As String =
-        "select NVL(sum(amount),0) from receipts_det " &
-        "where vat = 0 and receipt_serno in (select serno from receipts " &
-        "where created_by = :userid " &
-        "and created_on between (select max(login_when) from sessions where user_id = :userid) " &
-        "and systimestamp)"
+        Dim sql As String = ""
 
         Try
-            Using cmd As New OracleCommand(sql, conn)
-                cmd.Parameters.Add("userid", OracleDbType.Varchar2).Value = userid
-                Return CDbl(cmd.ExecuteScalar())
-            End Using
+            If SqlLite Then
+                sql =
+                    "SELECT IFNULL(SUM(AMOUNT),0) " &
+                    "FROM RECEIPTS_DET " &
+                    "WHERE VAT = 0 " &
+                    "AND RECEIPT_UUID IN " &
+                    "( " &
+                    "   SELECT UUID " &
+                    "   FROM RECEIPTS " &
+                    "   WHERE CREATED_BY = @USERID " &
+                    "   AND KIOSKID = @KIOSKID " &
+                    "   AND CREATED_ON BETWEEN " &
+                    "       (SELECT MAX(LOGIN_WHEN) " &
+                    "        FROM SESSIONS " &
+                    "        WHERE USER_ID = @USERID " &
+                    "        AND KIOSKID = @KIOSKID) " &
+                    "       AND CURRENT_TIMESTAMP " &
+                    ")"
+
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
+
+                    Using cmd As New SQLiteCommand(sql, sqliteConn)
+                        cmd.Parameters.AddWithValue("@USERID", userid)
+                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+
+                        Dim value = cmd.ExecuteScalar()
+                        If value IsNot Nothing AndAlso value IsNot DBNull.Value Then
+                            Return Convert.ToDouble(value)
+                        End If
+                    End Using
+                End Using
+            Else
+                sql =
+                    "SELECT NVL(SUM(AMOUNT),0) " &
+                    "FROM RECEIPTS_DET " &
+                    "WHERE VAT = 0 " &
+                    "AND RECEIPT_SERNO IN " &
+                    "( " &
+                    "   SELECT SERNO " &
+                    "   FROM RECEIPTS " &
+                    "   WHERE CREATED_BY = :USERID " &
+                    "   AND CREATED_ON BETWEEN " &
+                    "       (SELECT MAX(LOGIN_WHEN) " &
+                    "        FROM SESSIONS " &
+                    "        WHERE USER_ID = :USERID) " &
+                    "       AND SYSTIMESTAMP " &
+                    ")"
+
+                Using cmd As New OracleCommand(sql, conn)
+                    cmd.BindByName = True
+                    cmd.Parameters.Add("USERID", OracleDbType.Varchar2).Value = userid
+
+                    Dim value = cmd.ExecuteScalar()
+                    If value IsNot Nothing AndAlso value IsNot DBNull.Value Then
+                        Return Convert.ToDouble(value)
+                    End If
+                End Using
+            End If
         Catch ex As Exception
-            CreateExceptionFile(WhoAmI + ": " + ex.Message, sql)
+            CreateExceptionFile(WhoAmI & ": " & ex.Message, sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
+        Return 0
     End Function
 
     Private Function GetAmountVisa(userid As String) As Double
         Dim WhoAmI As String = "GetAmountVisa"
-        Dim sql As String =
-        "select NVL(sum(total_amt_with_disc),0) from receipts " &
-        "where payment_type='V' and created_by = :userid " &
-        "and created_on between (select max(login_when) from sessions where user_id = :userid) " &
-        "and systimestamp"
+        Dim sql As String = ""
 
         Try
-            Using cmd As New OracleCommand(sql, conn)
-                cmd.Parameters.Add("userid", OracleDbType.Varchar2).Value = userid
-                Return CDbl(cmd.ExecuteScalar())
-            End Using
+            If SqlLite Then
+                sql =
+                    "SELECT IFNULL(SUM(TOTAL_AMT_WITH_DISC),0) " &
+                    "FROM RECEIPTS " &
+                    "WHERE PAYMENT_TYPE = 'V' " &
+                    "AND CREATED_BY = @USERID " &
+                    "AND KIOSKID = @KIOSKID " &
+                    "AND CREATED_ON BETWEEN " &
+                    "   (SELECT MAX(LOGIN_WHEN) " &
+                    "    FROM SESSIONS " &
+                    "    WHERE USER_ID = @USERID " &
+                    "    AND KIOSKID = @KIOSKID) " &
+                    "AND CURRENT_TIMESTAMP"
+
+
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
+                    Using cmd As New SQLiteCommand(sql, sqliteConn)
+                        cmd.Parameters.AddWithValue("@USERID", userid)
+                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+
+                        Dim value = cmd.ExecuteScalar()
+                        If value IsNot Nothing AndAlso value IsNot DBNull.Value Then
+                            Return Convert.ToDouble(value)
+                        End If
+                    End Using
+                End Using
+            Else
+                sql =
+                    "SELECT NVL(SUM(TOTAL_AMT_WITH_DISC),0) " &
+                    "FROM RECEIPTS " &
+                    "WHERE PAYMENT_TYPE = 'V' " &
+                    "AND CREATED_BY = :USERID " &
+                    "AND CREATED_ON BETWEEN " &
+                    "   (SELECT MAX(LOGIN_WHEN) " &
+                    "    FROM SESSIONS " &
+                    "    WHERE USER_ID = :USERID) " &
+                    "AND SYSTIMESTAMP"
+
+                Using cmd As New OracleCommand(sql, conn)
+                    cmd.BindByName = True
+                    cmd.Parameters.Add("USERID", OracleDbType.Varchar2).Value = userid
+
+                    Dim value = cmd.ExecuteScalar()
+                    If value IsNot Nothing AndAlso value IsNot DBNull.Value Then
+                        Return Convert.ToDouble(value)
+                    End If
+                End Using
+            End If
         Catch ex As Exception
-            CreateExceptionFile(WhoAmI + ": " + ex.Message, sql)
+            CreateExceptionFile(WhoAmI & ": " & ex.Message, sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
+        Return 0
     End Function
 
-    Private Sub InsertXReport(userid As String,
-                          totals As ReceiptTotals,
-                          totalPayments As Decimal,
-                          amountLaxeia As Decimal,
-                          amountVisa As Decimal,
-                          finalLaxeia As Decimal)
+    Private Sub InsertXReport(userid As String, totals As ReceiptTotals, totalPayments As Decimal, amountLaxeia As Decimal, amountVisa As Decimal, finalLaxeia As Decimal)
         Dim WhoAmI As String = "InsertXReport"
-        Dim sql As String = "insert into x_report (user_id, from_date, to_date, total_receipts, total_amt, total0percent, total3percent, total5percent, total19percent, " &
-                  "                      initial_amt, final_amt, payments, created_on, description, amount_laxeia, initialamtlaxeia, amountvisa, finalamtlaxeia) " &
-                  "values               ('" & userid & "', " &
-                  "                     (select max(login_when) from sessions where user_id = '" & userid & "'), " &
-                  "                     (select systimestamp from dual), " &
-                  "                       " & totals.TotalReceipts & ", " &
-                  "                       " & totals.TotalAmt & ", " &
-                  "                       " & totals.TotalVat0 & ", " &
-                  "                       " & totals.TotalVat3 & ", " &
-                  "                       " & totals.TotalVat5 & ", " &
-                  "                       " & totals.TotalVat19 & ", " &
-                  "                       (select paramvalue from global_params where paramkey = 'init.fiscal.amt'), " &
-                  "                       (select sum(" & totals.TotalAmt & " ) from dual), " &
-                  "                       " & totalPayments & ", (select systimestamp from dual), " &
-                  "                      ''," &
-                  "                       " & amountLaxeia & ", " &
-                  "                      (select amountlaxeiaonlogin from sessions where user_id = '" & userid & "' " &
-                  "                       and login_when =(select max(login_when) from sessions " &
-                  "                                        where user_id = '" & userid & "')), " &
-                  "                       " & amountVisa & ", " & finalLaxeia & ")"
-
-        ' IMPORTANT:
-        ' DO NOT create a new connection here.
-        ' Use your existing global "conn".
-        '
-        ' Just make sure conn is open.
-        If conn.State <> ConnectionState.Open Then
-            conn.Open()
-        End If
-
+        Dim sql As String = ""
         Try
-            Dim cmd = New OracleCommand("", conn)
-            cmd = New OracleCommand(sql, conn)
-            Using cmd
-                cmd.ExecuteNonQuery()
-            End Using
+
+            If SqlLite Then
+
+                Dim uuid As String = Guid.NewGuid().ToString("N").ToUpper()
+
+                sql =
+            "INSERT INTO X_REPORT
+            (
+                UUID,
+                USER_ID,
+                FROM_DATE,
+                TO_DATE,
+                TOTAL_RECEIPTS,
+                TOTAL_AMT,
+                TOTAL0PERCENT,
+                TOTAL3PERCENT,
+                TOTAL5PERCENT,
+                TOTAL19PERCENT,
+                INITIAL_AMT,
+                FINAL_AMT,
+                PAYMENTS,
+                CREATED_ON,
+                DESCRIPTION,
+                AMOUNT_LAXEIA,
+                INITIALAMTLAXEIA,
+                AMOUNTVISA,
+                FINALAMTLAXEIA,
+                KIOSKID,
+                UPDATED_AT,
+                SYNC_STATUS
+            )
+            VALUES
+            (
+                @UUID,
+                @USER_ID,
+                (SELECT MAX(LOGIN_WHEN)
+                   FROM SESSIONS
+                  WHERE USER_ID=@USER_ID
+                    AND KIOSKID=@KIOSKID),
+                CURRENT_TIMESTAMP,
+                @TOTAL_RECEIPTS,
+                @TOTAL_AMT,
+                @TOTAL0,
+                @TOTAL3,
+                @TOTAL5,
+                @TOTAL19,
+                (SELECT PARAMVALUE
+                   FROM GLOBAL_PARAMS
+                  WHERE PARAMKEY='init.fiscal.amt'),
+                @FINAL_AMT,
+                @PAYMENTS,
+                CURRENT_TIMESTAMP,
+                '',
+                @AMOUNT_LAXEIA,
+                (SELECT AMOUNTLAXEIAONLOGIN
+                   FROM SESSIONS
+                  WHERE USER_ID=@USER_ID
+                    AND KIOSKID=@KIOSKID
+                  ORDER BY LOGIN_WHEN DESC
+                  LIMIT 1),
+                @AMOUNT_VISA,
+                @FINAL_LAXEIA,
+                @KIOSKID,
+                CURRENT_TIMESTAMP,
+                1
+            )"
+
+
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+
+                    sqliteConn.Open()
+
+                    Using cmd As New SQLiteCommand(sql, sqliteConn)
+
+                        cmd.Parameters.AddWithValue("@UUID", uuid)
+                        cmd.Parameters.AddWithValue("@USER_ID", userid)
+
+                        cmd.Parameters.AddWithValue("@TOTAL_RECEIPTS",
+                                                totals.TotalReceipts)
+
+                        cmd.Parameters.AddWithValue("@TOTAL_AMT",
+                                                totals.TotalAmt)
+
+                        cmd.Parameters.AddWithValue("@TOTAL0",
+                                                totals.TotalVat0)
+
+                        cmd.Parameters.AddWithValue("@TOTAL3",
+                                                totals.TotalVat3)
+
+                        cmd.Parameters.AddWithValue("@TOTAL5",
+                                                totals.TotalVat5)
+
+                        cmd.Parameters.AddWithValue("@TOTAL19",
+                                                totals.TotalVat19)
+
+                        cmd.Parameters.AddWithValue("@FINAL_AMT",
+                                                totals.TotalAmt)
+
+                        cmd.Parameters.AddWithValue("@PAYMENTS",
+                                                totalPayments)
+
+                        cmd.Parameters.AddWithValue("@AMOUNT_LAXEIA",
+                                                amountLaxeia)
+
+                        cmd.Parameters.AddWithValue("@AMOUNT_VISA",
+                                                amountVisa)
+
+                        cmd.Parameters.AddWithValue("@FINAL_LAXEIA",
+                                                finalLaxeia)
+
+                        cmd.Parameters.AddWithValue("@KIOSKID",
+                                                kioskId)
+
+                        cmd.ExecuteNonQuery()
+
+                    End Using
+
+                End Using
+
+
+            Else
+
+                sql =
+            "INSERT INTO X_REPORT
+            (
+                USER_ID,
+                FROM_DATE,
+                TO_DATE,
+                TOTAL_RECEIPTS,
+                TOTAL_AMT,
+                TOTAL0PERCENT,
+                TOTAL3PERCENT,
+                TOTAL5PERCENT,
+                TOTAL19PERCENT,
+                INITIAL_AMT,
+                FINAL_AMT,
+                PAYMENTS,
+                CREATED_ON,
+                DESCRIPTION,
+                AMOUNT_LAXEIA,
+                INITIALAMTLAXEIA,
+                AMOUNTVISA,
+                FINALAMTLAXEIA
+            )
+            VALUES
+            (
+                :USER_ID,
+                (SELECT MAX(LOGIN_WHEN)
+                   FROM SESSIONS
+                  WHERE USER_ID=:USER_ID),
+                SYSTIMESTAMP,
+                :TOTAL_RECEIPTS,
+                :TOTAL_AMT,
+                :TOTAL0,
+                :TOTAL3,
+                :TOTAL5,
+                :TOTAL19,
+                (SELECT PARAMVALUE
+                   FROM GLOBAL_PARAMS
+                  WHERE PARAMKEY='init.fiscal.amt'),
+                :FINAL_AMT,
+                :PAYMENTS,
+                SYSTIMESTAMP,
+                '',
+                :AMOUNT_LAXEIA,
+                (SELECT AMOUNTLAXEIAONLOGIN
+                   FROM SESSIONS
+                  WHERE USER_ID=:USER_ID
+                    AND LOGIN_WHEN =
+                    (SELECT MAX(LOGIN_WHEN)
+                       FROM SESSIONS
+                      WHERE USER_ID=:USER_ID)),
+                :AMOUNT_VISA,
+                :FINAL_LAXEIA
+            )"
+
+
+                Using cmd As New OracleCommand(sql, conn)
+
+                    cmd.BindByName = True
+
+                    cmd.Parameters.Add("USER_ID", OracleDbType.Varchar2).Value = userid
+                    cmd.Parameters.Add("TOTAL_RECEIPTS", OracleDbType.Int32).Value = totals.TotalReceipts
+                    cmd.Parameters.Add("TOTAL_AMT", OracleDbType.Decimal).Value = totals.TotalAmt
+                    cmd.Parameters.Add("TOTAL0", OracleDbType.Decimal).Value = totals.TotalVat0
+                    cmd.Parameters.Add("TOTAL3", OracleDbType.Decimal).Value = totals.TotalVat3
+                    cmd.Parameters.Add("TOTAL5", OracleDbType.Decimal).Value = totals.TotalVat5
+                    cmd.Parameters.Add("TOTAL19", OracleDbType.Decimal).Value = totals.TotalVat19
+                    cmd.Parameters.Add("FINAL_AMT", OracleDbType.Decimal).Value = totals.TotalAmt
+                    cmd.Parameters.Add("PAYMENTS", OracleDbType.Decimal).Value = totalPayments
+                    cmd.Parameters.Add("AMOUNT_LAXEIA", OracleDbType.Decimal).Value = amountLaxeia
+                    cmd.Parameters.Add("AMOUNT_VISA", OracleDbType.Decimal).Value = amountVisa
+                    cmd.Parameters.Add("FINAL_LAXEIA", OracleDbType.Decimal).Value = finalLaxeia
+
+                    cmd.ExecuteNonQuery()
+
+                End Using
+
+            End If
+
+
         Catch ex As Exception
-            CreateExceptionFile(WhoAmI + ": " + ex.Message, sql)
+            CreateExceptionFile(WhoAmI & ": " & ex.Message, sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
     Public Function GenerateXreport(ByVal userid As String) As Boolean
-        'TODO
         Dim WhoAmI As String = "GenerateXreport"
         Try
             Dim totals = GetReceiptTotals(userid)
             Dim totalPayments = GetTotalPayments(userid)
             totals.TotalAmt -= totalPayments
-
-            'TODO
             Dim salesDescription = GetSalesDescription(userid)
             Dim amountLaxeia = GetAmountLaxeia(userid)
             Dim amountVisa = GetAmountVisa(userid)
             Dim finalAmountLaxeia = getAmountLaxeia()
-            'TODO
+
             InsertXReport(userid, totals, totalPayments, amountLaxeia, amountVisa, finalAmountLaxeia)
 
             Return True
@@ -618,177 +1018,59 @@ Module connectionModule
         End Try
     End Function
 
-
-    'Public Function generatexreport(ByVal userid As String) As Boolean
-    '    Dim cmd = New OracleCommand("", conn)
-    '    Dim dr As OracleDataReader
-    '    Dim sql As String = ""
-    '    Try
-    '        '1. total receipts with their amounts
-    '        cmd = New OracleCommand("select count(*), nvl(sum(total_amt_with_disc),0), nvl(sum(total_vat5),0), " &
-    '                      "                 nvl(sum(total_vat19),0),         nvl(sum(total_vat0),0), nvl(sum(total_vat3),0) " &
-    '                      "from receipts " &
-    '                      "where created_by = :1 " &
-    '                      "and created_on between (select max(login_when) from sessions " &
-    '                      "                        where user_id = :1) " &
-    '                      "                        and (select systimestamp from dual) " &
-    '                      "order by created_on ", conn)
-    '        Dim useridparam As New OracleParameter
-    '        useridparam.OracleDbType = OracleDbType.Varchar2
-    '        useridparam.Value = userid
-    '        cmd.Parameters.Add(useridparam)
-
-    '        dr = cmd.ExecuteReader()
-
-    '        Dim totalreceipts As Integer = 0
-    '        Dim totalamt As Double = 0
-    '        Dim totalvat0 As Double = 0
-    '        Dim totalvat3 As Double = 0
-    '        Dim totalvat5 As Double = 0
-    '        Dim totalvat19 As Double = 0
-    '        Dim totalpayments As Double = 0
-
-    '        If dr.Read() Then
-    '            totalreceipts = CInt(dr(0))
-    '            totalamt = CDbl(dr(1))
-    '            totalvat5 = CDbl(dr(2))
-    '            totalvat19 = CDbl(dr(3))
-    '            totalvat0 = CDbl(dr(4))
-    '            totalvat3 = CDbl(dr(5))
-    '        End If
-
-    '        '2. total payments
-    '        sql = "select nvl(sum(amount),0) from payments " &
-    '              "where created_by = '" & userid & "' " &
-    '              "and created_on between (select max(login_when) from sessions " &
-    '                                      "where user_id = '" & userid & "') " &
-    '              "and (select systimestamp from dual)"
-
-    '        cmd = New OracleCommand(sql, conn)
-    '        dr = cmd.ExecuteReader()
-    '        If dr.Read Then
-    '            totalpayments = CDbl(dr(0))
-    '            totalamt -= totalpayments
-    '        End If
-
-    '        'description
-    '        sql = "select product_serno, description , count(product_serno), sum(quantity) " &
-    '              "from receipts_det " &
-    '              "inner join products on products.serno = receipts_det.product_serno " &
-    '              "where receipt_serno in (select serno from receipts  " &
-    '                                      "where created_by = '" & userid & "' " &
-    '                                      "and created_on between (select max(login_when) from sessions " &
-    '                                      "where user_id = '" & userid & "') " &
-    '                                      "and (select systimestamp from dual)) " &
-    '              "group by product_serno, description "
-
-    '        cmd = New OracleCommand(sql, conn)
-    '        dr = cmd.ExecuteReader()
-    '        Dim salesdescription As String = ""
-    '        While dr.Read
-    '            salesdescription += vbNewLine & dr(1) & ": " & dr(3)
-    '        End While
-
-    '        'total amount laxeia
-    '        sql = "select nvl(sum(amount),0) " &
-    '              "from receipts_det " &
-    '              "where vat=0 and " &
-    '              "receipt_serno in (select serno from receipts  " &
-    '                                "where created_by = '" & userid & "' " &
-    '                                "and created_on between (select max(login_when) from sessions " &
-    '                                                        "where user_id = '" & userid & "') " &
-    '                                                        "and (select systimestamp from dual)) "
-
-    '        cmd = New OracleCommand(sql, conn)
-    '        dr = cmd.ExecuteReader()
-    '        Dim amountlaxeia As Double = 0
-    '        If dr.Read Then
-    '            amountlaxeia = CDbl(dr(0))
-    '        End If
-
-    '        sql = "select nvl(sum(total_amt_with_disc),0) " &
-    '              "from receipts " &
-    '              "where payment_type='v' and " &
-    '              "created_by = '" & userid & "' and " &
-    '              "created_on between (select max(login_when) from sessions " &
-    '              "                    where user_id = '" & userid & "') " &
-    '              "                    and (select systimestamp from dual) "
-
-    '        cmd = New OracleCommand(sql, conn)
-    '        dr = cmd.ExecuteReader()
-    '        Dim amountvisa As Double = 0
-    '        If dr.Read Then
-    '            amountvisa = CDbl(dr(0))
-    '        End If
-
-    '        Dim finalamountlaxeia As Double = getAmountLaxeia()
-    '        dr.Close()
-
-    '        sql = "insert into x_report (user_id, from_date, to_date, total_receipts, total_amt, total0percent, total3percent, total5percent, total19percent, " &
-    '              "                      initial_amt, final_amt, payments, created_on, description, amount_laxeia, initialamtlaxeia, amountvisa, finalamtlaxeia) " &
-    '              "values               ('" & userid & "', " &
-    '              "                     (select max(login_when) from sessions where user_id = '" & userid & "'), " &
-    '              "                     (select systimestamp from dual), " &
-    '              "                       " & totalreceipts & ", " &
-    '              "                       " & totalamt & ", " &
-    '              "                       " & totalvat0 & ", " &
-    '              "                       " & totalvat3 & ", " &
-    '              "                       " & totalvat5 & ", " &
-    '              "                       " & totalvat19 & ", " &
-    '              "                       (select paramvalue from global_params where paramkey = 'init.fiscal.amt'), " &
-    '              "                       (select sum(" & totalamt & " ) from dual), " &
-    '              "                       " & totalpayments & ", (select systimestamp from dual), " &
-    '              "                      ''," &
-    '              "                       " & amountlaxeia & ", " &
-    '              "                      (select amountlaxeiaonlogin from sessions where user_id = '" & userid & "' " &
-    '              "                       and login_when =(select max(login_when) from sessions " &
-    '              "                                        where user_id = '" & userid & "')), " &
-    '              "                       " & amountvisa & ", " & finalamountlaxeia & ")"
-
-    '        cmd = New OracleCommand(sql, conn)
-    '        Using cmd
-    '            cmd.ExecuteNonQuery()
-    '        End Using
-    '        Return True
-    '    Catch ex As Exception
-    '        CreateExceptionFile(ex.Message, sql)
-    '        MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-    '    Finally
-    '        cmd.Dispose()
-    '    End Try
-    'End Function
-
-
-
-
     Public Function GetUser(ByVal userId As String) As String
+        Dim WhoAmI As String = "GetUser"
         Dim result As String = ""
-        Dim sql As String = GET_USER_BY_ID
+        Dim sql As String = ""
 
         Try
-            If conn.State = ConnectionState.Closed Then
-                OpenConn()
-            End If
+            If SqlLite Then
+                sql =
+                    "SELECT USERNAME " &
+                    "FROM USERS " &
+                    "WHERE UUID = @USERID " &
+                    "AND KIOSKID = @KIOSKID"
 
-            Using cmd As New OracleCommand(sql, conn)
-                cmd.CommandType = CommandType.Text
-                cmd.Parameters.Add(New OracleParameter("userid", OracleDbType.Varchar2)).Value = userId
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
 
-                Using dr As OracleDataReader = cmd.ExecuteReader()
-                    If dr.Read() Then
-                        result = dr.GetString(0)
+                    Using cmd As New SQLiteCommand(sql, sqliteConn)
+                        cmd.Parameters.AddWithValue("@USERID", userId)
+                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+
+                        Dim value = cmd.ExecuteScalar()
+                        If value IsNot Nothing AndAlso value IsNot DBNull.Value Then
+                            result = value.ToString()
+                        End If
+                    End Using
+                End Using
+            Else
+                sql =
+                    "SELECT USERNAME " &
+                    "FROM USERS " &
+                    "WHERE UUID = :USERID"
+
+                If conn.State = ConnectionState.Closed Then
+                    OpenConn()
+                End If
+
+                Using cmd As New OracleCommand(sql, conn)
+                    cmd.BindByName = True
+                    cmd.CommandType = CommandType.Text
+                    cmd.Parameters.Add("USERID", OracleDbType.Varchar2).Value = userId
+
+                    Dim value = cmd.ExecuteScalar()
+                    If value IsNot Nothing AndAlso value IsNot DBNull.Value Then
+                        result = value.ToString()
                     End If
                 End Using
-            End Using
-
+            End If
         Catch ex As Exception
-            CreateExceptionFile(ex.Message, sql)
+            CreateExceptionFile(WhoAmI + " " + ex.Message, sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
-
         Return result
     End Function
-
 
     Public Function GetUserByUsername(ByVal username As String) As String
         Dim WhoAmI As String = "GetUserByUsername"
@@ -845,7 +1127,8 @@ Module connectionModule
                 sql =
                     "UPDATE SESSIONS
                      SET IS_ACTIVE = 0,
-                         LOGOUT_WHEN = CURRENT_TIMESTAMP
+                         LOGOUT_WHEN = CURRENT_TIMESTAMP,
+                         SYNC_STATUS = 1
                      WHERE IS_ACTIVE = 1
                      AND KIOSKID = @KIOSKID
                      AND USER_ID = (
@@ -863,6 +1146,12 @@ Module connectionModule
                         cmd.ExecuteNonQuery()
                     End Using
                 End Using
+
+                Try
+                    Dim sync As New SyncTables()
+                    sync.SyncSessions()
+                Catch ex As Exception
+                End Try
             Else
                 sql =
                     "UPDATE sessions s
@@ -894,7 +1183,6 @@ Module connectionModule
         End Try
     End Sub
 
-
     Public Function IsLoggedIn(username As String) As Boolean
         Dim WhoAmI As String = "IsLoggedIn"
 
@@ -911,8 +1199,8 @@ Module connectionModule
                             SELECT 
                                 u.uuid 
                             FROM users u 
-                            WHERE " 
-        
+                            WHERE "
+
         If SqlLite Then
             sql += " KIOSKID = :KIOSKID AND "
         End If
@@ -961,7 +1249,8 @@ Module connectionModule
                 sql =
                     "UPDATE SESSIONS
                      SET IS_ACTIVE = 0,
-                         LOGOUT_WHEN = CURRENT_TIMESTAMP
+                         LOGOUT_WHEN = CURRENT_TIMESTAMP,
+                         SYNC_STATUS = 1
                      WHERE USER_ID = @USER_ID
                      AND KIOSKID = @KIOSKID
                      AND IS_ACTIVE = 1"
@@ -974,6 +1263,12 @@ Module connectionModule
                         cmd.ExecuteNonQuery()
                     End Using
                 End Using
+
+                Try
+                    Dim sync As New SyncTables()
+                    sync.SyncSessions()
+                Catch ex As Exception
+                End Try
             Else
                 While conn.State = ConnectionState.Closed
                     OpenConn()
@@ -1047,7 +1342,6 @@ Module connectionModule
         End Try
         Return amountLaxeia
     End Function
-
 
     Public Function isConnOpen() As Boolean
         Dim connectionRetries As Integer = 0

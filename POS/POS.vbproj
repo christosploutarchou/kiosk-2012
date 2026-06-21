@@ -388,7 +388,6 @@
     <Compile Include="Queries\mainQueries.vb" />
     <Compile Include="Queries\kronosAdminQueries.vb" />
     <Compile Include="Queries\reportsQueries.vb" />
-    <Compile Include="Queries\unlockQueries.vb" />
     <Compile Include="Queries\moduleQueries.vb" />
     <Compile Include="Queries\loginQueries.vb" />
     <Compile Include="SqliteModule.vb" />

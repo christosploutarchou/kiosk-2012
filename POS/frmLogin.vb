@@ -7,7 +7,6 @@ Imports System.Data.SQLite
 Imports Oracle.DataAccess.Client
 Imports Oracle.DataAccess.Types
 
-
 Public Class frmLogin
     Private Sub FrmLogin_Disposed(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Disposed
         If SqlLite Then
@@ -18,7 +17,6 @@ Public Class frmLogin
                 CloseConn()
             End If
         End If
-
     End Sub
 
     Private Sub FrmLogin_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
@@ -43,6 +41,11 @@ Public Class frmLogin
                 sync.SyncProducts()
                 sync.SyncBarcodes()
                 sync.SyncButtonTables()
+                sync.SyncSessions()
+                sync.SyncPayments()
+                sync.SyncReceipts()
+                'sync.ReceiptsDet()
+
                 'drop primary key once all references to product serno removed (other tables)
 
                 StartSyncService()
@@ -331,7 +334,8 @@ Public Class frmLogin
                                 MACHINE_NAME,
                                 USER_ID,
                                 AMOUNTLAXEIAONLOGIN,
-                                KIOSKID
+                                KIOSKID,
+                                SYNC_STATUS
                             )
                             VALUES
                             (
@@ -346,7 +350,8 @@ Public Class frmLogin
                                     AND KIOSKID = @KIOSKID
                                 ),
                                 @AMOUNT,
-                                @KIOSKID
+                                @KIOSKID,
+                                1       
                             )"
 
                         Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
