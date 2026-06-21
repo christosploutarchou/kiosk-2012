@@ -60,6 +60,8 @@ Public Class frmLogin
         End If
         IsPasswordEncrypted()
         GetKIOSKParams()
+        GetMinBarcodeLength()
+        GetStartDate()
         FillUsersList()
         lblLoginTitle1.Text = LOGIN_TITLE1
         lblLoginTitle2.Text = LOGIN_TITLE2

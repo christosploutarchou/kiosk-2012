@@ -229,8 +229,8 @@ Module connectionModule
         Try
             conn.ConnectionString = oradb
             conn.Open()
-            GetMinBarcodeLength()
-            getStartDate()
+            'GetMinBarcodeLength()
+            'GetStartDate()
             Return True
         Catch ex As Exception
             CreateExceptionFile(ex.Message, "")
@@ -1090,32 +1090,55 @@ Module connectionModule
     End Structure
 
     Public Structure OfferTypeDiscAt
+        'Oracle version
         Public productSerno As Integer
+        'Sqlite version
+        Public Property ProductUUID As String
+
         Public currentQuantity As Integer
         Public discountAmt As Double
         Public discountAt As Integer
         Public currentDiscount As Double
     End Structure
 
-    'TODO CONSIDER SQLLITE 
     Public Sub GetMinBarcodeLength()
-        Const q As String = "SELECT NVL(MIN(LENGTH(barcode)), 9999999) FROM barcodes"
+        Dim WhoAmI As String = "GetMinBarcodeLength"
+        Dim sql As String = ""
+
         Try
-            Using cmd As New OracleCommand(q, conn)
-                cmd.CommandType = CommandType.Text
-                Dim result = cmd.ExecuteScalar()
+            If SqlLite Then
+                sql = "SELECT IFNULL(MIN(LENGTH(BARCODE)),9999999)
+                       FROM BARCODES
+                       WHERE KIOSKID=@KIOSKID"
 
-                If result IsNot Nothing AndAlso Not Convert.IsDBNull(result) Then
-                    minBarcode = Convert.ToInt32(result)
-                End If
-            End Using
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
+                    Using cmd As New SQLiteCommand(sql, sqliteConn)
+                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                        Dim result = cmd.ExecuteScalar()
 
+                        If result IsNot Nothing AndAlso Not Convert.IsDBNull(result) Then
+                            minBarcode = Convert.ToInt32(result)
+                        End If
+                    End Using
+                End Using
+            Else
+                sql = "SELECT NVL(MIN(LENGTH(BARCODE)),9999999) FROM BARCODES"
+
+                Using cmd As New OracleCommand(sql, conn)
+                    cmd.CommandType = CommandType.Text
+                    Dim result = cmd.ExecuteScalar()
+
+                    If result IsNot Nothing AndAlso Not Convert.IsDBNull(result) Then
+                        minBarcode = Convert.ToInt32(result)
+                    End If
+                End Using
+            End If
         Catch ex As Exception
-            CreateExceptionFile(ex.Message, q)
+            CreateExceptionFile(WhoAmI + " " + ex.Message, sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
-
 
     Public Sub CreateExceptionFile(exception As String, sql As String)
         Try
@@ -1240,27 +1263,45 @@ Module connectionModule
         Return sb64
     End Function
 
-    'TODO CONSIDER SQLITE
-    Public Sub getStartDate()
-        If Not isConnOpen() Then
-            MessageBox.Show(CANNOT_ACCESS_DB, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-            Exit Sub
-        End If
-
-        Const sql As String = "SELECT TO_DATE(paramvalue, 'DD/MM/YY') FROM global_params WHERE paramkey = 'start.date'"
+    Public Sub GetStartDate()
+        Dim WhoAmI As String = "GetStartDate"
+        Dim sql As String = ""
 
         Try
-            Using cmd As New OracleCommand(sql, conn)
-                cmd.CommandType = CommandType.Text
-                Using dr As OracleDataReader = cmd.ExecuteReader()
-                    If dr.Read() AndAlso Not dr.IsDBNull(0) Then
-                        startDate = dr.GetDateTime(0)
-                    End If
-                End Using
-            End Using
+            If SqlLite Then
+                sql = "SELECT PARAMVALUE
+                       FROM GLOBAL_PARAMS
+                       WHERE PARAMKEY = 'start.date'
+                         AND KIOSKID = @KIOSKID"
 
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
+                    Using cmd As New SQLiteCommand(sql, sqliteConn)
+                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                        Dim result = cmd.ExecuteScalar()
+
+                        If result IsNot Nothing AndAlso Not Convert.IsDBNull(result) Then
+                            startDate = Date.ParseExact(result.ToString(), "dd/MM/yy", Globalization.CultureInfo.InvariantCulture)
+                        End If
+                    End Using
+                End Using
+            Else
+
+                sql = "SELECT TO_DATE(paramvalue, 'DD/MM/YY')
+                       FROM global_params
+                       WHERE paramkey = 'start.date'"
+
+                Using cmd As New OracleCommand(sql, conn)
+                    cmd.CommandType = CommandType.Text
+                    Using dr As OracleDataReader = cmd.ExecuteReader()
+                        If dr.Read() AndAlso Not dr.IsDBNull(0) Then
+                            startDate = dr.GetDateTime(0)
+                        End If
+                    End Using
+                End Using
+            End If
         Catch ex As Exception
-            CreateExceptionFile(ex.Message, sql)
+            CreateExceptionFile(WhoAmI + "" + ex.Message, sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
