@@ -320,7 +320,144 @@ ON RECEIPTS(KIOSKID, UPDATED_AT);
 
 CREATE INDEX IDX_RECEIPTS_UUID
 ON RECEIPTS(UUID);
- -----------
+
+
+-- RECEIPTS_DET
+DECLARE
+
+    v_count NUMBER;
+
+BEGIN
+
+    ---------------------------------------------------------
+    -- ADD RECEIPT_UUID
+    ---------------------------------------------------------
+    SELECT COUNT(*)
+    INTO v_count
+    FROM USER_TAB_COLUMNS
+    WHERE TABLE_NAME='RECEIPTS_DET'
+    AND COLUMN_NAME='RECEIPT_UUID';
+
+    IF v_count = 0 THEN
+        EXECUTE IMMEDIATE
+        '
+        ALTER TABLE RECEIPTS_DET
+        ADD RECEIPT_UUID VARCHAR2(32)
+        ';
+    END IF;
+
+
+    ---------------------------------------------------------
+    -- ADD PRODUCT_UUID
+    ---------------------------------------------------------
+    SELECT COUNT(*)
+    INTO v_count
+    FROM USER_TAB_COLUMNS
+    WHERE TABLE_NAME='RECEIPTS_DET'
+    AND COLUMN_NAME='PRODUCT_UUID';
+
+    IF v_count = 0 THEN
+        EXECUTE IMMEDIATE
+        '
+        ALTER TABLE RECEIPTS_DET
+        ADD PRODUCT_UUID VARCHAR2(32)
+        ';
+    END IF;
+
+
+    ---------------------------------------------------------
+    -- ADD KIOSKID
+    ---------------------------------------------------------
+    SELECT COUNT(*)
+    INTO v_count
+    FROM USER_TAB_COLUMNS
+    WHERE TABLE_NAME='RECEIPTS_DET'
+    AND COLUMN_NAME='KIOSKID';
+
+    IF v_count = 0 THEN
+        EXECUTE IMMEDIATE
+        '
+        ALTER TABLE RECEIPTS_DET
+        ADD KIOSKID VARCHAR2(32)
+        ';
+    END IF;
+
+
+    ---------------------------------------------------------
+    -- ADD UPDATED_AT
+    ---------------------------------------------------------
+    SELECT COUNT(*)
+    INTO v_count
+    FROM USER_TAB_COLUMNS
+    WHERE TABLE_NAME='RECEIPTS_DET'
+    AND COLUMN_NAME='UPDATED_AT';
+
+    IF v_count = 0 THEN
+        EXECUTE IMMEDIATE
+        '
+        ALTER TABLE RECEIPTS_DET
+        ADD UPDATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ';
+    END IF;
+
+
+END;
+/
+
+MERGE /*+ PARALLEL(4) */
+INTO RECEIPTS_DET d
+
+USING
+(
+    SELECT
+        SERNO,
+        UUID,
+        KIOSKID
+    FROM RECEIPTS
+) r
+
+ON
+(
+    d.RECEIPT_SERNO = r.SERNO
+)
+
+WHEN MATCHED THEN
+
+UPDATE SET
+
+d.RECEIPT_UUID = r.UUID,
+d.KIOSKID = r.KIOSKID
+
+WHERE d.RECEIPT_UUID IS NULL;
+
+COMMIT;
+
+MERGE /*+ PARALLEL(4) */
+INTO RECEIPTS_DET d
+
+USING
+(
+    SELECT
+        SERNO,
+        UUID
+    FROM PRODUCTS
+) p
+
+ON
+(
+    d.PRODUCT_SERNO = p.SERNO
+)
+
+WHEN MATCHED THEN
+
+UPDATE SET
+
+d.PRODUCT_UUID = p.UUID
+
+WHERE d.PRODUCT_UUID IS NULL;
+
+COMMIT;
+
 
 -- SUPPLIERS 
 ALTER TABLE SUPPLIERS

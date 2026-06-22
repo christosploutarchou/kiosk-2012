@@ -86,6 +86,8 @@ Module connectionModule
             sync.UploadLottery()
             sync.UploadSessions()
             sync.UploadPayments()
+            sync.UploadReceipts()
+            sync.UploadReceiptsDet()
             'TODO
 
             'UploadProducts()

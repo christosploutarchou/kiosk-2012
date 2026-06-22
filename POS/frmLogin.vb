@@ -44,7 +44,7 @@ Public Class frmLogin
                 sync.SyncSessions()
                 sync.SyncPayments()
                 sync.SyncReceipts()
-                'sync.ReceiptsDet()
+                sync.SyncReceiptsDet()
 
                 'drop primary key once all references to product serno removed (other tables)
 
