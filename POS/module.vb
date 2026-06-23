@@ -88,13 +88,9 @@ Module connectionModule
             sync.UploadPayments()
             sync.UploadReceipts()
             sync.UploadReceiptsDet()
-            'TODO
-
-            'UploadProducts()
-            'UploadUsers()
-
-            'SyncProducts()
-            'SyncUsers()
+            sync.UploadXReport()
+            sync.UploadProducts()
+            sync.UploadUsers()
         Catch ex As Exception
             CreateExceptionFile(WhoAmI + " " + ex.ToString(), "SyncTimer")
         Finally

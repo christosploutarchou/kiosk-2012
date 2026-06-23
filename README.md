@@ -458,6 +458,131 @@ WHERE d.PRODUCT_UUID IS NULL;
 
 COMMIT;
 
+-- X_REPORT
+ALTER TABLE X_REPORT
+ADD (
+    KIOSKID VARCHAR2(32),
+    CONSTRAINT X_REPORT_FK_KIOSKID
+        FOREIGN KEY (KIOSKID)
+        REFERENCES KIOSK (KIOSKID)
+);
+
+ALTER TABLE X_REPORT
+ADD UPDATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+
+-- Z_REPORT
+ALTER TABLE Z_REPORT
+ADD (
+    KIOSKID VARCHAR2(32),
+    CONSTRAINT Z_REPORT_FK_KIOSKID
+        FOREIGN KEY (KIOSKID)
+        REFERENCES KIOSK (KIOSKID)
+);
+
+ALTER TABLE Z_REPORT
+ADD UPDATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+
+DECLARE
+
+    v_count NUMBER;
+
+BEGIN
+
+
+    -------------------------------------------------------
+    -- ADD Z_UUID COLUMN
+    -------------------------------------------------------
+    SELECT COUNT(*)
+    INTO v_count
+    FROM USER_TAB_COLUMNS
+    WHERE TABLE_NAME = 'Z_REPORT'
+    AND COLUMN_NAME = 'Z_UUID';
+
+
+    IF v_count = 0 THEN
+
+        EXECUTE IMMEDIATE
+        '
+        ALTER TABLE Z_REPORT
+        ADD Z_UUID VARCHAR2(32)
+        ';
+
+    END IF;
+
+
+
+    -------------------------------------------------------
+    -- POPULATE EXISTING RECORDS
+    -------------------------------------------------------
+    EXECUTE IMMEDIATE
+    '
+    UPDATE Z_REPORT
+    SET Z_UUID = RAWTOHEX(SYS_GUID())
+    WHERE Z_UUID IS NULL
+    ';
+
+
+
+    -------------------------------------------------------
+    -- MAKE NOT NULL
+    -------------------------------------------------------
+    EXECUTE IMMEDIATE
+    '
+    ALTER TABLE Z_REPORT
+    MODIFY Z_UUID NOT NULL
+    ';
+
+
+
+    -------------------------------------------------------
+    -- UNIQUE CONSTRAINT
+    -------------------------------------------------------
+    SELECT COUNT(*)
+    INTO v_count
+    FROM USER_CONSTRAINTS
+    WHERE TABLE_NAME = 'Z_REPORT'
+    AND CONSTRAINT_NAME = 'UK_Z_REPORT_UUID';
+
+
+    IF v_count = 0 THEN
+
+        EXECUTE IMMEDIATE
+        '
+        ALTER TABLE Z_REPORT
+        ADD CONSTRAINT UK_Z_REPORT_UUID
+        UNIQUE(Z_UUID)
+        ';
+
+    END IF;
+
+
+
+    -------------------------------------------------------
+    -- SAFETY: ADD UPDATED_AT IF MISSING
+    -------------------------------------------------------
+    SELECT COUNT(*)
+    INTO v_count
+    FROM USER_TAB_COLUMNS
+    WHERE TABLE_NAME='Z_REPORT'
+    AND COLUMN_NAME='UPDATED_AT';
+
+
+    IF v_count = 0 THEN
+
+        EXECUTE IMMEDIATE
+        '
+        ALTER TABLE Z_REPORT
+        ADD UPDATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ';
+
+    END IF;
+
+
+    COMMIT;
+
+
+END;
+/
 
 -- SUPPLIERS 
 ALTER TABLE SUPPLIERS

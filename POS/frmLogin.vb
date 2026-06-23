@@ -31,20 +31,7 @@ Public Class frmLogin
             Dim sync As New SyncTables()
             Try
                 CreateSqliteTableStructure()
-                'TODO Sync if tables are empty
-                sync.SyncGlobalParams()
-                sync.SyncUsers()
-                sync.SyncLottery()
-                sync.SyncVatTypes()
-                sync.SyncSuppliers()
-                sync.SyncCategories()
-                sync.SyncProducts()
-                sync.SyncBarcodes()
-                sync.SyncButtonTables()
-                sync.SyncSessions()
-                sync.SyncPayments()
-                sync.SyncReceipts()
-                sync.SyncReceiptsDet()
+                ValidateAndSyncTables()
 
                 'drop primary key once all references to product serno removed (other tables)
 
