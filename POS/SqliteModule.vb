@@ -53,6 +53,40 @@ Module SqliteModule
         End If
     End Function
 
+    Public Sub CreateInvoicesTable()
+
+        Dim sql As String =
+                            "
+                            CREATE TABLE IF NOT EXISTS INVOICES
+                            (
+                                UUID TEXT PRIMARY KEY,
+                                SERNO INTEGER,
+                                I_NUMBER TEXT,
+                                SUPPLIER_ID TEXT,
+                                TOTAL_AMT REAL,
+                                INV_DATE TEXT,
+                                CLOSED INTEGER,
+                                EXTRA_DISC REAL DEFAULT 0,
+                                KIOSKID TEXT,
+                                UPDATED_AT TEXT DEFAULT CURRENT_TIMESTAMP,
+                                SYNC_STATUS INTEGER NOT NULL DEFAULT 0,
+                                FOREIGN KEY(SUPPLIER_ID) REFERENCES SUPPLIERS(UUID),
+                                FOREIGN KEY(KIOSKID) REFERENCES KIOSK(KIOSKID)
+                            );
+                            CREATE INDEX IF NOT EXISTS IDX_INVOICES_SYNC ON INVOICES(SYNC_STATUS,KIOSKID);
+                            CREATE INDEX IF NOT EXISTS IDX_INVOICES_UPDATED ON INVOICES(KIOSKID,UPDATED_AT);
+                            CREATE INDEX IF NOT EXISTS IDX_INVOICES_SUPPLIER ON INVOICES(SUPPLIER_ID);
+                            "
+
+        Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+            sqliteConn.Open()
+            Using cmd As New SQLiteCommand(sql, sqliteConn)
+                cmd.ExecuteNonQuery()
+            End Using
+        End Using
+    End Sub
+
+
     Private Sub CreateZReportTable()
 
         Dim sql As String =
@@ -644,7 +678,7 @@ Module SqliteModule
             CreateReceiptsDetTable()
             CreateXReportTable()
             CreateZReportTable()
-            'CreateInvoicesTable
+            CreateInvoicesTable
             'CreateInvoicesDetTable
         Catch ex As Exception
             CreateExceptionFile(WhoAmI + ": " + ex.Message, " ")
@@ -1151,6 +1185,263 @@ Module SqliteModule
                         SaveLastSync(sqliteConn, newestTimestamp, "SUPPLIERS")
                     End Using
                 End Using
+            End Using
+        End Sub
+
+        Public Sub SyncInvoices()
+
+            Dim WhoAmI As String = "SyncInvoices"
+
+            Try
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
+                    Dim lastSync As DateTime = GetLastSync(sqliteConn, "INVOICES")
+
+                    Dim sql As String =
+                                        "
+                                        SELECT
+                                            UUID,
+                                            SERNO,
+                                            I_NUMBER,
+                                            SUPPLIER_ID,
+                                            TOTAL_AMT,
+                                            INV_DATE,
+                                            CLOSED,
+                                            EXTRA_DISC,
+                                            KIOSKID,
+                                            UPDATED_AT
+
+                                        FROM INVOICES
+
+                                        WHERE KIOSKID=:KIOSKID
+                                        AND UPDATED_AT>:UPDATED_AT
+
+                                        ORDER BY UPDATED_AT
+                                        "
+                    Using cmdOra As New OracleCommand(sql, conn)
+                        cmdOra.BindByName = True
+                        cmdOra.Parameters.Add("KIOSKID", OracleDbType.Varchar2).Value = kioskId
+                        cmdOra.Parameters.Add("UPDATED_AT", OracleDbType.TimeStamp).Value = lastSync
+                        Using dr = cmdOra.ExecuteReader()
+                            Using tr = sqliteConn.BeginTransaction()
+                                Dim upsert = CreateInvoicesUpsert(sqliteConn)
+                                upsert.Transaction = tr
+
+                                Dim newest As DateTime = lastSync
+
+                                While dr.Read()
+                                    For i = 0 To dr.FieldCount - 1
+                                        upsert.Parameters(
+                                                        "@" & dr.GetName(i)
+                                                    ).Value =
+                                                    If(IsDBNull(dr(i)),
+                                                       DBNull.Value,
+                                                       dr(i))
+                                    Next
+                                    upsert.ExecuteNonQuery()
+
+                                    Dim upd = Convert.ToDateTime(dr("UPDATED_AT"))
+
+                                    If upd > newest Then
+                                        newest = upd
+                                    End If
+                                End While
+                                tr.Commit()
+
+                                SaveLastSync(sqliteConn, newest, "INVOICES")
+                            End Using
+                        End Using
+                    End Using
+                End Using
+            Catch ex As Exception
+                CreateExceptionFile(WhoAmI & ": " & ex.Message, "")
+            End Try
+        End Sub
+
+        Private Function CreateInvoicesUpsert(sqliteConn As SQLiteConnection) As SQLiteCommand
+
+            Dim sql As String =
+                                "
+                                INSERT INTO INVOICES
+                                (
+                                UUID,
+                                SERNO,
+                                I_NUMBER,
+                                SUPPLIER_ID,
+                                TOTAL_AMT,
+                                INV_DATE,
+                                CLOSED,
+                                EXTRA_DISC,
+                                KIOSKID,
+                                UPDATED_AT,
+                                SYNC_STATUS
+                                )
+                                VALUES
+                                (
+                                @UUID,
+                                @SERNO,
+                                @I_NUMBER,
+                                @SUPPLIER_ID,
+                                @TOTAL_AMT,
+                                @INV_DATE,
+                                @CLOSED,
+                                @EXTRA_DISC,
+                                @KIOSKID,
+                                @UPDATED_AT,
+                                0
+                                )
+
+                                ON CONFLICT(UUID)
+
+                                DO UPDATE SET
+
+                                SERNO=excluded.SERNO,
+                                I_NUMBER=excluded.I_NUMBER,
+                                SUPPLIER_ID=excluded.SUPPLIER_ID,
+                                TOTAL_AMT=excluded.TOTAL_AMT,
+                                INV_DATE=excluded.INV_DATE,
+                                CLOSED=excluded.CLOSED,
+                                EXTRA_DISC=excluded.EXTRA_DISC,
+                                UPDATED_AT=excluded.UPDATED_AT
+                                "
+
+            Dim cmd As New SQLiteCommand(sql, sqliteConn)
+            For Each p In
+            {
+            "UUID",
+            "SERNO",
+            "I_NUMBER",
+            "SUPPLIER_ID",
+            "TOTAL_AMT",
+            "INV_DATE",
+            "CLOSED",
+            "EXTRA_DISC",
+            "KIOSKID",
+            "UPDATED_AT"
+            }
+
+                cmd.Parameters.Add("@" & p, DbType.Object)
+            Next
+            Return cmd
+        End Function
+
+        Private Sub UploadInvoices()
+
+            Dim sql As String =
+                                "
+                                SELECT *
+                                FROM INVOICES
+                                WHERE SYNC_STATUS=1
+                                AND KIOSKID=@KIOSKID
+                                "
+
+            Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                sqliteConn.Open()
+                Using cmd As New SQLiteCommand(sql, sqliteConn)
+                    cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                    Using dr = cmd.ExecuteReader()
+                        While dr.Read()
+                            UploadSingleInvoice(sqliteConn, dr)
+                        End While
+                    End Using
+                End Using
+            End Using
+        End Sub
+
+        Private Sub UploadSingleInvoice(sqliteConn As SQLiteConnection, dr As SQLiteDataReader)
+
+            Dim sql As String =
+                            "
+                            MERGE INTO INVOICES i
+
+                            USING
+                            (
+                            SELECT :UUID UUID FROM dual
+                            ) src
+
+                            ON
+                            (
+                            i.UUID = src.UUID
+                            )
+
+
+                            WHEN MATCHED THEN UPDATE SET
+
+                            i.I_NUMBER=:I_NUMBER,
+                            i.SUPPLIER_ID=:SUPPLIER_ID,
+                            i.TOTAL_AMT=:TOTAL_AMT,
+                            i.INV_DATE=:INV_DATE,
+                            i.CLOSED=:CLOSED,
+                            i.EXTRA_DISC=:EXTRA_DISC,
+                            i.UPDATED_AT=:UPDATED_AT
+
+
+                            WHEN NOT MATCHED THEN INSERT
+                            (
+                            UUID,
+                            SERNO,
+                            I_NUMBER,
+                            SUPPLIER_ID,
+                            TOTAL_AMT,
+                            INV_DATE,
+                            CLOSED,
+                            EXTRA_DISC,
+                            KIOSKID,
+                            UPDATED_AT
+                            )
+
+                            VALUES
+                            (
+                            :UUID,
+                            :SERNO,
+                            :I_NUMBER,
+                            :SUPPLIER_ID,
+                            :TOTAL_AMT,
+                            :INV_DATE,
+                            :CLOSED,
+                            :EXTRA_DISC,
+                            :KIOSKID,
+                            :UPDATED_AT
+                            )
+                            "
+
+            Using cmd As New OracleCommand(sql, conn)
+                cmd.BindByName = True
+                For Each c In
+                {
+                "UUID",
+                "SERNO",
+                "I_NUMBER",
+                "SUPPLIER_ID",
+                "TOTAL_AMT",
+                "INV_DATE",
+                "CLOSED",
+                "EXTRA_DISC",
+                "KIOSKID",
+                "UPDATED_AT"
+                }
+
+                    cmd.Parameters.Add(c, OracleDbType.Varchar2).Value = If(IsDBNull(dr(c)), DBNull.Value, dr(c))
+                Next
+                cmd.ExecuteNonQuery()
+            End Using
+
+            MarkInvoiceSynced(sqliteConn, dr("UUID").ToString())
+
+        End Sub
+
+        Private Sub MarkInvoiceSynced(sqliteConn As SQLiteConnection, uuid As String)
+
+            Dim sql As String =
+                                "
+                                UPDATE INVOICES
+                                SET SYNC_STATUS=0
+                                WHERE UUID=@UUID
+                                "
+
+            Using cmd As New SQLiteCommand(sql, sqliteConn)
+                cmd.Parameters.AddWithValue("@UUID", uuid)
+                cmd.ExecuteNonQuery()
             End Using
         End Sub
 

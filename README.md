@@ -802,6 +802,169 @@ BEGIN
 END;
 /
 
+-- INVOICES
+DECLARE
+
+    v_count NUMBER;
+
+BEGIN
+
+
+    -------------------------------------------------------
+    -- ADD UUID
+    -------------------------------------------------------
+    SELECT COUNT(*)
+    INTO v_count
+    FROM USER_TAB_COLUMNS
+    WHERE TABLE_NAME = 'INVOICES'
+    AND COLUMN_NAME = 'UUID';
+
+
+    IF v_count = 0 THEN
+
+        EXECUTE IMMEDIATE
+        '
+        ALTER TABLE INVOICES
+        ADD UUID VARCHAR2(32)
+        ';
+
+    END IF;
+
+
+
+    -------------------------------------------------------
+    -- POPULATE UUID
+    -------------------------------------------------------
+    EXECUTE IMMEDIATE
+    '
+    UPDATE INVOICES
+    SET UUID = RAWTOHEX(SYS_GUID())
+    WHERE UUID IS NULL
+    ';
+
+
+
+    -------------------------------------------------------
+    -- MAKE UUID NOT NULL
+    -------------------------------------------------------
+    EXECUTE IMMEDIATE
+    '
+    ALTER TABLE INVOICES
+    MODIFY UUID NOT NULL
+    ';
+
+
+
+    -------------------------------------------------------
+    -- ADD UNIQUE CONSTRAINT UUID
+    -------------------------------------------------------
+    SELECT COUNT(*)
+    INTO v_count
+    FROM USER_CONSTRAINTS
+    WHERE TABLE_NAME = 'INVOICES'
+    AND CONSTRAINT_NAME = 'UK_INVOICES_UUID';
+
+
+    IF v_count = 0 THEN
+
+        EXECUTE IMMEDIATE
+        '
+        ALTER TABLE INVOICES
+        ADD CONSTRAINT UK_INVOICES_UUID
+        UNIQUE(UUID)
+        ';
+
+    END IF;
+
+
+
+
+    -------------------------------------------------------
+    -- ADD KIOSKID
+    -------------------------------------------------------
+    SELECT COUNT(*)
+    INTO v_count
+    FROM USER_TAB_COLUMNS
+    WHERE TABLE_NAME='INVOICES'
+    AND COLUMN_NAME='KIOSKID';
+
+
+    IF v_count = 0 THEN
+
+        EXECUTE IMMEDIATE
+        '
+        ALTER TABLE INVOICES
+        ADD KIOSKID VARCHAR2(32)
+        ';
+
+    END IF;
+
+
+
+    -------------------------------------------------------
+    -- POPULATE EXISTING KIOSKID
+    -------------------------------------------------------
+    EXECUTE IMMEDIATE
+    '
+    UPDATE INVOICES
+    SET KIOSKID = ''55F3FEB197474ECAA84867CFB8CD8CC6''
+    WHERE KIOSKID IS NULL
+    ';
+
+
+
+    -------------------------------------------------------
+    -- ADD UPDATED_AT
+    -------------------------------------------------------
+    SELECT COUNT(*)
+    INTO v_count
+    FROM USER_TAB_COLUMNS
+    WHERE TABLE_NAME='INVOICES'
+    AND COLUMN_NAME='UPDATED_AT';
+
+
+    IF v_count = 0 THEN
+
+        EXECUTE IMMEDIATE
+        '
+        ALTER TABLE INVOICES
+        ADD UPDATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ';
+
+    END IF;
+
+
+
+    -------------------------------------------------------
+    -- FK KIOSK
+    -------------------------------------------------------
+    SELECT COUNT(*)
+    INTO v_count
+    FROM USER_CONSTRAINTS
+    WHERE TABLE_NAME='INVOICES'
+    AND CONSTRAINT_NAME='INVOICES_FK_KIOSKID';
+
+
+    IF v_count = 0 THEN
+
+        EXECUTE IMMEDIATE
+        '
+        ALTER TABLE INVOICES
+        ADD CONSTRAINT INVOICES_FK_KIOSKID
+        FOREIGN KEY(KIOSKID)
+        REFERENCES KIOSK(KIOSKID)
+        ';
+
+    END IF;
+
+
+
+    COMMIT;
+
+
+END;
+/
+
 -------
 Every table that users can edit should contain these columns:
 
