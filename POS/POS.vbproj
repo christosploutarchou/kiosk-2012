@@ -391,6 +391,9 @@
     <Compile Include="Queries\moduleQueries.vb" />
     <Compile Include="Queries\loginQueries.vb" />
     <Compile Include="SqliteModule.vb" />
+    <Compile Include="SessionModule.vb" />
+    <Compile Include="XReportModule.vb" />
+    <Compile Include="UserModule.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="frmBoxBarcodesModal.resx">

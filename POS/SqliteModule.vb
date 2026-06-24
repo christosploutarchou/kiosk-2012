@@ -86,6 +86,47 @@ Module SqliteModule
         End Using
     End Sub
 
+    Public Sub CreateInvoicesDetTable()
+
+        Dim sql As String =
+                            "
+                            CREATE TABLE IF NOT EXISTS INVOICES_DET
+                            (
+                                UUID TEXT PRIMARY KEY,
+                                SERNO INTEGER,
+                                INV_SERNO INTEGER,
+                                INV_UUID TEXT,
+                                INV_PR_SERNO INTEGER,
+                                PRODUCT_UUID TEXT,
+                                INV_PR_QNT INTEGER,
+                                INV_PR_DESCR TEXT,
+                                INV_PR_CUR_QNT INTEGER,
+                                INV_PR_DISC REAL,
+                                INV_PR_BUY_AMT REAL,
+                                INV_PR_SELL_AMT REAL,
+                                INV_PR_PROFIT REAL,
+                                EXTRA_DISC REAL,
+                                KIOSKID TEXT,
+                                UPDATED_AT TEXT DEFAULT CURRENT_TIMESTAMP,
+                                SYNC_STATUS INTEGER NOT NULL DEFAULT 0,
+                                FOREIGN KEY(INV_UUID) REFERENCES INVOICES(UUID),
+                                FOREIGN KEY(PRODUCT_UUID) REFERENCES PRODUCTS(UUID),
+                                FOREIGN KEY(KIOSKID) REFERENCES KIOSK(KIOSKID)
+                            );
+
+                            CREATE INDEX IF NOT EXISTS IDX_INVDET_SYNC ON INVOICES_DET(SYNC_STATUS,KIOSKID);
+                            CREATE INDEX IF NOT EXISTS IDX_INVDET_UPDATED ON INVOICES_DET(KIOSKID,UPDATED_AT);
+                            CREATE INDEX IF NOT EXISTS IDX_INVDET_INV_UUID ON INVOICES_DET(INV_UUID);
+                            CREATE INDEX IF NOT EXISTS IDX_INVDET_PRODUCT_UUID ON INVOICES_DET(PRODUCT_UUID);
+                            "
+
+        Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+            sqliteConn.Open()
+            Using cmd As New SQLiteCommand(sql, sqliteConn)
+                cmd.ExecuteNonQuery()
+            End Using
+        End Using
+    End Sub
 
     Private Sub CreateZReportTable()
 
@@ -160,7 +201,7 @@ Module SqliteModule
                             CREATE INDEX IF NOT EXISTS IDX_XREPORT_USER ON X_REPORT(USER_ID);
                             "
         Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
-            conn.Open()
+            sqliteConn.Open()
             Using cmd As New SQLiteCommand(sql, sqliteConn)
                 cmd.ExecuteNonQuery()
             End Using
@@ -172,26 +213,18 @@ Module SqliteModule
                             "
                             CREATE TABLE IF NOT EXISTS RECEIPTS_DET
                             (
-                                RECEIPT_UUID TEXT NOT NULL,
-                                PRODUCT_UUID TEXT,
+                                UUID TEXT PRIMARY KEY,
                                 RECEIPT_SERNO INTEGER,
                                 PRODUCT_SERNO INTEGER,
+                                RECEIPT_UUID TEXT,
+                                PRODUCT_UUID TEXT,
                                 QUANTITY INTEGER,
                                 CREATED_ON TEXT,
                                 AMOUNT REAL,
                                 VAT INTEGER,
                                 KIOSKID TEXT,
-                                UPDATED_AT TEXT DEFAULT CURRENT_TIMESTAMP,
-                                SYNC_STATUS INTEGER NOT NULL DEFAULT 0,
-                                PRIMARY KEY
-                                (
-                                    RECEIPT_UUID,
-                                    PRODUCT_UUID,
-                                    CREATED_ON
-                                ),
-                                FOREIGN KEY(RECEIPT_UUID) REFERENCES RECEIPTS(UUID),
-                                FOREIGN KEY(PRODUCT_UUID) REFERENCES PRODUCTS(UUID),
-                                FOREIGN KEY(KIOSKID) REFERENCES KIOSK(KIOSKID)
+                                UPDATED_AT TEXT,
+                                SYNC_STATUS INTEGER DEFAULT 0
                             );
 
                             CREATE INDEX IF NOT EXISTS IDX_RECDET_RECEIPT ON RECEIPTS_DET(RECEIPT_UUID);
@@ -678,8 +711,8 @@ Module SqliteModule
             CreateReceiptsDetTable()
             CreateXReportTable()
             CreateZReportTable()
-            CreateInvoicesTable
-            'CreateInvoicesDetTable
+            CreateInvoicesTable()
+            CreateInvoicesDetTable()
         Catch ex As Exception
             CreateExceptionFile(WhoAmI + ": " + ex.Message, " ")
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
@@ -692,7 +725,7 @@ Module SqliteModule
         Try
             Dim tables As New Dictionary(Of String, Action) From
                 {
-                    {"GLOBAL_PARAMS", AddressOf sync.SyncUsers},
+                    {"GLOBAL_PARAMS", AddressOf sync.SyncGlobalParams},
                     {"USERS", AddressOf sync.SyncUsers},
                     {"LOTTERY", AddressOf sync.SyncLottery},
                     {"VAT_TYPES", AddressOf sync.SyncVatTypes},
@@ -707,7 +740,7 @@ Module SqliteModule
                     {"X_REPORT", AddressOf sync.SyncXReport},
                     {"Z_REPORT", AddressOf sync.SyncZReport},
                     {"INVOICES", AddressOf sync.SyncInvoices},
-                    {"Z_REPORT", AddressOf sync.SyncInvoicesDet}
+                    {"INVOICES_DET", AddressOf sync.SyncInvoicesDet}
                 }
 
             '--------------------------------------------
@@ -736,7 +769,7 @@ Module SqliteModule
                 Dim sqliteRows As Long = GetSQLiteTableCount(tableName)
                 Dim oracleRows As Long = GetOracleTableCount(tableName)
 
-                If sqliteRows = 0 OrElse sqliteRows < oracleRows Then
+                If (sqliteRows = 0 And oracleRows > 0) OrElse sqliteRows < oracleRows Then
                     CreateExceptionFile("Sync required: " & tableName & " SQLite=" & sqliteRows & " Oracle=" & oracleRows, "")
                     item.Value.Invoke()
                 End If
@@ -1188,6 +1221,81 @@ Module SqliteModule
             End Using
         End Sub
 
+        Public Sub SyncInvoicesDet()
+
+            Dim WhoAmI As String = "SyncInvoicesDet"
+            Try
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
+                    Dim lastSync As DateTime = GetLastSync(sqliteConn, "INVOICES_DET")
+
+                    Dim sql As String =
+                                        "
+                                        SELECT
+                                            UUID,
+                                            SERNO,
+                                            INV_SERNO,
+                                            INV_UUID,
+                                            INV_PR_SERNO,
+                                            PRODUCT_UUID,
+                                            INV_PR_QNT,
+                                            INV_PR_DESCR,
+                                            INV_PR_CUR_QNT,
+                                            INV_PR_DISC,
+                                            INV_PR_BUY_AMT,
+                                            INV_PR_SELL_AMT,
+                                            INV_PR_PROFIT,
+                                            EXTRA_DISC,
+                                            KIOSKID,
+                                            UPDATED_AT
+                                        FROM INVOICES_DET
+                                        WHERE KIOSKID=:KIOSKID
+                                        AND UPDATED_AT>:UPDATED_AT
+                                        ORDER BY UPDATED_AT
+                                        "
+
+                    Using oraCmd As New OracleCommand(sql, conn)
+                        oraCmd.BindByName = True
+                        oraCmd.Parameters.Add("KIOSKID", OracleDbType.Varchar2).Value = kioskId
+                        oraCmd.Parameters.Add("UPDATED_AT", OracleDbType.TimeStamp).Value = lastSync
+
+                        Using dr = oraCmd.ExecuteReader()
+                            Using tr = sqliteConn.BeginTransaction()
+                                Dim upsert = CreateInvoicesDetUpsert(sqliteConn)
+                                upsert.Transaction = tr
+
+                                Dim newest As DateTime = lastSync
+                                While dr.Read()
+                                    For i = 0 To dr.FieldCount - 1
+                                        upsert.Parameters(
+                                                        "@" & dr.GetName(i)
+                                                        ).Value =
+                                                        If(IsDBNull(dr(i)),
+                                                        DBNull.Value,
+                                                        dr(i))
+                                    Next
+
+                                    upsert.ExecuteNonQuery()
+
+                                    Dim upd = Convert.ToDateTime(dr("UPDATED_AT"))
+
+                                    If upd > newest Then
+                                        newest = upd
+                                    End If
+                                End While
+
+                                tr.Commit()
+
+                                SaveLastSync(sqliteConn, newest, "INVOICES_DET")
+                            End Using
+                        End Using
+                    End Using
+                End Using
+            Catch ex As Exception
+                CreateExceptionFile(WhoAmI & ": " & ex.Message, "")
+            End Try
+        End Sub
+
         Public Sub SyncInvoices()
 
             Dim WhoAmI As String = "SyncInvoices"
@@ -1258,6 +1366,240 @@ Module SqliteModule
             End Try
         End Sub
 
+        Private Function CreateInvoicesDetUpsert(sqliteConn As SQLiteConnection) As SQLiteCommand
+
+            Dim sql As String =
+                            "
+                            INSERT INTO INVOICES_DET
+                            (
+                            UUID,
+                            SERNO,
+                            INV_SERNO,
+                            INV_UUID,
+                            INV_PR_SERNO,
+                            PRODUCT_UUID,
+                            INV_PR_QNT,
+                            INV_PR_DESCR,
+                            INV_PR_CUR_QNT,
+                            INV_PR_DISC,
+                            INV_PR_BUY_AMT,
+                            INV_PR_SELL_AMT,
+                            INV_PR_PROFIT,
+                            EXTRA_DISC,
+                            KIOSKID,
+                            UPDATED_AT,
+                            SYNC_STATUS
+                            )
+
+                            VALUES
+                            (
+                            @UUID,
+                            @SERNO,
+                            @INV_SERNO,
+                            @INV_UUID,
+                            @INV_PR_SERNO,
+                            @PRODUCT_UUID,
+                            @INV_PR_QNT,
+                            @INV_PR_DESCR,
+                            @INV_PR_CUR_QNT,
+                            @INV_PR_DISC,
+                            @INV_PR_BUY_AMT,
+                            @INV_PR_SELL_AMT,
+                            @INV_PR_PROFIT,
+                            @EXTRA_DISC,
+                            @KIOSKID,
+                            @UPDATED_AT,
+                            0
+                            )
+
+
+                            ON CONFLICT(UUID)
+
+                            DO UPDATE SET
+
+                            INV_PR_QNT=excluded.INV_PR_QNT,
+                            INV_PR_DESCR=excluded.INV_PR_DESCR,
+                            INV_PR_CUR_QNT=excluded.INV_PR_CUR_QNT,
+
+                            INV_PR_DISC=excluded.INV_PR_DISC,
+
+                            INV_PR_BUY_AMT=excluded.INV_PR_BUY_AMT,
+
+                            INV_PR_SELL_AMT=excluded.INV_PR_SELL_AMT,
+
+                            INV_PR_PROFIT=excluded.INV_PR_PROFIT,
+
+                            EXTRA_DISC=excluded.EXTRA_DISC,
+
+                            UPDATED_AT=excluded.UPDATED_AT
+                            "
+
+            Dim cmd As New SQLiteCommand(sql, sqliteConn)
+            For Each p In
+            {
+            "UUID",
+            "SERNO",
+            "INV_SERNO",
+            "INV_UUID",
+            "INV_PR_SERNO",
+            "PRODUCT_UUID",
+            "INV_PR_QNT",
+            "INV_PR_DESCR",
+            "INV_PR_CUR_QNT",
+            "INV_PR_DISC",
+            "INV_PR_BUY_AMT",
+            "INV_PR_SELL_AMT",
+            "INV_PR_PROFIT",
+            "EXTRA_DISC",
+            "KIOSKID",
+            "UPDATED_AT"
+            }
+
+                cmd.Parameters.Add("@" & p, DbType.Object)
+            Next
+            Return cmd
+        End Function
+
+        Public Sub UploadInvoicesDet()
+
+            Dim sql As String =
+                                "
+                                SELECT *
+                                FROM INVOICES_DET
+                                WHERE SYNC_STATUS=1
+                                AND KIOSKID=@KIOSKID
+                                "
+
+            Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                sqliteConn.Open()
+                Using cmd As New SQLiteCommand(sql, sqliteConn)
+                    cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                    Using dr = cmd.ExecuteReader()
+
+                        While dr.Read()
+                            UploadSingleInvoiceDet(sqliteConn, dr)
+                        End While
+                    End Using
+                End Using
+            End Using
+        End Sub
+
+
+        Private Sub UploadSingleInvoiceDet(sqliteConn As SQLiteConnection, dr As SQLiteDataReader)
+
+            Dim sql As String =
+                                "
+                                MERGE INTO INVOICES_DET d
+
+                                USING
+                                (
+                                SELECT :UUID UUID FROM dual
+                                ) src
+
+                                ON
+                                (
+                                d.UUID=src.UUID
+                                )
+
+                                WHEN MATCHED THEN UPDATE SET
+
+                                d.INV_PR_QNT=:INV_PR_QNT,
+                                d.INV_PR_DESCR=:INV_PR_DESCR,
+                                d.INV_PR_CUR_QNT=:INV_PR_CUR_QNT,
+                                d.INV_PR_DISC=:INV_PR_DISC,
+                                d.INV_PR_BUY_AMT=:INV_PR_BUY_AMT,
+                                d.INV_PR_SELL_AMT=:INV_PR_SELL_AMT,
+                                d.INV_PR_PROFIT=:INV_PR_PROFIT,
+                                d.EXTRA_DISC=:EXTRA_DISC,
+                                d.UPDATED_AT=:UPDATED_AT
+
+
+                                WHEN NOT MATCHED THEN INSERT
+                                (
+                                UUID,
+                                SERNO,
+                                INV_SERNO,
+                                INV_UUID,
+                                INV_PR_SERNO,
+                                PRODUCT_UUID,
+                                INV_PR_QNT,
+                                INV_PR_DESCR,
+                                INV_PR_CUR_QNT,
+                                INV_PR_DISC,
+                                INV_PR_BUY_AMT,
+                                INV_PR_SELL_AMT,
+                                INV_PR_PROFIT,
+                                EXTRA_DISC,
+                                KIOSKID,
+                                UPDATED_AT
+                                )
+
+                                VALUES
+                                (
+                                :UUID,
+                                :SERNO,
+                                :INV_SERNO,
+                                :INV_UUID,
+                                :INV_PR_SERNO,
+                                :PRODUCT_UUID,
+                                :INV_PR_QNT,
+                                :INV_PR_DESCR,
+                                :INV_PR_CUR_QNT,
+                                :INV_PR_DISC,
+                                :INV_PR_BUY_AMT,
+                                :INV_PR_SELL_AMT,
+                                :INV_PR_PROFIT,
+                                :EXTRA_DISC,
+                                :KIOSKID,
+                                :UPDATED_AT
+                                )
+                                "
+
+            Using cmd As New OracleCommand(sql, conn)
+                cmd.BindByName = True
+                For Each c In
+                {
+                "UUID",
+                "SERNO",
+                "INV_SERNO",
+                "INV_UUID",
+                "INV_PR_SERNO",
+                "PRODUCT_UUID",
+                "INV_PR_QNT",
+                "INV_PR_DESCR",
+                "INV_PR_CUR_QNT",
+                "INV_PR_DISC",
+                "INV_PR_BUY_AMT",
+                "INV_PR_SELL_AMT",
+                "INV_PR_PROFIT",
+                "EXTRA_DISC",
+                "KIOSKID",
+                "UPDATED_AT"
+                }
+
+                    cmd.Parameters.Add(c, OracleDbType.Varchar2).Value = If(IsDBNull(dr(c)), DBNull.Value, dr(c))
+                Next
+                cmd.ExecuteNonQuery()
+            End Using
+
+            MarkInvoiceDetSynced(sqliteConn, dr("UUID").ToString())
+        End Sub
+
+        Private Sub MarkInvoiceDetSynced(sqliteConn As SQLiteConnection, uuid As String)
+
+            Dim sql As String =
+                                "
+                                UPDATE INVOICES_DET
+                                SET SYNC_STATUS=0
+                                WHERE UUID=@UUID
+                                "
+
+            Using cmd As New SQLiteCommand(sql, sqliteConn)
+                cmd.Parameters.AddWithValue("@UUID", uuid)
+                cmd.ExecuteNonQuery()
+            End Using
+        End Sub
+
         Private Function CreateInvoicesUpsert(sqliteConn As SQLiteConnection) As SQLiteCommand
 
             Dim sql As String =
@@ -1325,7 +1667,7 @@ Module SqliteModule
             Return cmd
         End Function
 
-        Private Sub UploadInvoices()
+        Public Sub UploadInvoices()
 
             Dim sql As String =
                                 "
@@ -3976,6 +4318,12 @@ Module SqliteModule
                                 "FROM SESSIONS " &
                                 "WHERE KIOSKID = :KIOSKID"
 
+            Try
+                isConnOpen()
+            Catch ex As Exception
+                Exit Sub
+            End Try
+
             Using cmdOracle As New OracleCommand(sql, conn)
 
                 cmdOracle.BindByName = True
@@ -4461,6 +4809,7 @@ Module SqliteModule
                             "
                             INSERT INTO RECEIPTS_DET
                             (
+                            UUID,
                             RECEIPT_UUID,
                             PRODUCT_UUID,
                             RECEIPT_SERNO,
@@ -4475,6 +4824,7 @@ Module SqliteModule
                             )
                             VALUES
                             (
+                            @UUID,
                             @RECEIPT_UUID,
                             @PRODUCT_UUID,
                             @RECEIPT_SERNO,
@@ -4488,12 +4838,7 @@ Module SqliteModule
                             0
                             )
 
-                            ON CONFLICT
-                            (
-                            RECEIPT_UUID,
-                            PRODUCT_UUID,
-                            CREATED_ON
-                            )
+                            ON CONFLICT(UUID)
 
                             DO UPDATE SET
 
@@ -4506,6 +4851,7 @@ Module SqliteModule
             Dim cmd As New SQLiteCommand(sql, sqliteConn)
             For Each p In
             {
+            "UUID",
             "RECEIPT_UUID",
             "PRODUCT_UUID",
             "RECEIPT_SERNO",
@@ -4526,61 +4872,113 @@ Module SqliteModule
         Public Sub SyncReceiptsDet()
 
             Dim WhoAmI As String = "SyncReceiptsDet"
-            Dim lastSync As DateTime = GetLastSyncValue("RECEIPTS_DET_LAST_SYNC")
-            Dim sql As String =
-                                "
-                                SELECT
-                                    RECEIPT_UUID,
-                                    PRODUCT_UUID,
-                                    RECEIPT_SERNO,
-                                    PRODUCT_SERNO,
-                                    QUANTITY,
-                                    CREATED_ON,
-                                    AMOUNT,
-                                    VAT,
-                                    KIOSKID,
-                                    UPDATED_AT
-                                FROM RECEIPTS_DET
-                                WHERE KIOSKID=:KIOSKID
-                                AND UPDATED_AT>:LASTSYNC
-                                ORDER BY UPDATED_AT
-                                "
+
+            Dim oracleRows As Integer = 0
+            Dim sqliteRows As Integer = 0
+            Dim failedRows As Integer = 0
+            Dim noAffectedRows As Integer = 0
+
             Try
-                Using cmdOra As New OracleCommand(sql, conn)
-                    cmdOra.BindByName = True
-                    cmdOra.Parameters.Add("KIOSKID", OracleDbType.Varchar2).Value = kioskId
-                    cmdOra.Parameters.Add("LASTSYNC", OracleDbType.TimeStamp).Value = lastSync
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
+                    Dim sql As String =
+                                        "
+                                        SELECT
+                                        UUID,
+                                        RECEIPT_SERNO,
+                                        PRODUCT_SERNO,
+                                        RECEIPT_UUID,
+                                        PRODUCT_UUID,
+                                        QUANTITY,
+                                        CREATED_ON,
+                                        AMOUNT,
+                                        VAT,
+                                        KIOSKID,
+                                        UPDATED_AT
+                                        FROM RECEIPTS_DET
+                                        WHERE KIOSKID=:KIOSKID
+                                        "
 
-                    Using dr = cmdOra.ExecuteReader()
-                        Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
-                            sqliteConn.Open()
+                    Using oraCmd As New OracleCommand(sql, conn)
+                        oraCmd.BindByName = True
+                        oraCmd.Parameters.Add("KIOSKID", OracleDbType.Varchar2).Value = kioskId
 
+                        Using dr As OracleDataReader = oraCmd.ExecuteReader()
                             Using tr = sqliteConn.BeginTransaction()
-                                Dim upsert = CreateReceiptDetUpsertCommand(sqliteConn)
-                                upsert.Transaction = tr
+                                Dim insertCmd = CreateReceiptDetUpsertCommand(sqliteConn)
+                                insertCmd.Transaction = tr
 
-                                Dim newestSync As DateTime = lastSync
                                 While dr.Read()
-                                    For i = 0 To dr.FieldCount - 1
-                                        upsert.Parameters("@" & dr.GetName(i)).Value = If(IsDBNull(dr(i)), DBNull.Value, dr(i))
-                                    Next
+                                    oracleRows += 1
+                                    Try
+                                        For i As Integer = 0 To dr.FieldCount - 1
+                                            insertCmd.Parameters("@" & dr.GetName(i)).Value = If(IsDBNull(dr(i)), DBNull.Value, dr(i))
+                                        Next
 
-                                    upsert.ExecuteNonQuery()
+                                        Dim affected As Integer = insertCmd.ExecuteNonQuery()
 
-                                    Dim upd = Convert.ToDateTime(dr("UPDATED_AT"))
-                                    If upd > newestSync Then
-                                        newestSync = upd
-                                    End If
+                                        If affected > 0 Then
+                                            sqliteRows += 1
+                                        Else
+                                            noAffectedRows += 1
+
+                                            CreateExceptionFile(
+                                                                "NO ROW AFFECTED RECEIPTS_DET" &
+                                                                vbCrLf &
+                                                                "Oracle row=" & oracleRows &
+                                                                vbCrLf &
+                                                                "Receipt UUID=" &
+                                                                dr("RECEIPT_UUID").ToString() &
+                                                                vbCrLf &
+                                                                "Product UUID=" &
+                                                                dr("PRODUCT_UUID").ToString() &
+                                                                vbCrLf &
+                                                                "Created=" &
+                                                                dr("CREATED_ON").ToString(),
+                                                                "")
+                                        End If
+
+                                    Catch rowEx As Exception
+                                        failedRows += 1
+                                        CreateExceptionFile(
+                                                            "FAILED RECEIPTS_DET" &
+                                                            vbCrLf &
+                                                            "Oracle row=" & oracleRows &
+                                                            vbCrLf &
+                                                            "Receipt serno=" &
+                                                            dr("RECEIPT_SERNO").ToString() &
+                                                            vbCrLf &
+                                                            "Product serno=" &
+                                                            dr("PRODUCT_SERNO").ToString() &
+                                                            vbCrLf &
+                                                            "Receipt UUID=" &
+                                                            dr("RECEIPT_UUID").ToString() &
+                                                            vbCrLf &
+                                                            "Product UUID=" &
+                                                            dr("PRODUCT_UUID").ToString() &
+                                                            vbCrLf &
+                                                            rowEx.Message,
+                                                            "")
+
+                                    End Try
+
+
+                                    'If oracleRows Mod 10000 = 0 Then
+                                    'Debug.WriteLine(
+                                    '                   "Oracle=" & oracleRows &
+                                    '                   " SQLite=" & sqliteRows &
+                                    '                   " Failed=" & failedRows &
+                                    '                   " NoAffected=" & noAffectedRows)
+                                    '
+                                    'End If
                                 End While
-
                                 tr.Commit()
-                                SaveLastSync(sqliteConn, newestSync, "RECEIPTS_DET")
                             End Using
                         End Using
                     End Using
                 End Using
             Catch ex As Exception
-                CreateExceptionFile(WhoAmI & ": " & ex.Message, sql)
+                CreateExceptionFile(WhoAmI & ": " & ex.Message, "")
             End Try
         End Sub
 
@@ -4614,6 +5012,7 @@ Module SqliteModule
                                 "
                                 INSERT INTO RECEIPTS_DET
                                 (
+                                UUID,
                                 RECEIPT_SERNO,
                                 PRODUCT_SERNO,
                                 QUANTITY,
@@ -4627,6 +5026,7 @@ Module SqliteModule
                                 )
                                 VALUES
                                 (
+                                :UUID,
                                 :RECEIPT_SERNO,
                                 :PRODUCT_SERNO,
                                 :QUANTITY,
@@ -4646,9 +5046,7 @@ Module SqliteModule
 
                 For Each c In
                 {
-                "RECEIPT_UUID",
-                "PRODUCT_UUID",
-                "KIOSKID"
+                    "UUID"
                 }
                     cmd.Parameters.Add(c, OracleDbType.Varchar2).Value = dr(c)
                 Next

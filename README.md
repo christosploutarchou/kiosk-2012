@@ -458,6 +458,26 @@ WHERE d.PRODUCT_UUID IS NULL;
 
 COMMIT;
 
+ALTER TABLE RECEIPTS_DET
+ADD UUID VARCHAR2(32);
+
+UPDATE /*+ PARALLEL(4) */ RECEIPTS_DET
+SET UUID = RAWTOHEX(SYS_GUID())
+WHERE UUID IS NULL;
+
+COMMIT;
+
+ALTER TABLE RECEIPTS_DET
+MODIFY UUID NOT NULL;
+
+ALTER TABLE RECEIPTS_DET
+ADD CONSTRAINT UK_RECEIPTS_DET_UUID
+UNIQUE(UUID);
+
+CREATE INDEX IDX_RECEIPTS_DET_UUID
+ON RECEIPTS_DET(UUID);
+
+
 -- X_REPORT
 ALTER TABLE X_REPORT
 ADD (
@@ -964,6 +984,201 @@ BEGIN
 
 END;
 /
+
+-- INVOICES_DET
+DECLARE
+
+    v_count NUMBER;
+
+BEGIN
+
+
+    -------------------------------------------------------
+    -- ADD UUID
+    -------------------------------------------------------
+    SELECT COUNT(*)
+    INTO v_count
+    FROM USER_TAB_COLUMNS
+    WHERE TABLE_NAME='INVOICES_DET'
+    AND COLUMN_NAME='UUID';
+
+
+    IF v_count = 0 THEN
+
+        EXECUTE IMMEDIATE
+        '
+        ALTER TABLE INVOICES_DET
+        ADD UUID VARCHAR2(32)
+        ';
+
+    END IF;
+
+
+
+    -------------------------------------------------------
+    -- ADD INV_UUID
+    -------------------------------------------------------
+    SELECT COUNT(*)
+    INTO v_count
+    FROM USER_TAB_COLUMNS
+    WHERE TABLE_NAME='INVOICES_DET'
+    AND COLUMN_NAME='INV_UUID';
+
+
+    IF v_count = 0 THEN
+
+        EXECUTE IMMEDIATE
+        '
+        ALTER TABLE INVOICES_DET
+        ADD INV_UUID VARCHAR2(32)
+        ';
+
+    END IF;
+
+
+
+    -------------------------------------------------------
+    -- ADD PRODUCT_UUID
+    -------------------------------------------------------
+    SELECT COUNT(*)
+    INTO v_count
+    FROM USER_TAB_COLUMNS
+    WHERE TABLE_NAME='INVOICES_DET'
+    AND COLUMN_NAME='PRODUCT_UUID';
+
+
+    IF v_count = 0 THEN
+
+        EXECUTE IMMEDIATE
+        '
+        ALTER TABLE INVOICES_DET
+        ADD PRODUCT_UUID VARCHAR2(32)
+        ';
+
+    END IF;
+
+
+
+    -------------------------------------------------------
+    -- ADD KIOSKID
+    -------------------------------------------------------
+    SELECT COUNT(*)
+    INTO v_count
+    FROM USER_TAB_COLUMNS
+    WHERE TABLE_NAME='INVOICES_DET'
+    AND COLUMN_NAME='KIOSKID';
+
+
+    IF v_count = 0 THEN
+
+        EXECUTE IMMEDIATE
+        '
+        ALTER TABLE INVOICES_DET
+        ADD KIOSKID VARCHAR2(32)
+        ';
+
+    END IF;
+
+
+
+    -------------------------------------------------------
+    -- ADD UPDATED_AT
+    -------------------------------------------------------
+    SELECT COUNT(*)
+    INTO v_count
+    FROM USER_TAB_COLUMNS
+    WHERE TABLE_NAME='INVOICES_DET'
+    AND COLUMN_NAME='UPDATED_AT';
+
+
+    IF v_count = 0 THEN
+
+        EXECUTE IMMEDIATE
+        '
+        ALTER TABLE INVOICES_DET
+        ADD UPDATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ';
+
+    END IF;
+
+
+    COMMIT;
+
+
+END;
+/
+
+UPDATE /*+ PARALLEL(4) */
+INVOICES_DET
+SET UUID = RAWTOHEX(SYS_GUID())
+WHERE UUID IS NULL;
+
+COMMIT;
+
+MERGE /*+ PARALLEL(4) */
+INTO INVOICES_DET d
+
+USING
+(
+    SELECT
+        SERNO,
+        UUID,
+        KIOSKID
+    FROM INVOICES
+) i
+
+ON
+(
+    d.INV_SERNO = i.SERNO
+)
+
+WHEN MATCHED THEN UPDATE SET
+
+    d.INV_UUID = i.UUID,
+    d.KIOSKID = i.KIOSKID
+
+WHERE d.INV_UUID IS NULL;
+
+COMMIT;
+
+MERGE /*+ PARALLEL(4) */
+INTO INVOICES_DET d
+
+USING
+(
+    SELECT
+        SERNO,
+        UUID
+    FROM PRODUCTS
+) p
+
+ON
+(
+    d.INV_PR_SERNO = p.SERNO
+)
+
+WHEN MATCHED THEN UPDATE SET
+
+    d.PRODUCT_UUID = p.UUID
+
+WHERE d.PRODUCT_UUID IS NULL;
+
+COMMIT;
+
+CREATE INDEX IDX_INVDET_UUID
+ON INVOICES_DET(UUID);
+
+
+CREATE INDEX IDX_INVDET_INV_UUID
+ON INVOICES_DET(INV_UUID);
+
+
+CREATE INDEX IDX_INVDET_PRODUCT_UUID
+ON INVOICES_DET(PRODUCT_UUID);
+
+
+CREATE INDEX IDX_INVDET_SYNC
+ON INVOICES_DET(KIOSKID, UPDATED_AT);
 
 -------
 Every table that users can edit should contain these columns:

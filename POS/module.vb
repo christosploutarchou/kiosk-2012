@@ -89,8 +89,11 @@ Module connectionModule
             sync.UploadReceipts()
             sync.UploadReceiptsDet()
             sync.UploadXReport()
+            sync.UploadZReport()
             sync.UploadProducts()
             sync.UploadUsers()
+            sync.UploadInvoices()
+            sync.UploadInvoicesDet()
         Catch ex As Exception
             CreateExceptionFile(WhoAmI + " " + ex.ToString(), "SyncTimer")
         Finally
@@ -253,7 +256,9 @@ Module connectionModule
     End Function
 
     Public Sub CloseConn()
-        conn.Close()
+        If Not SqlLite Or (conn IsNot Nothing AndAlso conn.State = ConnectionState.Open) Then
+            conn.Close()
+        End If
     End Sub
 
     Private Function GetDbHostName() As String
@@ -410,7 +415,7 @@ Module connectionModule
         Return ""
     End Function
 
-    Private Structure ReceiptTotals
+    Public Structure ReceiptTotals
         Public TotalReceipts As Integer
         Public TotalAmt As Double
         Public TotalVat0 As Double
@@ -790,124 +795,8 @@ Module connectionModule
         Try
 
             If SqlLite Then
-
-                Dim uuid As String = Guid.NewGuid().ToString("N").ToUpper()
-
-                sql =
-            "INSERT INTO X_REPORT
-            (
-                UUID,
-                USER_ID,
-                FROM_DATE,
-                TO_DATE,
-                TOTAL_RECEIPTS,
-                TOTAL_AMT,
-                TOTAL0PERCENT,
-                TOTAL3PERCENT,
-                TOTAL5PERCENT,
-                TOTAL19PERCENT,
-                INITIAL_AMT,
-                FINAL_AMT,
-                PAYMENTS,
-                CREATED_ON,
-                DESCRIPTION,
-                AMOUNT_LAXEIA,
-                INITIALAMTLAXEIA,
-                AMOUNTVISA,
-                FINALAMTLAXEIA,
-                KIOSKID,
-                UPDATED_AT,
-                SYNC_STATUS
-            )
-            VALUES
-            (
-                @UUID,
-                @USER_ID,
-                (SELECT MAX(LOGIN_WHEN)
-                   FROM SESSIONS
-                  WHERE USER_ID=@USER_ID
-                    AND KIOSKID=@KIOSKID),
-                CURRENT_TIMESTAMP,
-                @TOTAL_RECEIPTS,
-                @TOTAL_AMT,
-                @TOTAL0,
-                @TOTAL3,
-                @TOTAL5,
-                @TOTAL19,
-                (SELECT PARAMVALUE
-                   FROM GLOBAL_PARAMS
-                  WHERE PARAMKEY='init.fiscal.amt'),
-                @FINAL_AMT,
-                @PAYMENTS,
-                CURRENT_TIMESTAMP,
-                '',
-                @AMOUNT_LAXEIA,
-                (SELECT AMOUNTLAXEIAONLOGIN
-                   FROM SESSIONS
-                  WHERE USER_ID=@USER_ID
-                    AND KIOSKID=@KIOSKID
-                  ORDER BY LOGIN_WHEN DESC
-                  LIMIT 1),
-                @AMOUNT_VISA,
-                @FINAL_LAXEIA,
-                @KIOSKID,
-                CURRENT_TIMESTAMP,
-                1
-            )"
-
-
-                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
-
-                    sqliteConn.Open()
-
-                    Using cmd As New SQLiteCommand(sql, sqliteConn)
-
-                        cmd.Parameters.AddWithValue("@UUID", uuid)
-                        cmd.Parameters.AddWithValue("@USER_ID", userid)
-
-                        cmd.Parameters.AddWithValue("@TOTAL_RECEIPTS",
-                                                totals.TotalReceipts)
-
-                        cmd.Parameters.AddWithValue("@TOTAL_AMT",
-                                                totals.TotalAmt)
-
-                        cmd.Parameters.AddWithValue("@TOTAL0",
-                                                totals.TotalVat0)
-
-                        cmd.Parameters.AddWithValue("@TOTAL3",
-                                                totals.TotalVat3)
-
-                        cmd.Parameters.AddWithValue("@TOTAL5",
-                                                totals.TotalVat5)
-
-                        cmd.Parameters.AddWithValue("@TOTAL19",
-                                                totals.TotalVat19)
-
-                        cmd.Parameters.AddWithValue("@FINAL_AMT",
-                                                totals.TotalAmt)
-
-                        cmd.Parameters.AddWithValue("@PAYMENTS",
-                                                totalPayments)
-
-                        cmd.Parameters.AddWithValue("@AMOUNT_LAXEIA",
-                                                amountLaxeia)
-
-                        cmd.Parameters.AddWithValue("@AMOUNT_VISA",
-                                                amountVisa)
-
-                        cmd.Parameters.AddWithValue("@FINAL_LAXEIA",
-                                                finalLaxeia)
-
-                        cmd.Parameters.AddWithValue("@KIOSKID",
-                                                kioskId)
-
-                        cmd.ExecuteNonQuery()
-
-                    End Using
-
-                End Using
-
-
+                Dim xreport As New XReport
+                xreport.InsertXReport(userid, totals, totalPayments, amountLaxeia, amountVisa, finalLaxeia)
             Else
 
                 sql =
@@ -1184,41 +1073,14 @@ Module connectionModule
     Public Function IsLoggedIn(username As String) As Boolean
         Dim WhoAmI As String = "IsLoggedIn"
 
-        Dim sql As String = "SELECT COUNT(*) " &
-                            "FROM sessions s " &
-                            "WHERE "
-
-        If SqlLite Then
-            sql += " KIOSKID = :KIOSKID AND "
-        End If
-
-        sql += "s.is_active = 1 " &
-        "  AND s.user_id = (
-                            SELECT 
-                                u.uuid 
-                            FROM users u 
-                            WHERE "
-
-        If SqlLite Then
-            sql += " KIOSKID = :KIOSKID AND "
-        End If
-
-        sql += "u.username = :username) "
-
+        Dim sql As String = "SELECT COUNT(*) 
+                            FROM sessions s 
+                            WHERE 
+                            s.is_active = 1 AND s.user_id = (SELECT u.uuid FROM users u WHERE u.username = :username) "
         Try
             If SqlLite Then
-                Using conn As New SQLiteConnection("Data Source=kiosk.db")
-                    conn.Open()
-                    Using cmd As New SQLiteCommand(sql, conn)
-
-                        cmd.Parameters.Add("KIOSKID", OracleDbType.Varchar2).Value = kioskId
-                        cmd.Parameters.Add("username", OracleDbType.Varchar2).Value = username
-
-                        Dim count As Integer = Convert.ToInt32(cmd.ExecuteScalar())
-
-                        Return (count > 0)
-                    End Using
-                End Using
+                Dim session As New Session
+                Return session.CheckIfUserAlreadyLoggedIn(username)
             Else
                 Using cmd As New OracleCommand(sql, conn)
                     If conn.State <> ConnectionState.Open Then OpenConn()
@@ -1240,44 +1102,19 @@ Module connectionModule
 
     Public Sub LogoutUserUUID(ByVal uuid As String)
         Dim WhoAmI As String = "LogoutUserUUID"
-        Dim sql As String = ""
-
+        Dim sql As String = "UPDATE SESSIONS
+                             SET IS_ACTIVE = 0,
+                                 LOGOUT_WHEN = SYSTIMESTAMP
+                             WHERE USER_ID = :USER_ID
+                             AND IS_ACTIVE = 1"
         Try
             If SqlLite Then
-                sql =
-                    "UPDATE SESSIONS
-                     SET IS_ACTIVE = 0,
-                         LOGOUT_WHEN = CURRENT_TIMESTAMP,
-                         SYNC_STATUS = 1
-                     WHERE USER_ID = @USER_ID
-                     AND KIOSKID = @KIOSKID
-                     AND IS_ACTIVE = 1"
-
-                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
-                    sqliteConn.Open()
-                    Using cmd As New SQLiteCommand(sql, sqliteConn)
-                        cmd.Parameters.AddWithValue("@USER_ID", uuid)
-                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
-                        cmd.ExecuteNonQuery()
-                    End Using
-                End Using
-
-                Try
-                    Dim sync As New SyncTables()
-                    sync.SyncSessions()
-                Catch ex As Exception
-                End Try
+                Dim session As New Session
+                session.LogoutUserByUUID(uuid)
             Else
                 While conn.State = ConnectionState.Closed
                     OpenConn()
                 End While
-
-                sql =
-                        "UPDATE SESSIONS
-                         SET IS_ACTIVE = 0,
-                             LOGOUT_WHEN = SYSTIMESTAMP
-                         WHERE USER_ID = :USER_ID
-                         AND IS_ACTIVE = 1"
 
                 Using cmd As New OracleCommand(sql, conn)
                     cmd.BindByName = True

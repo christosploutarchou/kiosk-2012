@@ -87,32 +87,8 @@ Public Class frmUnlockUser
             PrintDocument1.Print()
 
             If SqlLite Then
-                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
-                    sqliteConn.Open()
-
-                    sql =
-                        "UPDATE SESSIONS " &
-                        "SET IS_ACTIVE = 0, " &
-                        "    LOGOUT_WHEN = CURRENT_TIMESTAMP, " &
-                        "    UPDATED_AT = CURRENT_TIMESTAMP, " &
-                        "    SYNC_STATUS = 1 " &
-                        "WHERE USER_ID = @USER_ID " &
-                        "AND IS_ACTIVE = 1 " &
-                        "AND KIOSKID = @KIOSKID"
-
-                    Using cmd As New SQLiteCommand(sql, sqliteConn)
-                        cmd.Parameters.AddWithValue("@USER_ID",
-                        lstBoxUUIDS.Items(lstBoxLockedUsers.SelectedIndex).ToString())
-                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
-                        cmd.ExecuteNonQuery()
-                    End Using
-                End Using
-
-                Try
-                    Dim sync As New SyncTables()
-                    sync.SyncSessions()
-                Catch ex As Exception
-                End Try
+                Dim session As New Session
+                session.LogoutUserByUserID(lstBoxUUIDS.Items(lstBoxLockedUsers.SelectedIndex).ToString())
             Else
 
                 sql =

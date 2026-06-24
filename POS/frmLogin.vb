@@ -10,7 +10,8 @@ Imports Oracle.DataAccess.Types
 Public Class frmLogin
     Private Sub FrmLogin_Disposed(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Disposed
         If SqlLite Then
-            LogoutUser(username)
+            Dim session As New Session
+            session.LogoutUser(username)
         Else
             If (OpenConn()) Then
                 LogoutUser(username)
@@ -32,15 +33,12 @@ Public Class frmLogin
             Try
                 CreateSqliteTableStructure()
                 ValidateAndSyncTables()
-
-                'drop primary key once all references to product serno removed (other tables)
-
                 StartSyncService()
 
             Catch ex As Exception
-                MessageBox.Show(ex.Message)
                 ' Oracle unavailable
                 ' Continue with local SQLite
+                MessageBox.Show(ex.Message)
             End Try
 
         End If
@@ -59,53 +57,36 @@ Public Class frmLogin
 
     Private Sub FillUsersList()
         Dim WhoAmI As String = "FillUsersList"
-        Dim sql As String = "SELECT username FROM users WHERE deleted = 0 "
+        'Oracle version
+        Dim sql As String = "SELECT username FROM users WHERE deleted = 0 ORDER BY username"
         Try
-            If SqlLite Then
-                sql += "AND KIOSKID = :KIOSKID "
-            End If
-            sql += "ORDER BY username"
+            lstboxUsers.BeginUpdate()
+            lstboxUsers.Items.Clear()
 
             If SqlLite Then
-                Using conn As New SQLiteConnection("Data Source=kiosk.db")
-                    conn.Open()
-                    Using cmd As New SQLiteCommand(sql, conn)
-                        cmd.Parameters.AddWithValue(":KIOSKID", kioskId)
-                        Using dr As SQLiteDataReader = cmd.ExecuteReader()
-                            lstboxUsers.BeginUpdate()
-                            lstboxUsers.Items.Clear()
-
-                            While dr.Read()
-                                lstboxUsers.Items.Add(dr.GetString(dr.GetOrdinal("username")))
-                            End While
-                            lstboxUsers.EndUpdate()
-                        End Using
-                    End Using
-                End Using
+                Dim user As New User
+                For Each username As String In user.GetUsernames()
+                    lstboxUsers.Items.Add(username)
+                Next
             Else
                 Using cmd As New OracleCommand(sql, conn)
                     cmd.CommandType = CommandType.Text
-
                     Using dr As OracleDataReader = cmd.ExecuteReader()
-                        lstboxUsers.BeginUpdate()
-                        lstboxUsers.Items.Clear()
-
                         While dr.Read()
                             lstboxUsers.Items.Add(dr.GetString(dr.GetOrdinal("username")))
                         End While
-
-                        lstboxUsers.EndUpdate()
                     End Using
                 End Using
             End If
         Catch ex As Exception
             CreateExceptionFile(WhoAmI + " " + ex.Message, " " & sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
+        Finally
+            lstboxUsers.EndUpdate()
         End Try
     End Sub
 
     Private Sub BtnExit_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnExit.Click
-        '15/06 - TODO
         CloseConn()
         Me.Dispose()
     End Sub
@@ -130,28 +111,10 @@ Public Class frmLogin
     End Sub
 
     Private Sub BtnLogin_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnLogin.Click
-        '15/06 - TODO
         Dim WhoAmI As String = "BtnLogin_Click"
-
-        'If Not CheckHhdSerial() Then
-        'Exit Sub
-        'End If
-
-        '3% VAT is already part of the tables, no need to execute
-        'GetVat3PercentColumns()
-
-        'isBoxReport()
-
         username = lstboxUsers.Text
         whois = ""
         Dim sql As String = ""
-
-        'If Not username.Equals("unlock") Then
-        'If Not checkIfAllowConnection() Then
-        'MessageBox.Show("Έχει ξεπεραστει ο μέγιστος αριθμός σημείων", "Σφάλμα σύνεδης", MessageBoxButtons.OK, MessageBoxIcon.Stop)
-        'Exit Sub
-        'End If
-        'End If
 
         If Not IsLoggedIn(username) Then
             'Dim cmd As New OracleCommand
