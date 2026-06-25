@@ -10,10 +10,7 @@
                                              "where p.supplier_id = :1 " & _
                                              "order by to_number(avail_quantity,'99999')"
 
-    Public Q_GET_SUPPLIERS As String = "select uuid, s_name, phone_1, phone_2 " & _
-                                       "from suppliers order by s_name asc"
-
-    Public Q_GET_USERS As String = "select uuid, username " & _
+    Public Q_GET_USERS As String = "select uuid, username " &
                                    "from users where deleted = 0 order by username asc"
 
     Public Q_GET_CATEGORIES As String = "select uuid, description, vat " & _

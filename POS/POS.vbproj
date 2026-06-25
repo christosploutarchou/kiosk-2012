@@ -392,6 +392,7 @@
     <Compile Include="Queries\loginQueries.vb" />
     <Compile Include="SqliteModule.vb" />
     <Compile Include="SessionModule.vb" />
+    <Compile Include="SupplierModule.vb" />
     <Compile Include="XReportModule.vb" />
     <Compile Include="UserModule.vb" />
   </ItemGroup>

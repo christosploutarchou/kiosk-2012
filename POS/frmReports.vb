@@ -1529,8 +1529,9 @@ Public Class frmReports
 
     Private Sub fillSuppliers()
         Dim cmd As New OracleCommand("", conn)
+        Dim sql As String = "Select uuid, s_name, phone_1, phone_2 from suppliers order by s_name asc"
         Try
-            cmd = New OracleCommand(Q_GET_SUPPLIERS, conn)
+            cmd = New OracleCommand(sql, conn)
             cmd.CommandType = CommandType.Text
             Dim dr As OracleDataReader = cmd.ExecuteReader()
             supplierId = ""
@@ -1542,7 +1543,7 @@ Public Class frmReports
             End While
             dr.Close()
         Catch ex As Exception
-            createExceptionFile(ex.Message, " " & Q_GET_SUPPLIERS)
+            CreateExceptionFile(ex.Message, " " & sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Finally
             cmd.Dispose()
