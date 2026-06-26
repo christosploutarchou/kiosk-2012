@@ -1577,6 +1577,7 @@ Module SqliteModule
                 End If
                 cmd.Parameters.Add("KIOSKID", OracleDbType.Varchar2).Value = dr("KIOSKID").ToString()
                 cmd.Parameters.Add("UPDATED_AT", OracleDbType.TimeStamp).Value = If(IsDBNull(dr("UPDATED_AT")), DBNull.Value, Convert.ToDateTime(dr("UPDATED_AT")))
+                ''TODO - NULL OBJECT
                 cmd.ExecuteNonQuery()
             End Using
             MarkInvoiceDetSynced(sqliteConn, dr("UUID").ToString())

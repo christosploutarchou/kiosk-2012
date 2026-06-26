@@ -192,13 +192,13 @@ Partial Class frmMain
         Me.btnInvoices.FlatStyle = System.Windows.Forms.FlatStyle.Popup
         Me.btnInvoices.Font = New System.Drawing.Font("Segoe UI", 14.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(161, Byte))
         Me.btnInvoices.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.btnInvoices.Image = Global.POS.My.Resources.Resources.receipt
+        Me.btnInvoices.Image = Global.POS.My.Resources.Resources.invoices
         Me.btnInvoices.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
         Me.btnInvoices.Location = New System.Drawing.Point(194, 159)
         Me.btnInvoices.Name = "btnInvoices"
         Me.btnInvoices.Size = New System.Drawing.Size(170, 102)
         Me.btnInvoices.TabIndex = 25
-        Me.btnInvoices.Text = "  Διαχείριση " & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "   Τιμολογίων"
+        Me.btnInvoices.Text = "      Διαχείριση " & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "       Τιμολογίων"
         Me.btnInvoices.UseVisualStyleBackColor = False
         '
         'btnBackup

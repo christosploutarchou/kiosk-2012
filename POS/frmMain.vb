@@ -1,4 +1,5 @@
 ﻿Imports System.Data.SQLite
+Imports System.Reflection
 Imports Oracle.DataAccess.Client
 
 Public Class frmMain
@@ -31,7 +32,7 @@ Public Class frmMain
         BtnExit_Click(sender, e)
     End Sub
 
-    Private Sub frmMain_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
+    Private Sub FrmMain_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
         If isAdmin Then
             cmdUsers.Enabled = True
             btnCategories.Enabled = True
@@ -156,138 +157,298 @@ Public Class frmMain
         frmProducts.Show()
     End Sub
 
-    Private Sub checkMessages()
-        Dim cmd As New OracleCommand("", conn)
-        Dim dr As OracleDataReader
-        Dim sql As String = ""
+    Private Sub LoadLowStockMessages()
+        Dim WhoAmI As String = "LoadLowStockMessages"
+        Dim counter As Integer = 1
+        Dim sql As String
+
+        dgvMessages.ColumnCount = 6
+        dgvMessages.Columns(0).Name = "Α/Α"
+        dgvMessages.Columns(0).Width = 30
+        dgvMessages.Columns(1).Name = "Προϊόν"
+        dgvMessages.Columns(1).Width = 100
+        dgvMessages.Columns(2).Name = "Barcode"
+        dgvMessages.Columns(2).Width = 97
+        dgvMessages.Columns(3).Name = "Ελ. Ποσ."
+        dgvMessages.Columns(3).Width = 45
+        dgvMessages.Columns(4).Name = "Διαθ. Ποσ."
+        dgvMessages.Columns(4).Width = 45
+        dgvMessages.Columns(5).Name = "Προμηθευτής"
+        dgvMessages.Columns(5).Width = 104
+
+        dgvMessages.Rows.Clear()
         Try
-            sql = "select description, barcode, min_quantity, avail_quantity, s_name " &
-                  "from products p " &
-                  "inner join barcodes b on p.serno = b.product_serno " &
-                  "inner join suppliers s on p.supplier_id = s.uuid " &
-                  "where alert_on_min = 1 and (avail_quantity <= min_quantity) order by description asc"
+            If SqlLite Then
 
-            cmd = New OracleCommand(sql, conn)
-            cmd.CommandType = CommandType.Text
-            dr = cmd.ExecuteReader()
-            Dim counter As Integer = 1
+                sql =
+                    "SELECT
+                    p.description,
+                    b.barcode,
+                    p.min_quantity,
+                    p.avail_quantity,
+                    s.s_name
+                FROM products p
+                INNER JOIN barcodes b
+                    ON p.uuid = b.product_uuid
+                INNER JOIN suppliers s
+                    ON p.supplier_id = s.uuid
+                WHERE p.alert_on_min = 1
+                  AND p.avail_quantity <= p.min_quantity
+                  AND p.kioskid = @KIOSKID
+                ORDER BY p.description"
 
-            dgvMessages.ColumnCount = 6
-            dgvMessages.Columns(0).Name = "Α/Α"
-            dgvMessages.Columns(0).Width = 30
-            dgvMessages.Columns(1).Name = "Προϊόν"
-            dgvMessages.Columns(1).Width = 100
-            dgvMessages.Columns(2).Name = "Barcode"
-            dgvMessages.Columns(2).Width = 97
-            dgvMessages.Columns(3).Name = "Ελ. Ποσ."
-            dgvMessages.Columns(3).Width = 45
-            dgvMessages.Columns(4).Name = "Διαθ. Ποσ."
-            dgvMessages.Columns(4).Width = 45
-            dgvMessages.Columns(5).Name = "Προμηθευτής"
-            dgvMessages.Columns(5).Width = 104
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
+                    Using cmd As New SQLiteCommand(sql, sqliteConn)
+                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                        Using dr As SQLiteDataReader = cmd.ExecuteReader()
+                            While dr.Read()
+                                dgvMessages.Rows.Add(
+                                counter,
+                                dr("description"),
+                                dr("barcode"),
+                                dr("min_quantity"),
+                                dr("avail_quantity"),
+                                dr("s_name"))
 
-            dgvMessages.Rows.Clear()
-
-            While dr.Read()
-                Dim row As String() = New String() {counter, dr("description"), dr("barcode"), dr("min_quantity"), dr("avail_quantity"), dr("s_name")}
-                dgvMessages.Rows.Add(row)
-                counter += 1
-            End While
-
-            sql = "select description, barcode, expiry_date, s_name " &
-                  "from products p " &
-                  "inner join barcodes b on p.serno = b.product_serno " &
-                  "inner join suppliers s on p.supplier_id = s.uuid " &
-                  "where alert_on_expiry = 1 and alert_date <= (select sysdate from dual) "
-
-            cmd = New OracleCommand(sql, conn)
-            cmd.CommandType = CommandType.Text
-            dr = cmd.ExecuteReader()
-            counter = 1
-
-            dgvExpiry.ColumnCount = 5
-            dgvExpiry.Columns(0).Name = "Α/Α"
-            dgvExpiry.Columns(0).Width = 30
-
-            dgvExpiry.Columns(1).Name = "Προϊόν"
-            dgvExpiry.Columns(1).Width = 130
-
-            dgvExpiry.Columns(2).Name = "Barcode"
-            dgvExpiry.Columns(2).Width = 107
-
-            dgvExpiry.Columns(3).Name = "Ημερ. Λήξης"
-            dgvExpiry.Columns(3).Width = 80
-
-            dgvExpiry.Columns(4).Name = "Προμηθευτής"
-            dgvExpiry.Columns(4).Width = 120
-
-            dgvExpiry.Rows.Clear()
-
-            While dr.Read()
-                Dim row As String() = New String() {counter, dr("description"), dr("barcode"), CDate(dr("expiry_date")), dr("s_name")}
-                dgvExpiry.Rows.Add(row)
-                counter += 1
-            End While
-
-            Dim thisCulture = Globalization.CultureInfo.CurrentCulture
-            Dim dayOfWeek As DayOfWeek = thisCulture.Calendar.GetDayOfWeek(Date.Today)
-            Dim dayName As String = thisCulture.DateTimeFormat.GetDayName(dayOfWeek)
-
-            sql = "select s_name, contact_name, phone_1, notes " &
-                  "from suppliers " &
-                  "where "
-
-            If dayName.Equals("Monday") Then
-                sql += " MON = 1"
-            ElseIf dayName.Equals("Tuesday") Then
-                sql += " TUE = 1"
-            ElseIf dayName.Equals("Wednesday") Then
-                sql += " WED = 1"
-            ElseIf dayName.Equals("Thursday") Then
-                sql += " THU = 1"
-            ElseIf dayName.Equals("Friday") Then
-                sql += " FRI = 1"
+                                counter += 1
+                            End While
+                        End Using
+                    End Using
+                End Using
             Else
-                sql += " MON = 1 AND TUE = 1 AND WED = 1 AND THU = 1 AND FRI = 1 "
+                sql =
+                    "SELECT
+                    description,
+                    barcode,
+                    min_quantity,
+                    avail_quantity,
+                    s_name
+                FROM products p
+                INNER JOIN barcodes b
+                    ON p.serno = b.product_serno
+                INNER JOIN suppliers s
+                    ON p.supplier_id = s.uuid
+                WHERE alert_on_min = 1
+                  AND avail_quantity <= min_quantity
+                ORDER BY description"
+
+                Using cmd As New OracleCommand(sql, conn)
+                    Using dr As OracleDataReader = cmd.ExecuteReader()
+                        While dr.Read()
+                            dgvMessages.Rows.Add(
+                            counter,
+                            dr("description"),
+                            dr("barcode"),
+                            dr("min_quantity"),
+                            dr("avail_quantity"),
+                            dr("s_name"))
+
+                            counter += 1
+                        End While
+                    End Using
+                End Using
+            End If
+        Catch ex As Exception
+            CreateExceptionFile(WhoAmI + " " + ex.Message, "")
+        End Try
+    End Sub
+
+    Private Sub LoadExpiryMessages()
+        Dim WhoAmI As String = "LoadExpiryMessages"
+        Dim counter As Integer
+        Dim sql As String
+
+        counter = 1
+
+        dgvExpiry.ColumnCount = 5
+
+        dgvExpiry.Columns(0).Name = "Α/Α"
+        dgvExpiry.Columns(0).Width = 30
+
+        dgvExpiry.Columns(1).Name = "Προϊόν"
+        dgvExpiry.Columns(1).Width = 130
+
+        dgvExpiry.Columns(2).Name = "Barcode"
+        dgvExpiry.Columns(2).Width = 107
+
+        dgvExpiry.Columns(3).Name = "Ημερ. Λήξης"
+        dgvExpiry.Columns(3).Width = 80
+
+        dgvExpiry.Columns(4).Name = "Προμηθευτής"
+        dgvExpiry.Columns(4).Width = 120
+
+        dgvExpiry.Rows.Clear()
+
+        Try
+            If SqlLite Then
+                sql =
+                    "SELECT
+                    p.description,
+                    b.barcode,
+                    p.expiry_date,
+                    s.s_name
+                FROM products p
+                INNER JOIN barcodes b
+                    ON p.uuid = b.product_uuid
+                INNER JOIN suppliers s
+                    ON p.supplier_id = s.uuid
+                WHERE p.alert_on_expiry = 1
+                  AND p.alert_date <= CURRENT_TIMESTAMP
+                  AND p.kioskid = @KIOSKID
+                ORDER BY p.description"
+
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
+
+                    Using cmd As New SQLiteCommand(sql, sqliteConn)
+                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                        Using dr As SQLiteDataReader = cmd.ExecuteReader()
+                            While dr.Read()
+                                dgvExpiry.Rows.Add(
+                                counter,
+                                dr("description"),
+                                dr("barcode"),
+                                If(IsDBNull(dr("expiry_date")), "", CDate(dr("expiry_date")).ToString("dd/MM/yyyy")),
+                                dr("s_name"))
+
+                                counter += 1
+                            End While
+                        End Using
+                    End Using
+                End Using
+            Else
+                sql =
+                    "SELECT
+                    description,
+                    barcode,
+                    expiry_date,
+                    s_name
+                FROM products p
+                INNER JOIN barcodes b
+                    ON p.serno = b.product_serno
+                INNER JOIN suppliers s
+                    ON p.supplier_id = s.uuid
+                WHERE alert_on_expiry = 1
+                  AND alert_date <= SYSDATE
+                ORDER BY description"
+
+                Using cmd As New OracleCommand(sql, conn)
+                    Using dr As OracleDataReader = cmd.ExecuteReader()
+                        While dr.Read()
+                            dgvExpiry.Rows.Add(
+                            counter,
+                            dr("description"),
+                            dr("barcode"),
+                            CDate(dr("expiry_date")).ToString("dd/MM/yyyy"),
+                            dr("s_name"))
+
+                            counter += 1
+                        End While
+                    End Using
+                End Using
+            End If
+        Catch ex As Exception
+            CreateExceptionFile(WhoAmI + " " + ex.Message, "")
+        End Try
+    End Sub
+
+    Private Sub LoadSupplierMessages()
+        Dim WhoAmI As String = "LoadSupplierMessages"
+        Dim counter As Integer
+        Dim sql As String
+
+        Dim thisCulture = Globalization.CultureInfo.CurrentCulture
+        Dim dayOfWeek As DayOfWeek = thisCulture.Calendar.GetDayOfWeek(Date.Today)
+        Dim dayName As String = thisCulture.DateTimeFormat.GetDayName(dayOfWeek)
+
+        Counter = 1
+
+        dgvSuppliers.ColumnCount = 5
+
+        dgvSuppliers.Columns(0).Name = "Α/Α"
+        dgvSuppliers.Columns(0).Width = 50
+
+        dgvSuppliers.Columns(1).Name = "Προμηθευτής"
+        dgvSuppliers.Columns(1).Width = 130
+
+        dgvSuppliers.Columns(2).Name = "Όνομα"
+        dgvSuppliers.Columns(2).Width = 107
+
+        dgvSuppliers.Columns(3).Name = "Τηλέφωνο"
+        dgvSuppliers.Columns(3).Width = 150
+
+        dgvSuppliers.Columns(4).Name = "Σημειώσεις"
+        dgvSuppliers.Columns(4).Width = 150
+
+        dgvSuppliers.Rows.Clear()
+
+        Try
+            sql = "SELECT s_name, contact_name, phone_1, notes FROM suppliers WHERE "
+
+            If dayName = "Monday" Then
+                sql &= "MON = 1"
+            ElseIf dayName = "Tuesday" Then
+                sql &= "TUE = 1"
+            ElseIf dayName = "Wednesday" Then
+                sql &= "WED = 1"
+            ElseIf dayName = "Thursday" Then
+                sql &= "THU = 1"
+            ElseIf dayName = "Friday" Then
+                sql &= "FRI = 1"
+            Else
+                sql &= "MON = 1 AND TUE = 1 AND WED = 1 AND THU = 1 AND FRI = 1"
             End If
 
-            sql += " order by s_name asc"
+            If SqlLite Then
+                sql &= " AND KIOSKID = @KIOSKID ORDER BY s_name ASC"
 
-            cmd = New OracleCommand(sql, conn)
-            cmd.CommandType = CommandType.Text
-            dr = cmd.ExecuteReader()
-            counter = 1
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
 
-            dgvSuppliers.ColumnCount = 5
-            dgvSuppliers.Columns(0).Name = "Α/Α"
-            dgvSuppliers.Columns(0).Width = 50
+                    Using cmd As New SQLiteCommand(sql, sqliteConn)
+                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                        Using dr As SQLiteDataReader = cmd.ExecuteReader()
 
-            dgvSuppliers.Columns(1).Name = "Προμηθευτής"
-            dgvSuppliers.Columns(1).Width = 130
+                            While dr.Read()
+                                dgvSuppliers.Rows.Add(
+                                counter,
+                                dr("s_name"),
+                                dr("contact_name"),
+                                dr("phone_1"),
+                                dr("notes"))
 
-            dgvSuppliers.Columns(2).Name = "Όνομα"
-            dgvSuppliers.Columns(2).Width = 107
+                                counter += 1
+                            End While
+                        End Using
+                    End Using
+                End Using
+            Else
+                sql &= " ORDER BY s_name ASC"
+                Using cmd As New OracleCommand(sql, conn)
+                    Using dr As OracleDataReader = cmd.ExecuteReader()
+                        While dr.Read()
+                            dgvSuppliers.Rows.Add(
+                            counter,
+                            dr("s_name"),
+                            dr("contact_name"),
+                            dr("phone_1"),
+                            dr("notes"))
 
-            dgvSuppliers.Columns(3).Name = "Τηλέφωνο"
-            dgvSuppliers.Columns(3).Width = 150
-
-            dgvSuppliers.Columns(4).Name = "Σημειώσεις"
-            dgvSuppliers.Columns(4).Width = 150
-
-            dgvSuppliers.Rows.Clear()
-
-            While dr.Read()
-                Dim row As String() = New String() {counter, dr("s_name"), dr("contact_name"), dr("phone_1"), dr("notes")}
-                dgvSuppliers.Rows.Add(row)
-                counter += 1
-            End While
-            dr.Close()
+                            counter += 1
+                        End While
+                    End Using
+                End Using
+            End If
         Catch ex As Exception
-            createExceptionFile(ex.Message, " " & sql)
-            MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
-            cmd.Dispose()
+            CreateExceptionFile(WhoAmI + " " + ex.Message, "")
         End Try
+    End Sub
+
+    Private Sub CheckMessages()
+        LoadLowStockMessages()
+        LoadExpiryMessages()
+        LoadSupplierMessages()
     End Sub
 
     Private Sub BtnUpdate_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnUpdate.Click
@@ -344,28 +505,47 @@ Public Class frmMain
         End Try
     End Sub
 
-    Private Sub getInitialAmt()
-        Dim cmd As New OracleCommand("", conn)
+    Private Sub GetInitialAmt()
+        Dim WhoAmI As String = "GetInitialAmt"
+        Dim sql As String = "SELECT paramvalue FROM global_params WHERE paramkey = 'init.fiscal.amt'"
+        Dim initialAmount As Double = 0
+
         Try
-            cmd = New OracleCommand(Q_GET_INITIAL_AMOUNT, conn)
-            cmd.CommandType = CommandType.Text
-            Dim dr As OracleDataReader = cmd.ExecuteReader()
-            Dim initialAmount As Double = 0
-            If dr.Read Then
-                initialAmount = CDbl(dr(0))
+            If SqlLite Then
+                sql &= " AND KIOSKID = @KIOSKID"
+
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
+                    Using cmd As New SQLiteCommand(sql, sqliteConn)
+                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                        Using dr As SQLiteDataReader = cmd.ExecuteReader()
+                            If dr.Read() Then
+                                initialAmount = If(IsDBNull(dr(0)), 0, CDbl(dr(0)))
+                            End If
+                        End Using
+                    End Using
+                End Using
+            Else
+                Using cmd As New OracleCommand(sql, conn)
+                    cmd.CommandType = CommandType.Text
+                    Using dr As OracleDataReader = cmd.ExecuteReader()
+                        If dr.Read() Then
+                            initialAmount = If(dr.IsDBNull(0), 0, CDbl(dr(0)))
+                        End If
+                    End Using
+                End Using
             End If
+
             txtBoxInitialFiscalAmt.Text = initialAmount.ToString("N2")
-            dr.Close()
+
         Catch ex As Exception
-            createExceptionFile(ex.Message, " " & Q_GET_INITIAL_AMOUNT)
+            CreateExceptionFile(WhoAmI + " " + ex.Message, sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
-            cmd.Dispose()
         End Try
     End Sub
 
-    Private Sub btnPos_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnPos.Click
-        If Not isLoggedIn(username) Then
+    Private Sub BtnPos_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnPos.Click
+        If Not IsLoggedIn(username) Then
             MessageBox.Show("Ο χρήστης δεν ειναι συνδεμένος", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Exit Sub
         End If
@@ -376,8 +556,8 @@ Public Class frmMain
         End If
     End Sub
 
-    Private Sub btnReports_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnReports.Click
-        If Not isLoggedIn(username) Then
+    Private Sub BtnReports_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnReports.Click
+        If Not IsLoggedIn(username) Then
             MessageBox.Show("Ο χρήστης δεν ειναι συνδεμένος", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Exit Sub
         End If
@@ -385,8 +565,8 @@ Public Class frmMain
         frmReports.Show()
     End Sub
 
-    Private Sub btnReceipts_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnReceipts.Click
-        If Not isLoggedIn(username) Then
+    Private Sub BtnReceipts_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnReceipts.Click
+        If Not IsLoggedIn(username) Then
             MessageBox.Show("Ο χρήστης δεν ειναι συνδεμένος", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Exit Sub
         End If
@@ -394,15 +574,16 @@ Public Class frmMain
         frmReceipts.Show()
     End Sub
 
-    Private Sub lnkLabelMessages_LinkClicked(ByVal sender As System.Object, ByVal e As System.Windows.Forms.LinkLabelLinkClickedEventArgs) Handles lnkLabelMessages.LinkClicked
-        If Not isLoggedIn(username) Then
+    Private Sub LnkLabelMessages_LinkClicked(ByVal sender As System.Object, ByVal e As System.Windows.Forms.LinkLabelLinkClickedEventArgs) Handles lnkLabelMessages.LinkClicked
+        If Not IsLoggedIn(username) Then
             MessageBox.Show("Ο χρήστης δεν ειναι συνδεμένος", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Exit Sub
         End If
-        checkMessages()
+        CheckMessages()
     End Sub
 
     Private Sub PrintDocument1_PrintPage(ByVal sender As System.Object, ByVal e As System.Drawing.Printing.PrintPageEventArgs) Handles PrintDocument1.PrintPage
+        'TODO - REFACTOR
         Dim headerFont As Font = New Drawing.Font(REPORT_FONT, 15, FontStyle.Bold)
         Dim reportFont As Font = New Drawing.Font(REPORT_FONT, 9)
         Dim reportFontSmall As Font = New Drawing.Font(REPORT_FONT, 9)
@@ -421,6 +602,7 @@ Public Class frmMain
         Dim dr As OracleDataReader
         Dim sql As String = ""
         Try
+
             sql = "select from_date, to_date, total_receipts, total5percent, total19percent, payments, " &
                   "initial_amt, final_amt, description, total0percent, amount_laxeia, initialAmtLaxeia, amountVisa, NVL(finalAmtLaxeia,0), total3percent " &
                   "from x_report " &
@@ -489,16 +671,19 @@ Public Class frmMain
             End If
             dr.Close()
         Catch ex As Exception
-            createExceptionFile(ex.Message, " " & sql)
+            CreateExceptionFile(ex.Message, " " & sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         Finally
             cmd.Dispose()
         End Try
     End Sub
 
-    Private Sub btnBackup_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnBackup.Click
+    Private Sub BtnBackup_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnBackup.Click
         Dim cmd As New OracleCommand("", conn)
         Try
+            If SqlLite Then
+                Exit Sub
+            End If
             Dim path = "C:\"
             cmd = New OracleCommand(Q_EXPORT_DB, conn)
             cmd.CommandType = CommandType.Text
@@ -512,7 +697,7 @@ Public Class frmMain
 
             Shell("exp kiosk/oracle@orcl buffer=4096 grants=Y file=" & path & "backup" & fileName & ".dmp", vbNormalFocus)
         Catch ex As Exception
-            createExceptionFile(ex.Message, " " & Q_EXPORT_DB)
+            CreateExceptionFile(ex.Message, " " & Q_EXPORT_DB)
             MessageBox.Show(CANNOT_EXPORT_DB_FROM_THIS_TERMINAL, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Warning)
         Finally
             cmd.Dispose()
@@ -528,12 +713,12 @@ Public Class frmMain
         End Get
     End Property
 
-    Private Sub txtBoxInitialFiscalAmt_MouseEnter(ByVal sender As Object, ByVal e As System.EventArgs) Handles txtBoxInitialFiscalAmt.MouseEnter
+    Private Sub TxtBoxInitialFiscalAmt_MouseEnter(ByVal sender As Object, ByVal e As System.EventArgs) Handles txtBoxInitialFiscalAmt.MouseEnter
         txtBoxInitialFiscalAmt.BackColor = Color.Bisque
         txtBoxInitialFiscalAmt.Focus()
     End Sub
 
-    Private Sub txtBoxInitialFiscalAmt_MouseLeave(ByVal sender As Object, ByVal e As System.EventArgs) Handles txtBoxInitialFiscalAmt.MouseLeave
+    Private Sub TxtBoxInitialFiscalAmt_MouseLeave(ByVal sender As Object, ByVal e As System.EventArgs) Handles txtBoxInitialFiscalAmt.MouseLeave
         txtBoxInitialFiscalAmt.BackColor = Color.LemonChiffon
     End Sub
 
@@ -546,8 +731,8 @@ Public Class frmMain
         frmInvoices.Show()
     End Sub
 
-    Private Sub btnEditPos_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnEditPos.Click
-        If Not isLoggedIn(username) Then
+    Private Sub BtnEditPos_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnEditPos.Click
+        If Not IsLoggedIn(username) Then
             MessageBox.Show("Ο χρήστης δεν ειναι συνδεμένος", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Exit Sub
         End If
@@ -555,8 +740,8 @@ Public Class frmMain
         frmPOSEdit.Show()
     End Sub
 
-    Private Sub btnLottery_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnLottery.Click
-        If Not isLoggedIn(username) Then
+    Private Sub BtnLottery_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnLottery.Click
+        If Not IsLoggedIn(username) Then
             MessageBox.Show("Ο χρήστης δεν ειναι συνδεμένος", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Exit Sub
         End If

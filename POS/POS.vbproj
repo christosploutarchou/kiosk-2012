@@ -678,6 +678,7 @@
     <None Include="Resources\kronos.JPG" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\invoices.png" />
     <None Include="Resources\payment1.png" />
     <None Include="Resources\wait-hold.png" />
     <None Include="Resources\receipts.png" />
