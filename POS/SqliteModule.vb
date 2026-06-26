@@ -1484,7 +1484,6 @@ Module SqliteModule
             End Using
         End Sub
 
-
         Private Sub UploadSingleInvoiceDet(sqliteConn As SQLiteConnection, dr As SQLiteDataReader)
 
             Dim sql As String =
@@ -1537,7 +1536,7 @@ Module SqliteModule
                                 VALUES
                                 (
                                 :UUID,
-                                :SERNO,
+                                INVOICES_DET_SEQ.NEXTVAL,
                                 :INV_SERNO,
                                 :INV_UUID,
                                 :INV_PR_SERNO,
@@ -1557,33 +1556,45 @@ Module SqliteModule
 
             Using cmd As New OracleCommand(sql, conn)
                 cmd.BindByName = True
-                For Each c In
-                {
-                "UUID",
-                "SERNO",
-                "INV_SERNO",
-                "INV_UUID",
-                "INV_PR_SERNO",
-                "PRODUCT_UUID",
-                "INV_PR_QNT",
-                "INV_PR_DESCR",
-                "INV_PR_CUR_QNT",
-                "INV_PR_DISC",
-                "INV_PR_BUY_AMT",
-                "INV_PR_SELL_AMT",
-                "INV_PR_PROFIT",
-                "EXTRA_DISC",
-                "KIOSKID",
-                "UPDATED_AT"
-                }
-
-                    cmd.Parameters.Add(c, OracleDbType.Varchar2).Value = If(IsDBNull(dr(c)), DBNull.Value, dr(c))
-                Next
+                cmd.Parameters.Add("UUID", OracleDbType.Varchar2).Value = dr("UUID").ToString()
+                'Lookup Oracle invoice SERNO from UUID
+                cmd.Parameters.Add("INV_SERNO", OracleDbType.Int32).Value = GetInvoiceSernoByUUID(dr("INV_UUID").ToString())
+                cmd.Parameters.Add("INV_UUID", OracleDbType.Varchar2).Value = dr("INV_UUID").ToString()
+                'Lookup Oracle product SERNO from UUID
+                cmd.Parameters.Add("INV_PR_SERNO", OracleDbType.Int32).Value = GetProductSernoByUUID(dr("PRODUCT_UUID").ToString())
+                cmd.Parameters.Add("PRODUCT_UUID", OracleDbType.Varchar2).Value = dr("PRODUCT_UUID").ToString()
+                cmd.Parameters.Add("INV_PR_QNT", OracleDbType.Int32).Value = Convert.ToInt32(dr("INV_PR_QNT"))
+                cmd.Parameters.Add("INV_PR_DESCR", OracleDbType.Varchar2).Value = dr("INV_PR_DESCR").ToString()
+                cmd.Parameters.Add("INV_PR_CUR_QNT", OracleDbType.Int32).Value = Convert.ToInt32(dr("INV_PR_CUR_QNT"))
+                cmd.Parameters.Add("INV_PR_DISC", OracleDbType.Decimal).Value = Convert.ToDecimal(dr("INV_PR_DISC"))
+                cmd.Parameters.Add("INV_PR_BUY_AMT", OracleDbType.Decimal).Value = Convert.ToDecimal(dr("INV_PR_BUY_AMT"))
+                cmd.Parameters.Add("INV_PR_SELL_AMT", OracleDbType.Decimal).Value = Convert.ToDecimal(dr("INV_PR_SELL_AMT"))
+                cmd.Parameters.Add("INV_PR_PROFIT", OracleDbType.Decimal).Value = Convert.ToDecimal(dr("INV_PR_PROFIT"))
+                If IsDBNull(dr("EXTRA_DISC")) Then
+                    cmd.Parameters.Add("EXTRA_DISC", OracleDbType.Decimal).Value = DBNull.Value
+                Else
+                    cmd.Parameters.Add("EXTRA_DISC", OracleDbType.Decimal).Value = Decimal.Parse(dr("EXTRA_DISC").ToString(), Globalization.CultureInfo.InvariantCulture)
+                End If
+                cmd.Parameters.Add("KIOSKID", OracleDbType.Varchar2).Value = dr("KIOSKID").ToString()
+                cmd.Parameters.Add("UPDATED_AT", OracleDbType.TimeStamp).Value = If(IsDBNull(dr("UPDATED_AT")), DBNull.Value, Convert.ToDateTime(dr("UPDATED_AT")))
                 cmd.ExecuteNonQuery()
             End Using
-
             MarkInvoiceDetSynced(sqliteConn, dr("UUID").ToString())
         End Sub
+
+        Private Function GetInvoiceSernoByUUID(invoiceUUID As String) As Integer
+            Using cmd As New OracleCommand("SELECT SERNO FROM INVOICES WHERE UUID=:UUID", conn)
+                cmd.Parameters.Add("UUID", OracleDbType.Varchar2).Value = invoiceUUID
+                Return Convert.ToInt32(cmd.ExecuteScalar())
+            End Using
+        End Function
+
+        Private Function GetProductSernoByUUID(productUUID As String) As Integer
+            Using cmd As New OracleCommand("SELECT SERNO FROM PRODUCTS WHERE UUID=:UUID", conn)
+                cmd.Parameters.Add("UUID", OracleDbType.Varchar2).Value = productUUID
+                Return Convert.ToInt32(cmd.ExecuteScalar())
+            End Using
+        End Function
 
         Private Sub MarkInvoiceDetSynced(sqliteConn As SQLiteConnection, uuid As String)
 
@@ -1735,7 +1746,7 @@ Module SqliteModule
                             VALUES
                             (
                             :UUID,
-                            :SERNO,
+                            invoicesSeq.NEXTVAL,
                             :I_NUMBER,
                             :SUPPLIER_ID,
                             :TOTAL_AMT,
@@ -1749,22 +1760,15 @@ Module SqliteModule
 
             Using cmd As New OracleCommand(sql, conn)
                 cmd.BindByName = True
-                For Each c In
-                {
-                "UUID",
-                "SERNO",
-                "I_NUMBER",
-                "SUPPLIER_ID",
-                "TOTAL_AMT",
-                "INV_DATE",
-                "CLOSED",
-                "EXTRA_DISC",
-                "KIOSKID",
-                "UPDATED_AT"
-                }
-
-                    cmd.Parameters.Add(c, OracleDbType.Varchar2).Value = If(IsDBNull(dr(c)), DBNull.Value, dr(c))
-                Next
+                cmd.Parameters.Add("UUID", OracleDbType.Varchar2).Value = dr("UUID").ToString()
+                cmd.Parameters.Add("I_NUMBER", OracleDbType.Varchar2).Value = dr("I_NUMBER").ToString()
+                cmd.Parameters.Add("SUPPLIER_ID", OracleDbType.Varchar2).Value = dr("SUPPLIER_ID").ToString()
+                cmd.Parameters.Add("TOTAL_AMT", OracleDbType.Decimal).Value = If(IsDBNull(dr("TOTAL_AMT")), DBNull.Value, Convert.ToDecimal(dr("TOTAL_AMT")))
+                cmd.Parameters.Add("INV_DATE", OracleDbType.TimeStamp).Value = If(IsDBNull(dr("INV_DATE")), DBNull.Value, Convert.ToDateTime(dr("INV_DATE")))
+                cmd.Parameters.Add("CLOSED", OracleDbType.Int32).Value = If(IsDBNull(dr("CLOSED")), 0, Convert.ToInt32(dr("CLOSED")))
+                cmd.Parameters.Add("EXTRA_DISC", OracleDbType.Decimal).Value = If(IsDBNull(dr("EXTRA_DISC")), 0D, Convert.ToDecimal(dr("EXTRA_DISC")))
+                cmd.Parameters.Add("KIOSKID", OracleDbType.Varchar2).Value = dr("KIOSKID").ToString()
+                cmd.Parameters.Add("UPDATED_AT", OracleDbType.TimeStamp).Value = If(IsDBNull(dr("UPDATED_AT")), DBNull.Value, Convert.ToDateTime(dr("UPDATED_AT")))
                 cmd.ExecuteNonQuery()
             End Using
 
@@ -2296,9 +2300,74 @@ Module SqliteModule
                 Using cmd As New OracleCommand(sql, conn)
                     cmd.BindByName = True
                     For i As Integer = 0 To dr.FieldCount - 1
-                        If dr.GetName(i).ToUpper() <> "SYNC_STATUS" Then
-                            cmd.Parameters.Add(dr.GetName(i), OracleDbType.Varchar2).Value = If(IsDBNull(dr(i)), DBNull.Value, dr(i))
+                        Dim col As String = dr.GetName(i).ToUpper()
+                        If col = "SYNC_STATUS" Then
+                            Continue For
                         End If
+
+                        Dim value As Object = If(IsDBNull(dr(i)), DBNull.Value, dr(i))
+
+                        Select Case col
+                            '-------------------------
+                            ' TIMESTAMP columns
+                            '-------------------------
+                            Case "EXPIRY_DATE",
+                                 "ALERT_DATE",
+                                 "OFFERFROMDATE",
+                                 "OFFERTODATE",
+                                 "UPDATED_AT"
+
+                                cmd.Parameters.Add(col, OracleDbType.TimeStamp).Value = If(value Is DBNull.Value, DBNull.Value, Convert.ToDateTime(value))
+
+                            '-------------------------
+                            ' INTEGER columns
+                            '-------------------------
+                            Case "SERNO",
+                                 "MIN_QUANTITY",
+                                 "AVAIL_QUANTITY",
+                                 "ALERT_ON_MIN",
+                                 "ALERT_ON_EXPIRY",
+                                 "STOCK_QUANTITY",
+                                 "OFFER",
+                                 "OFFER_TYPE",
+                                 "OFFER_X",
+                                 "OFFER_Y",
+                                 "OFFER_AT",
+                                 "LASTMODIFIEDSCREEN",
+                                 "ISBOX",
+                                 "BOX_QNT"
+
+                                cmd.Parameters.Add(col, OracleDbType.Int32).Value = If(value Is DBNull.Value, DBNull.Value, Convert.ToInt32(value))
+
+                            '-------------------------
+                            ' DECIMAL columns
+                            '-------------------------
+                            Case "BUY_AMT",
+                                 "SELL_AMT",
+                                 "PROFIT_PERCENT",
+                                 "AMT_PROFIT",
+                                 "OFFER_DISC",
+                                 "BUY_AMT_NO_VAT",
+                                 "BUY_AMT_NEW"
+
+                                cmd.Parameters.Add(col, OracleDbType.Decimal).Value = If(value Is DBNull.Value, DBNull.Value, Convert.ToDecimal(value))
+
+                            '-------------------------
+                            ' CLOB columns
+                            '-------------------------
+                            Case "NOTES"
+                                cmd.Parameters.Add(col, OracleDbType.Clob).Value = If(value Is DBNull.Value, DBNull.Value, value.ToString())
+
+                                '-------------------------
+                                ' Everything else
+                                '-------------------------
+                            Case Else
+                                cmd.Parameters.Add(col, OracleDbType.Varchar2).Value = value
+                        End Select
+                    Next
+
+                    For Each p As OracleParameter In cmd.Parameters
+                        Debug.WriteLine($"{p.ParameterName} - {p.OracleDbType} - {If(p.Value Is DBNull.Value, "NULL", p.Value)}")
                     Next
                     cmd.ExecuteNonQuery()
                 End Using
@@ -2308,6 +2377,43 @@ Module SqliteModule
                 CreateExceptionFile(WhoAmI & ": " & ex.Message, sql)
             End Try
         End Sub
+
+        Private Sub AddOracleParameter(cmd As OracleCommand, name As String, type As OracleDbType, value As Object)
+            Dim p As OracleParameter = cmd.Parameters.Add(name, type)
+            If value Is Nothing OrElse IsDBNull(value) Then
+                p.Value = DBNull.Value
+            Else
+                p.Value = value
+            End If
+        End Sub
+
+        Private Function DBInt(value As Object) As Object
+            If value Is DBNull.Value Then
+                Return DBNull.Value
+            End If
+            Return Convert.ToInt32(value)
+        End Function
+
+        Private Function DBDecimal(value As Object) As Object
+            If value Is DBNull.Value Then
+                Return DBNull.Value
+            End If
+            Return Convert.ToDecimal(value)
+        End Function
+
+        Private Function DBString(value As Object) As Object
+            If value Is DBNull.Value Then
+                Return DBNull.Value
+            End If
+            Return value.ToString()
+        End Function
+
+        Private Function DBTimestamp(value As Object) As Object
+            If value Is DBNull.Value Then
+                Return DBNull.Value
+            End If
+            Return Convert.ToDateTime(value)
+        End Function
 
         Private Sub MarkProductSynced(sqliteConn As SQLiteConnection, uuid As String)
             Dim sql As String =
@@ -2749,8 +2855,9 @@ Module SqliteModule
                 Using cmd As New OracleCommand(sql, conn)
                     cmd.BindByName = True
                     cmd.Parameters.Add("USER_ID", OracleDbType.Varchar2).Value = dr("USER_ID")
-                    cmd.Parameters.Add("FROM_DATE", OracleDbType.TimeStamp).Value = Convert.ToDateTime(dr("FROM_DATE"))
+                    cmd.Parameters.Add("FROM_DATE", OracleDbType.TimeStamp).Value = If(IsDBNull(dr("FROM_DATE")), CType(DBNull.Value, Object), Convert.ToDateTime(dr("FROM_DATE")))
                     cmd.Parameters.Add("TO_DATE", OracleDbType.TimeStamp).Value = Convert.ToDateTime(dr("TO_DATE"))
+                    cmd.Parameters.Add("TO_DATE", OracleDbType.TimeStamp).Value = If(IsDBNull(dr("TO_DATE")), CType(DBNull.Value, Object), Convert.ToDateTime(dr("TO_DATE")))
                     cmd.Parameters.Add("KIOSKID", OracleDbType.Varchar2).Value = dr("KIOSKID")
 
                     For Each c As String In
@@ -2772,9 +2879,15 @@ Module SqliteModule
                         cmd.Parameters.Add(c, OracleDbType.Decimal).Value = If(IsDBNull(dr(c)), 0, dr(c))
                     Next
 
-                    cmd.Parameters.Add("DESCRIPTION", OracleDbType.Clob).Value = If(IsDBNull(dr("DESCRIPTION")), "", dr("DESCRIPTION").ToString())
-                    cmd.Parameters.Add("CREATED_ON", OracleDbType.TimeStamp).Value = Convert.ToDateTime(dr("CREATED_ON"))
-                    cmd.Parameters.Add("UPDATED_AT", OracleDbType.TimeStamp).Value = Convert.ToDateTime(dr("UPDATED_AT"))
+                    cmd.Parameters.Add("DESCRIPTION", OracleDbType.Varchar2).Value = If(IsDBNull(dr("DESCRIPTION")), "", dr("DESCRIPTION").ToString())
+                    cmd.Parameters.Add("CREATED_ON", OracleDbType.TimeStamp).Value = If(IsDBNull(dr("CREATED_ON")), CType(DBNull.Value, Object), Convert.ToDateTime(dr("CREATED_ON")))
+                    cmd.Parameters.Add("UPDATED_AT", OracleDbType.TimeStamp).Value = If(IsDBNull(dr("UPDATED_AT")), CType(DBNull.Value, Object), Convert.ToDateTime(dr("UPDATED_AT")))
+
+                    For Each p As OracleParameter In cmd.Parameters
+                        CreateExceptionFile(
+        $"{p.ParameterName} = {If(p.Value Is Nothing OrElse IsDBNull(p.Value), "NULL", p.Value.ToString())}",
+        "")
+                    Next
                     cmd.ExecuteNonQuery()
                 End Using
 
@@ -4417,26 +4530,30 @@ Module SqliteModule
         End Function
 
         Public Sub UploadSessions()
+            Dim whoAmI As String = "UploadSessions"
+            Try
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
 
-            Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
-                sqliteConn.Open()
-
-                Const sql As String =
-                    "
+                    Const sql As String =
+                        "
                         SELECT *
                         FROM SESSIONS
                         WHERE SYNC_STATUS = 1
                         ORDER BY UPDATED_AT
                     "
 
-                Using cmd As New SQLiteCommand(sql, sqliteConn)
-                    Using reader As SQLiteDataReader = cmd.ExecuteReader()
-                        While reader.Read()
-                            UploadSession(sqliteConn, reader)
-                        End While
+                    Using cmd As New SQLiteCommand(sql, sqliteConn)
+                        Using reader As SQLiteDataReader = cmd.ExecuteReader()
+                            While reader.Read()
+                                UploadSession(sqliteConn, reader)
+                            End While
+                        End Using
                     End Using
                 End Using
-            End Using
+            Catch ex As Exception
+                CreateExceptionFile(whoAmI + " " + ex.Message, "")
+            End Try
         End Sub
 
         Private Sub UploadSession(sqliteConn As SQLiteConnection, reader As SQLiteDataReader)

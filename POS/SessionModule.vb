@@ -69,12 +69,13 @@ Module SessionModule
 
                 Try
                     Dim sync As New SyncTables()
-                    sync.SyncSessions()
+                    sync.UploadSessions()
                 Catch ex As Exception
+                    CreateExceptionFile(WhoAmI + " " + ex.Message, sql)
                 End Try
             Catch ex As Exception
-                CreateExceptionFile(ex.Message, sql)
-                MessageBox.Show(WhoAmI + " " + ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
+                CreateExceptionFile(WhoAmI + " " + ex.Message, sql)
+                MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
             End Try
         End Sub
 

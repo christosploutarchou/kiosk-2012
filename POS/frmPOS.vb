@@ -1108,7 +1108,7 @@ Public Class frmPOS
         txtBoxManualAmt.Clear()
     End Sub
 
-    Private Sub PtnPayment_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnPayment.Click
+    Private Sub CalculateChangeBeforePayment_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnPayment.Click
         If txtBoxManualAmt.Text = String.Empty Or txtBoxManualAmt.Text.Length = 0 Then
             MessageBox.Show("Δεν έχετε καταχωρήσει ποσό Πληρωμής", "Καταχώρηση Ποσού Πληρωμής", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Exit Sub
@@ -3029,7 +3029,7 @@ Public Class frmPOS
             Dim payout = BuildPayout(CashOutAmount, inventory)
             Dim result As CIActivateTransactionLog = Await client.CashOut(payout)
         Catch ex As Exception
-
+            MessageBox.Show(ex.Message)
         End Try
     End Function
 End Class

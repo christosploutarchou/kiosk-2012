@@ -60,7 +60,8 @@ Module connectionModule
     Public tmpBarcodeNotFoundExit As Boolean
 
     Public Sub StartSyncService()
-        SyncTimer.Interval = 300000   '5 minutes
+        'SyncTimer.Interval = 300000   '5 minutes
+        SyncTimer.Interval = 60000   '1 minutes
         SyncTimer.Start()
     End Sub
 
@@ -79,7 +80,6 @@ Module connectionModule
                 Exit Sub
             End If
             Dim sync As New SyncTables()
-
             sync.UploadGlobalParams()
             sync.UploadCategories()
             sync.UploadSuppliers()

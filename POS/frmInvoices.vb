@@ -73,7 +73,7 @@ Public Class frmInvoices
     End Sub
 
     Private Sub FillInvoicesList()
-        Dim WhoAmI As String = "FillInvoicesList"
+        Dim WhoAmI As String = "frmInvoices.FillInvoicesList"
         Dim sql As String = ""
         Try
             lstBoxInvNumber.Items.Clear()
@@ -118,7 +118,7 @@ Public Class frmInvoices
                     sql &= " AND date(inv_date)=date(@INVDATE) "
                 End If
 
-                sql &= " ORDER BY serno DESC"
+                sql &= " ORDER BY datetime(INV_DATE) DESC"
 
                 Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
                     sqliteConn.Open()
@@ -137,15 +137,19 @@ Public Class frmInvoices
                             While dr.Read()
                                 lstBoxInvNumber.Items.Add(dr("i_number").ToString())
                                 Dim tmpInvoiceObj As InvoiceObj
-                                tmpInvoiceObj.uuid = dr("uuid")
-                                tmpInvoiceObj.serno = dr("serno")
-                                tmpInvoiceObj.invNumber = dr("i_number")
-                                tmpInvoiceObj.supplierID = dr("supplier_id")
-                                tmpInvoiceObj.totalAmt = dr("total_amt")
-                                tmpInvoiceObj.closed = dr("closed")
-                                tmpInvoiceObj.invDate = dr("inv_date")
-                                tmpInvoiceObj.supplierName = dr("s_name")
-                                tmpInvoiceObj.extraDiscount = dr("extra_disc")
+                                tmpInvoiceObj.uuid = dr("uuid").ToString()
+                                If dr.IsDBNull(dr.GetOrdinal("serno")) Then
+                                    tmpInvoiceObj.serno = 0
+                                Else
+                                    tmpInvoiceObj.serno = Convert.ToInt32(dr("serno"))
+                                End If
+                                tmpInvoiceObj.invNumber = dr("i_number").ToString()
+                                tmpInvoiceObj.supplierID = dr("supplier_id").ToString()
+                                tmpInvoiceObj.totalAmt = Convert.ToDouble(dr("total_amt"))
+                                tmpInvoiceObj.closed = Convert.ToInt32(dr("closed"))
+                                tmpInvoiceObj.invDate = dr("inv_date").ToString()
+                                tmpInvoiceObj.supplierName = dr("s_name").ToString()
+                                tmpInvoiceObj.extraDiscount = Convert.ToDouble(dr("extra_disc"))
                                 invoices.Add(tmpInvoiceObj)
                             End While
                         End Using
@@ -420,91 +424,7 @@ Public Class frmInvoices
         End Try
     End Sub
 
-    Private Sub BtnSave_Click_old(ByVal sender As System.Object, ByVal e As System.EventArgs)
-        Dim sql As String = ""
-        If Not checksOnSave() Then
-            Exit Sub
-        End If
-        Dim tmpSave As Boolean = False
-        If chkBoxTmpSave.Checked Then
-            Dim result As DialogResult = MessageBox.Show("Να γίνει προσωρινή αποθήκευση;", "Προσωρινή Αποθήκευση", MessageBoxButtons.YesNo, MessageBoxIcon.Question)
-            If result = Windows.Forms.DialogResult.No Then
-                Exit Sub
-            Else
-                tmpSave = True
-            End If
-        End If
-
-        Dim cmd As New OracleCommand("", conn)
-        Try
-            Dim invSerno As Integer
-            sql = "select invoicesSeq.nextVal from dual"
-            cmd = New OracleCommand(sql, conn)
-            Dim dr = cmd.ExecuteReader()
-
-            If dr.Read() Then
-                invSerno = CInt(dr(0))
-            End If
-            dr.Close()
-
-            Dim closed As Integer = 1
-            If chkBoxTmpSave.Checked Then
-                closed = 0
-            End If
-
-            sql = "insert into invoices (SERNO, I_NUMBER, SUPPLIER_ID, TOTAL_AMT, CLOSED, INV_DATE, EXTRA_DISC) " &
-                  "               values(" & invSerno & "," &
-                  "                    '" & txtInvNumber.Text.Replace("'", "`") & "', " &
-                  "                    '" & supplierUUIDs(cmbSuppliers.SelectedIndex) & "', " &
-                  "                    '" & txtBoxTotalAmt.Text.Replace(",", ".") & "', " &
-                  "                     " & closed & "," &
-                  "                    to_timestamp('" & DateTimePicker1.Value & "', 'DD-MM-YY HH24:MI:SS'), " &
-                  "                    '" & txtBoxExtraDiscount.Text.Replace(",", ".") & "')"
-
-            cmd = New OracleCommand(sql, conn)
-            cmd.CommandType = CommandType.Text
-            Using cmd                cmd.ExecuteNonQuery()            End Using
-
-            For i = 0 To dgvProductsAndQnt.Rows.Count - 1
-                generateInvoicesDetLines(i, invSerno, dgvProductsAndQnt.Rows(i).Cells("productserno").Value,
-                                         dgvProductsAndQnt.Rows(i).Cells("newQnt").Value,
-                                         dgvProductsAndQnt.Rows(i).Cells("description").Value,
-                                         dgvProductsAndQnt.Rows(i).Cells("buyamt").Value,
-                                         dgvProductsAndQnt.Rows(i).Cells("sellamt").Value,
-                                         dgvProductsAndQnt.Rows(i).Cells("currentQnt").Value,
-                                         dgvProductsAndQnt.Rows(i).Cells("invPrDiscount").Value,
-                                         dgvProductsAndQnt.Rows(i).Cells("profit").Value)
-                If Not tmpSave Then
-                    updateProducts(dgvProductsAndQnt.Rows(i).Cells("description").Value,
-                                   dgvProductsAndQnt.Rows(i).Cells("buyamt").Value.ToString,
-                                   dgvProductsAndQnt.Rows(i).Cells("sellamt").Value.ToString,
-                                   dgvProductsAndQnt.Rows(i).Cells("newQnt").Value,
-                                   dgvProductsAndQnt.Rows(i).Cells("productserno").Value,
-                                   dgvProductsAndQnt.Rows(i).Cells("profit").Value)
-                End If
-            Next
-        Catch ex As Exception
-            CreateExceptionFile(ex.Message, sql)
-            MessageBox.Show(ex.Message, "Applicaton Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
-            cmd.Dispose()
-        End Try
-
-        MessageBox.Show("Η εντολή εκτελέστηκε επιτυχώς", "Πληροφορία", MessageBoxButtons.OK, MessageBoxIcon.Information)
-
-        If Not tmpSave Then
-            Dim result As DialogResult = MessageBox.Show("Έκδοση πληρωμής;", "Έκδοση Πληρωμής", MessageBoxButtons.YesNo, MessageBoxIcon.Question)
-            If result = Windows.Forms.DialogResult.Yes Then
-                generateAndPrintPayment(supplierUUIDs.Item(cmbSuppliers.SelectedIndex), txtInvNumber.Text)
-            End If
-        End If
-        ResetFields()
-        FillInvoicesList()
-        rdbNewInvoice.Checked = True
-    End Sub
-
     Private Sub BtnSave_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnSave.Click
-        'TODO
         Dim sql As String = ""
 
         If Not ChecksOnSave() Then
@@ -575,7 +495,6 @@ Public Class frmInvoices
                                 Continue For
                             End If
 
-                            'todo overload
                             generateInvoicesDetLines(
                             i,
                             invUUID,
@@ -590,12 +509,12 @@ Public Class frmInvoices
 
 
                             If Not tmpSave Then
-                                updateProducts(
+                                UpdateProducts(
                                 dgvProductsAndQnt.Rows(i).Cells("description").Value,
                                 dgvProductsAndQnt.Rows(i).Cells("buyamt").Value.ToString,
                                 dgvProductsAndQnt.Rows(i).Cells("sellamt").Value.ToString,
                                 dgvProductsAndQnt.Rows(i).Cells("newQnt").Value,
-                                dgvProductsAndQnt.Rows(i).Cells("productserno").Value, 'todo - uuid
+                                dgvProductsAndQnt.Rows(i).Cells("productserno").Value,
                                 dgvProductsAndQnt.Rows(i).Cells("profit").Value)
                             End If
                         Next
@@ -657,7 +576,7 @@ Public Class frmInvoices
                     dgvProductsAndQnt.Rows(i).Cells("profit").Value)
 
                     If Not tmpSave Then
-                        updateProducts(
+                        UpdateProducts(
                         dgvProductsAndQnt.Rows(i).Cells("description").Value,
                         dgvProductsAndQnt.Rows(i).Cells("buyamt").Value.ToString,
                         dgvProductsAndQnt.Rows(i).Cells("sellamt").Value.ToString,
@@ -673,7 +592,7 @@ Public Class frmInvoices
             If Not tmpSave Then
                 If MessageBox.Show("Έκδοση πληρωμής;", "Έκδοση Πληρωμής", MessageBoxButtons.YesNo, MessageBoxIcon.Question) = DialogResult.Yes Then
                     'TODO
-                    generateAndPrintPayment(supplierUUIDs.Item(cmbSuppliers.SelectedIndex), txtInvNumber.Text)
+                    GenerateAndPrintPayment(supplierUUIDs.Item(cmbSuppliers.SelectedIndex), txtInvNumber.Text)
                 End If
             End If
 
@@ -851,8 +770,8 @@ Public Class frmInvoices
         Return True
     End Function
 
-    Private Sub btnOverrideExisting_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnOverrideExisting.Click
-        If Not checksOnSave() Then
+    Private Sub BtnOverrideExisting_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnOverrideExisting.Click
+        If Not ChecksOnSave() Then
             Exit Sub
         End If
         Dim closed As Integer = 1
@@ -865,79 +784,152 @@ Public Class frmInvoices
             End If
         End If
 
-        Dim tmpInvoice As invoiceObj = invoices.Item(lstBoxInvNumber.SelectedIndex)
-        '1. Update invoice
-        Dim sql As String = "update invoices set total_amt = " & txtBoxTotalAmt.Text.Replace(",", ".") & ", " & _
-                            "extra_disc = " & txtBoxExtraDiscount.Text.Replace(",", ".") & ", " & _
-                            "closed = " & closed & " " & _
-                            "where serno = " & tmpInvoice.serno & ""
-        Dim cmd = New OracleCommand(sql, conn)
-        cmd.CommandType = CommandType.Text
+        Dim sql As String = ""
+        Dim tmpInvoice As InvoiceObj = invoices.Item(lstBoxInvNumber.SelectedIndex)
+
         Try
-            cmd = New OracleCommand(sql, conn)
-            cmd.CommandType = CommandType.Text
-            cmd.ExecuteNonQuery()
+            If SqlLite Then
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
 
-            '2. Clear invoice details
-            sql = "delete from invoices_det where inv_serno = " & tmpInvoice.serno & ""
-            cmd = New OracleCommand(sql, conn)
-            cmd.CommandType = CommandType.Text
-            cmd.ExecuteNonQuery()
+                    Using tr = sqliteConn.BeginTransaction()
 
-            '3. Populate invoice details
-            For i = 0 To dgvProductsAndQnt.Rows.Count - 1
-                generateInvoicesDetLines(i, tmpInvoice.serno, dgvProductsAndQnt.Rows(i).Cells("productserno").Value, _
-                                         dgvProductsAndQnt.Rows(i).Cells("newQnt").Value, _
-                                         dgvProductsAndQnt.Rows(i).Cells("description").Value, _
-                                         dgvProductsAndQnt.Rows(i).Cells("buyamt").Value, _
-                                         dgvProductsAndQnt.Rows(i).Cells("sellamt").Value, _
-                                         dgvProductsAndQnt.Rows(i).Cells("currentQnt").Value, _
-                                         dgvProductsAndQnt.Rows(i).Cells("invPrDiscount").Value, _
-                                         dgvProductsAndQnt.Rows(i).Cells("profit").Value)
+                        '1. Update invoice
+                        sql = "UPDATE invoices
+                               SET total_amt=@TOTAL_AMT,
+                                   extra_disc=@EXTRA_DISC,
+                                   closed=@CLOSED,
+                                   updated_at=CURRENT_TIMESTAMP,
+                                   sync_status=1
+                               WHERE uuid=@UUID"
 
-                If closed = 1 Then
-                    updateProducts(dgvProductsAndQnt.Rows(i).Cells("description").Value, _
-                                   dgvProductsAndQnt.Rows(i).Cells("buyamt").Value.ToString, _
-                                   dgvProductsAndQnt.Rows(i).Cells("sellamt").Value.ToString, _
-                                   dgvProductsAndQnt.Rows(i).Cells("newQnt").Value, _
-                                   dgvProductsAndQnt.Rows(i).Cells("productserno").Value,
-                                   dgvProductsAndQnt.Rows(i).Cells("profit").Value)
-                End If
-            Next
+                        Using cmd As New SQLiteCommand(sql, sqliteConn)
+                            cmd.Transaction = tr
+                            cmd.Parameters.AddWithValue("@TOTAL_AMT", CDbl(txtBoxTotalAmt.Text))
+                            cmd.Parameters.AddWithValue("@EXTRA_DISC", CDbl(txtBoxExtraDiscount.Text))
+                            cmd.Parameters.AddWithValue("@CLOSED", closed)
+                            cmd.Parameters.AddWithValue("@UUID", tmpInvoice.uuid)
+                            cmd.ExecuteNonQuery()
+                        End Using
+
+                        '2. Delete existing details
+                        sql = "DELETE FROM invoices_det WHERE inv_uuid=@INV_UUID"
+                        Using cmd As New SQLiteCommand(sql, sqliteConn)
+                            cmd.Transaction = tr
+                            cmd.Parameters.AddWithValue("@INV_UUID", tmpInvoice.uuid)
+                            cmd.ExecuteNonQuery()
+                        End Using
+                        tr.Commit()
+                    End Using
+                End Using
+
+                '3. Recreate details
+                For i = 0 To dgvProductsAndQnt.Rows.Count - 1
+                    If dgvProductsAndQnt.Rows(i).IsNewRow Then Continue For
+                    generateInvoicesDetLines(
+                                            i,
+                                            tmpInvoice.uuid,
+                                            dgvProductsAndQnt.Rows(i).Cells("productserno").Value.ToString(),
+                                            CInt(dgvProductsAndQnt.Rows(i).Cells("newQnt").Value),
+                                            dgvProductsAndQnt.Rows(i).Cells("description").Value.ToString(),
+                                            CDbl(dgvProductsAndQnt.Rows(i).Cells("buyamt").Value),
+                                            CDbl(dgvProductsAndQnt.Rows(i).Cells("sellamt").Value),
+                                            CInt(dgvProductsAndQnt.Rows(i).Cells("currentQnt").Value),
+                                            CDbl(dgvProductsAndQnt.Rows(i).Cells("invPrDiscount").Value),
+                                            CDbl(dgvProductsAndQnt.Rows(i).Cells("profit").Value)
+                                        )
+
+                    If closed = 1 Then
+                        UpdateProducts(
+                                        dgvProductsAndQnt.Rows(i).Cells("description").Value.ToString(),
+                                        dgvProductsAndQnt.Rows(i).Cells("buyamt").Value.ToString(),
+                                        dgvProductsAndQnt.Rows(i).Cells("sellamt").Value.ToString(),
+                                        CInt(dgvProductsAndQnt.Rows(i).Cells("newQnt").Value),
+                                        dgvProductsAndQnt.Rows(i).Cells("productserno").Value.ToString(),
+                                        CDbl(dgvProductsAndQnt.Rows(i).Cells("profit").Value)
+                )
+                    End If
+                Next
+            Else
+                '1. Update invoice
+                sql = "update invoices set total_amt = " & txtBoxTotalAmt.Text.Replace(",", ".") & ", " &
+                      "extra_disc = " & txtBoxExtraDiscount.Text.Replace(",", ".") & ", " &
+                      "closed = " & closed & " " &
+                      "where serno = " & tmpInvoice.serno & ""
+                Dim cmd = New OracleCommand(sql, conn)
+                cmd.CommandType = CommandType.Text
+
+                Try
+                    cmd = New OracleCommand(sql, conn)
+                    cmd.CommandType = CommandType.Text
+                    cmd.ExecuteNonQuery()
+
+                    '2. Clear invoice details
+                    sql = "delete from invoices_det where inv_serno = " & tmpInvoice.serno & ""
+                    cmd = New OracleCommand(sql, conn)
+                    cmd.CommandType = CommandType.Text
+                    cmd.ExecuteNonQuery()
+
+                    '3. Populate invoice details
+                    For i = 0 To dgvProductsAndQnt.Rows.Count - 1
+                        generateInvoicesDetLines(i, tmpInvoice.serno, dgvProductsAndQnt.Rows(i).Cells("productserno").Value,
+                                                 dgvProductsAndQnt.Rows(i).Cells("newQnt").Value,
+                                                 dgvProductsAndQnt.Rows(i).Cells("description").Value,
+                                                 dgvProductsAndQnt.Rows(i).Cells("buyamt").Value,
+                                                 dgvProductsAndQnt.Rows(i).Cells("sellamt").Value,
+                                                 dgvProductsAndQnt.Rows(i).Cells("currentQnt").Value,
+                                                 dgvProductsAndQnt.Rows(i).Cells("invPrDiscount").Value,
+                                                 dgvProductsAndQnt.Rows(i).Cells("profit").Value)
+
+                        If closed = 1 Then
+                            UpdateProducts(dgvProductsAndQnt.Rows(i).Cells("description").Value,
+                                           dgvProductsAndQnt.Rows(i).Cells("buyamt").Value.ToString,
+                                           dgvProductsAndQnt.Rows(i).Cells("sellamt").Value.ToString,
+                                           dgvProductsAndQnt.Rows(i).Cells("newQnt").Value,
+                                           dgvProductsAndQnt.Rows(i).Cells("productserno").Value,
+                                           dgvProductsAndQnt.Rows(i).Cells("profit").Value)
+                        End If
+                    Next
+                Catch ex As Exception
+                    CreateExceptionFile(ex.Message, sql)
+                    MessageBox.Show(ex.Message, "Applicaton Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                Finally
+                    cmd.Dispose()
+                End Try
+            End If
         Catch ex As Exception
-            createExceptionFile(ex.Message, sql)
-            MessageBox.Show(ex.Message, "Applicaton Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
-            cmd.Dispose()
+            CreateExceptionFile(ex.Message, sql)
+            MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
+
         MessageBox.Show("Η εντολή εκτελέστηκε επιτυχώς", "Πληροφορία", MessageBoxButtons.OK, MessageBoxIcon.Information)
 
         If closed = 1 Then
             Dim result As DialogResult = MessageBox.Show("Έκδοση πληρωμής;", "Έκδοση Πληρωμής", MessageBoxButtons.YesNo, MessageBoxIcon.Question)
             If result = Windows.Forms.DialogResult.Yes Then
-                generateAndPrintPayment(tmpInvoice.supplierID, tmpInvoice.invNumber)
+                GenerateAndPrintPayment(tmpInvoice.supplierID, tmpInvoice.invNumber)
             End If
         End If
 
-        resetFields()
-        fillInvoicesList()
+        ResetFields()
+        FillInvoicesList()
         txtBoxInvDateRO.Visible = True
         btnOverrideExisting.Visible = False
         txtBoxTotalAmt.ReadOnly = True
         chkBoxTmpSave.Enabled = False
     End Sub
 
-    Private Sub updateProducts(ByVal prDescription As String, ByVal prBuyAmt As String, _
+    Private Sub UpdateProducts(ByVal prDescription As String, ByVal prBuyAmt As String,
                                ByVal prSellAmt As String, ByVal prNewQnt As Integer, ByVal prSerno As Integer, ByVal prNewProfit As Double)
         Dim sql As String = ""
         Dim cmd = New OracleCommand("", conn)
         Try
-            sql = "update products set " & _
-                  "description = '" & prDescription.Replace("'", "`") & "', " & _
-                  "buy_amt_no_vat = " & prBuyAmt.Replace(",", ".") & ", " & _
-                  "sell_amt = " & prSellAmt.Replace(",", ".") & ", " & _
-                  "avail_quantity = avail_quantity + " & prNewQnt & ", " & _
-                  "profit_percent = " & prNewProfit & " " & _
+            sql = "update products set " &
+                  "description = '" & prDescription.Replace("'", "`") & "', " &
+                  "buy_amt_no_vat = " & prBuyAmt.Replace(",", ".") & ", " &
+                  "sell_amt = " & prSellAmt.Replace(",", ".") & ", " &
+                  "avail_quantity = avail_quantity + " & prNewQnt & ", " &
+                  "profit_percent = " & prNewProfit & " " &
                   "where serno = " & prSerno & " "
             cmd = New OracleCommand(sql, conn)
             cmd.CommandType = CommandType.Text
@@ -946,6 +938,126 @@ Public Class frmInvoices
             MessageBox.Show(ex.ToString + " " + sql, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
         Finally
             cmd.Dispose()
+        End Try
+    End Sub
+
+    Private Sub UpdateProducts(ByVal prDescription As String,
+                           ByVal prBuyAmt As String,
+                           ByVal prSellAmt As String,
+                           ByVal prNewQnt As Integer,
+                           ByVal productUUID As String,
+                           ByVal prNewProfit As Double)
+
+        Dim WhoAmI As String = "UpdateProducts-Sqlite"
+        Dim sql As String = ""
+        Try
+
+            sql =
+                "UPDATE products
+                 SET
+                    description=@DESCRIPTION,
+                    buy_amt_no_vat=@BUY_AMT,
+                    sell_amt=@SELL_AMT,
+                    avail_quantity=avail_quantity + @NEW_QNT,
+                    profit_percent=@PROFIT,
+                    updated_at=CURRENT_TIMESTAMP,
+                    sync_status=1
+                 WHERE uuid=@UUID
+                   AND kioskid=@KIOSKID"
+
+            Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                sqliteConn.Open()
+                Using cmd As New SQLiteCommand(sql, sqliteConn)
+                    cmd.Parameters.AddWithValue("@DESCRIPTION", prDescription.Replace("'", "`"))
+                    cmd.Parameters.AddWithValue("@BUY_AMT", CDbl(prBuyAmt.Replace(",", ".")))
+                    cmd.Parameters.AddWithValue("@SELL_AMT", CDbl(prSellAmt.Replace(",", ".")))
+                    cmd.Parameters.AddWithValue("@NEW_QNT", prNewQnt)
+                    cmd.Parameters.AddWithValue("@PROFIT", prNewProfit)
+                    cmd.Parameters.AddWithValue("@UUID", productUUID)
+                    cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                    cmd.ExecuteNonQuery()
+                End Using
+            End Using
+        Catch ex As Exception
+            CreateExceptionFile(WhoAmI + " " + ex.ToString(), sql)
+            MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
+    End Sub
+
+    Private Sub generateInvoicesDetLines(ByVal lineSerno As Integer,
+                                     ByVal invoiceUUID As String,
+                                     ByVal productUUID As String,
+                                     ByVal newQnt As Integer,
+                                     ByVal productDesc As String,
+                                     ByVal buyAmt As Double,
+                                     ByVal sellAmt As Double,
+                                     ByVal currentQnt As Integer,
+                                     ByVal discount As Double,
+                                     ByVal profit As Double)
+
+        Dim WhoAmI As String = "generateInvoicesDetLines-Sqlite"
+        Dim sql As String = ""
+
+        Try
+            Dim detailUUID As String =
+            Guid.NewGuid().ToString("N").ToUpper()
+            sql =
+                "INSERT INTO invoices_det
+                (
+                    uuid,
+                    serno,
+                    inv_uuid,
+                    product_uuid,
+                    inv_pr_qnt,
+                    inv_pr_descr,
+                    inv_pr_buy_amt,
+                    inv_pr_sell_amt,
+                    inv_pr_cur_qnt,
+                    inv_pr_disc,
+                    inv_pr_profit,
+                    kioskid,
+                    updated_at,
+                    sync_status
+                )
+                VALUES
+                (
+                    @UUID,
+                    @SERNO,
+                    @INV_UUID,
+                    @PRODUCT_UUID,
+                    @INV_PR_QNT,
+                    @INV_PR_DESCR,
+                    @INV_PR_BUY_AMT,
+                    @INV_PR_SELL_AMT,
+                    @INV_PR_CUR_QNT,
+                    @INV_PR_DISC,
+                    @INV_PR_PROFIT,
+                    @KIOSKID,
+                    CURRENT_TIMESTAMP,
+                    1
+                )"
+
+            Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                sqliteConn.Open()
+                Using cmd As New SQLiteCommand(sql, sqliteConn)
+                    cmd.Parameters.AddWithValue("@UUID", detailUUID)
+                    cmd.Parameters.AddWithValue("@SERNO", lineSerno + 1)
+                    cmd.Parameters.AddWithValue("@INV_UUID", invoiceUUID)
+                    cmd.Parameters.AddWithValue("@PRODUCT_UUID", productUUID)
+                    cmd.Parameters.AddWithValue("@INV_PR_QNT", newQnt)
+                    cmd.Parameters.AddWithValue("@INV_PR_DESCR", productDesc.Replace("'", "`"))
+                    cmd.Parameters.AddWithValue("@INV_PR_BUY_AMT", buyAmt)
+                    cmd.Parameters.AddWithValue("@INV_PR_SELL_AMT", sellAmt)
+                    cmd.Parameters.AddWithValue("@INV_PR_CUR_QNT", currentQnt)
+                    cmd.Parameters.AddWithValue("@INV_PR_DISC", discount)
+                    cmd.Parameters.AddWithValue("@INV_PR_PROFIT", profit)
+                    cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                    cmd.ExecuteNonQuery()
+                End Using
+            End Using
+        Catch ex As Exception
+            CreateExceptionFile(WhoAmI + " " + ex.ToString(), sql)
+            MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -972,7 +1084,7 @@ Public Class frmInvoices
     End Sub
 
 
-    Private Sub generateAndPrintPayment(ByVal supplierId As String, ByVal invoiceNumber As String)
+    Private Sub GenerateAndPrintPayment(ByVal supplierId As String, ByVal invoiceNumber As String)
         For i = 0 To 2
             Dim amountVAT As Double = 0
             Dim totalPerVatType As Double = 0
@@ -994,29 +1106,77 @@ Public Class frmInvoices
                 Dim amountWithVAT = totalPerVatType * (1 + factor)
                 amountVAT = amountWithVAT - totalPerVatType
                 createPayment(Math.Round(totalPerVatType, 2), Math.Round(amountVAT, 2), vatType, supplierId, invoiceNumber)
-                printPayment(Math.Round(amountWithVAT, 2), vatType)
+                PrintPayment(Math.Round(amountWithVAT, 2), vatType)
             End If
         Next
     End Sub
 
-    Private Sub createPayment(ByVal totalAmt As Double, ByVal totalVATamt As Double, _
-                              ByVal vatType As String, ByVal supplierId As String, ByVal invNumber As String)
+    Private Sub CreatePayment(ByVal totalAmt As Double, ByVal totalVATamt As Double, ByVal vatType As String, ByVal supplierId As String, ByVal invNumber As String)
+        Dim WhoAmI As String = "frmInvoices.CreatePayment"
         Dim sql As String = ""
-        Dim cmd = New OracleCommand("", conn)
+
         Try
-            sql = "insert into payments " & _
-                  "(created_by, created_on, amount,vat, amountVAT, supplier_id, inv_number) " & _
-                  "values('" & whois & _
-                  "', (select systimestamp from dual), " & totalAmt & "," & _
-                  "'" & vatType & "', " & totalVATamt & ", '" & supplierId & "', '" & invNumber & "')"
-            cmd = New OracleCommand(sql, conn)
-            cmd.CommandType = CommandType.Text
-            Using cmd                cmd.ExecuteNonQuery()            End Using
+            If SqlLite Then
+                sql =
+                    "INSERT INTO payments
+                    (
+                        created_by,
+                        created_on,
+                        amount,
+                        vat,
+                        amountvat,
+                        supplier_id,
+                        inv_number,
+                        kioskid,
+                        updated_at,
+                        sync_status
+                    )
+                    VALUES
+                    (
+                        @CREATED_BY,
+                        CURRENT_TIMESTAMP,
+                        @AMOUNT,
+                        @VAT,
+                        @AMOUNTVAT,
+                        @SUPPLIER_ID,
+                        @INV_NUMBER,
+                        @KIOSKID,
+                        CURRENT_TIMESTAMP,
+                        1
+                    )"
+
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
+
+                    Using cmd As New SQLiteCommand(sql, sqliteConn)
+                        cmd.Parameters.AddWithValue("@CREATED_BY", whois)
+                        cmd.Parameters.AddWithValue("@AMOUNT", totalAmt)
+                        cmd.Parameters.AddWithValue("@VAT", vatType)
+                        cmd.Parameters.AddWithValue("@AMOUNTVAT", totalVATamt)
+                        cmd.Parameters.AddWithValue("@SUPPLIER_ID", supplierId)
+                        cmd.Parameters.AddWithValue("@INV_NUMBER", invNumber)
+                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                        cmd.ExecuteNonQuery()
+                    End Using
+                End Using
+            Else
+                sql = "insert into payments " &
+                      "(created_by, created_on, amount, vat, amountVAT, supplier_id, inv_number) " &
+                      "values(:created_by, SYSTIMESTAMP, :amount, :vat, :amountVAT, :supplier_id, :inv_number)"
+
+                Using cmd As New OracleCommand(sql, conn)
+                    cmd.Parameters.Add("created_by", OracleDbType.Varchar2).Value = whois
+                    cmd.Parameters.Add("amount", OracleDbType.Decimal).Value = totalAmt
+                    cmd.Parameters.Add("vat", OracleDbType.Varchar2).Value = vatType
+                    cmd.Parameters.Add("amountVAT", OracleDbType.Decimal).Value = totalVATamt
+                    cmd.Parameters.Add("supplier_id", OracleDbType.Varchar2).Value = supplierId
+                    cmd.Parameters.Add("inv_number", OracleDbType.Varchar2).Value = invNumber
+                    cmd.ExecuteNonQuery()
+                End Using
+            End If
         Catch ex As Exception
-            MessageBox.Show(ex.Message)
-            createExceptionFile(ex.Message, " " & sql)
-        Finally
-            cmd.Dispose()
+            CreateExceptionFile(WhoAmI + " " + ex.ToString(), sql)
+            MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -1048,69 +1208,151 @@ Public Class frmInvoices
         e.Graphics.DrawString(SINGE_DASHED_LINE, reportFont, Brushes.Black, 0, 400)
     End Sub
 
-    
-    Private Sub btnSearch_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnSearch.Click
+
+    Private Sub BtnSearch_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnSearch.Click
+        Dim WhoAmI As String = "frmInvoices.BtnSearch_Click"
         tmpBarcodeNotFoundExit = False
-        Dim cmd = New OracleCommand("", conn)
-        If txtBoxBarcode.Text.Length >= minBarcode Then
-            Try
-                Dim sql As String = "select p.serno, p.description, p.sell_amt, nvl(p.profit_percent,0), p.buy_amt_no_vat, p.avail_quantity, v.vat " & _
-                  "from products p " & _
-                  "inner join vat_types v on v.uuid = p.VATTYPE_ID " & _
-                  "where p.serno = (select b.product_serno from BARCODES b where UPPER(b.barcode) =  '" & txtBoxBarcode.Text.ToUpper & "')"
 
-                cmd = New OracleCommand(sql, conn)
-                cmd.CommandType = CommandType.Text
-
-                Dim dr = cmd.ExecuteReader()
-
-                If dr.Read() Then
-                    'Check if product already in the grid
-                    'For i = 0 To dgvProductsAndQnt.Rows.Count - 1
-                    '    If CInt(dgvProductsAndQnt.Rows(i).Cells("productSerno").Value) = CInt(dr(0)) Then
-                    '        MessageBox.Show("Υπάρχει ήδη καταχωρηση για το: " + CStr(dr(1)), "Καταχώρηση", MessageBoxButtons.OK, MessageBoxIcon.Stop)
-                    '        txtBoxBarcode.Clear()
-                    '        dr.Close()
-                    '        cmd.Dispose()
-                    '        Exit Sub
-                    '    End If
-                    'Next
-
-                    Dim sellAmt As Double = CDbl(dr(2))
-                    Dim profit As Double = CDbl(dr(3))
-                    Dim buyAmt As Double = CDbl(dr(4))
-                    Dim currentQnt As Integer = CInt(dr(5))
-                    Dim vat As Integer = CInt(dr(6))
-                    Dim newQnt As String = InputBox("Νέα Ποσότητα για " + dr(1) + ":", "Ποσοτητα καταχώρησης")
-                    If Not IsNumeric(newQnt) Then
-                        MessageBox.Show("Η ποσότητα πρέπει να ειναι αριθμός", "Καταχώρηση Ποσότητας", MessageBoxButtons.OK, MessageBoxIcon.Stop)
-                    End If
-                    Dim row As String() = New String() {dr(0), dgvProductsAndQnt.Rows.Count + 1, dr(1), TruncateDecimal(buyAmt, 3).ToString, 0, TruncateDecimal(sellAmt, 3).ToString,
-                                                        profit, currentQnt.ToString, newQnt.ToString, vat.ToString}
-                    dgvProductsAndQnt.Rows.Add(row)
-                    txtBoxBarcode.Clear()
-                Else
-                    tmpBarcodeNotFound = txtBoxBarcode.Text.ToUpper
-                    frmProductsModal.ShowDialog()
-                    'frmProducts.ShowDialog()
-
-                    'If user cancelled new product addition don't do anything
-                    'Else
-                    'Search for the new product added
-                    If Not tmpBarcodeNotFoundExit Then
-                        txtBoxBarcode_TextChanged(sender, e)
-                    Else
-                        txtBoxBarcode.Clear()
-                    End If
-                End If
-                dr.Close()
-                txtBoxBarcode.Focus()
-            Catch ex As Exception
-                MessageBox.Show(ex.Message)
-            Finally
-                cmd.Dispose()
-            End Try
+        If txtBoxBarcode.Text.Length < minBarcode Then
+            Exit Sub
         End If
+
+        Dim sql As String = ""
+        Try
+            If SqlLite Then
+                sql = "SELECT p.uuid,
+                          p.description,
+                          p.sell_amt,
+                          IFNULL(p.profit_percent,0),
+                          p.buy_amt_no_vat,
+                          p.avail_quantity,
+                          v.vat
+                       FROM products p
+                       INNER JOIN barcodes b
+                            ON b.product_uuid = p.uuid
+                       INNER JOIN vat_types v
+                            ON v.uuid = p.vattype_id
+                       WHERE UPPER(b.barcode)=@BARCODE
+                         AND p.kioskid=@KIOSKID"
+
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
+                    Using cmd As New SQLiteCommand(sql, sqliteConn)
+                        cmd.Parameters.AddWithValue("@BARCODE", txtBoxBarcode.Text.ToUpper())
+                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+
+                        Using dr As SQLiteDataReader = cmd.ExecuteReader()
+                            If dr.Read() Then
+                                Dim sellAmt As Double = CDbl(dr(2))
+                                Dim profit As Double = CDbl(dr(3))
+                                Dim buyAmt As Double = CDbl(dr(4))
+                                Dim currentQnt As Integer = CInt(dr(5))
+                                Dim vat As Integer = CInt(dr(6))
+
+                                Dim newQnt As String = InputBox("Νέα Ποσότητα για " & dr(1).ToString() & ":", "Ποσοτητα καταχώρησης")
+
+                                If Not IsNumeric(newQnt) Then
+                                    MessageBox.Show("Η ποσότητα πρέπει να ειναι αριθμός", "Καταχώρηση Ποσότητας", MessageBoxButtons.OK, MessageBoxIcon.Stop)
+                                    Exit Sub
+                                End If
+
+                                Dim row() As String = New String() {
+                                dr("UUID").ToString(),
+                                (dgvProductsAndQnt.Rows.Count + 1).ToString(),
+                                dr("DESCRIPTION").ToString(),
+                                TruncateDecimal(buyAmt, 3).ToString(),
+                                "0",
+                                TruncateDecimal(sellAmt, 3).ToString(),
+                                profit.ToString(),
+                                currentQnt.ToString(),
+                                newQnt,
+                                vat.ToString()
+                            }
+                                dgvProductsAndQnt.Rows.Add(row)
+                                txtBoxBarcode.Clear()
+                            Else
+                                tmpBarcodeNotFound = txtBoxBarcode.Text.ToUpper()
+                                frmProductsModal.ShowDialog()
+
+                                If Not tmpBarcodeNotFoundExit Then
+                                    txtBoxBarcode_TextChanged(sender, e)
+                                Else
+                                    txtBoxBarcode.Clear()
+                                End If
+                            End If
+                        End Using
+                    End Using
+                End Using
+            Else
+
+                sql = "select p.serno,
+                          p.description,
+                          p.sell_amt,
+                          nvl(p.profit_percent,0),
+                          p.buy_amt_no_vat,
+                          p.avail_quantity,
+                          v.vat
+                   from products p
+                   inner join vat_types v
+                        on v.uuid = p.VATTYPE_ID
+                   where p.serno =
+                        (select b.product_serno
+                           from barcodes b
+                          where upper(b.barcode)=:BARCODE)"
+
+                Using cmd As New OracleCommand(sql, conn)
+                    cmd.Parameters.Add("BARCODE", OracleDbType.Varchar2).Value =
+                    txtBoxBarcode.Text.ToUpper()
+
+                    Using dr As OracleDataReader = cmd.ExecuteReader()
+                        If dr.Read() Then
+                            Dim sellAmt As Double = CDbl(dr(2))
+                            Dim profit As Double = CDbl(dr(3))
+                            Dim buyAmt As Double = CDbl(dr(4))
+                            Dim currentQnt As Integer = CInt(dr(5))
+                            Dim vat As Integer = CInt(dr(6))
+
+                            Dim newQnt As String =
+                            InputBox("Νέα Ποσότητα για " & dr(1).ToString() & ":", "Ποσοτητα καταχώρησης")
+                            If Not IsNumeric(newQnt) Then
+                                MessageBox.Show("Η ποσότητα πρέπει να ειναι αριθμός", "Καταχώρηση Ποσότητας", MessageBoxButtons.OK, MessageBoxIcon.Stop)
+                                Exit Sub
+                            End If
+
+                            Dim row() As String = New String() {
+                            dr(0).ToString(),
+                            (dgvProductsAndQnt.Rows.Count + 1).ToString(),
+                            dr(1).ToString(),
+                            TruncateDecimal(buyAmt, 3).ToString(),
+                            "0",
+                            TruncateDecimal(sellAmt, 3).ToString(),
+                            profit.ToString(),
+                            currentQnt.ToString(),
+                            newQnt,
+                            vat.ToString()
+                        }
+
+                            dgvProductsAndQnt.Rows.Add(row)
+                            txtBoxBarcode.Clear()
+                        Else
+                            tmpBarcodeNotFound = txtBoxBarcode.Text.ToUpper()
+                            frmProductsModal.ShowDialog()
+
+                            If Not tmpBarcodeNotFoundExit Then
+                                txtBoxBarcode_TextChanged(sender, e)
+                            Else
+                                txtBoxBarcode.Clear()
+                            End If
+                        End If
+                    End Using
+                End Using
+            End If
+            txtBoxBarcode.Focus()
+        Catch ex As Exception
+            CreateExceptionFile(WhoAmI + " " + ex.Message, sql)
+            MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
+
     End Sub
 
     Private Sub FilterInvoices(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles rdbAllInvoices.CheckedChanged, _
