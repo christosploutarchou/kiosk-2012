@@ -387,7 +387,6 @@
     <Compile Include="params\paramsAndConstants.vb" />
     <Compile Include="Queries\mainQueries.vb" />
     <Compile Include="Queries\kronosAdminQueries.vb" />
-    <Compile Include="Queries\reportsQueries.vb" />
     <Compile Include="Queries\moduleQueries.vb" />
     <Compile Include="Queries\loginQueries.vb" />
     <Compile Include="SqliteModule.vb" />
@@ -678,6 +677,7 @@
     <None Include="Resources\kronos.JPG" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\print.png" />
     <None Include="Resources\invoices.png" />
     <None Include="Resources\payment1.png" />
     <None Include="Resources\wait-hold.png" />

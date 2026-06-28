@@ -1,9 +1,9 @@
-﻿<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()> _
+﻿<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()>
 Partial Class frmReports
     Inherits System.Windows.Forms.Form
 
     'Form overrides dispose to clean up the component list.
-    <System.Diagnostics.DebuggerNonUserCode()> _
+    <System.Diagnostics.DebuggerNonUserCode()>
     Protected Overrides Sub Dispose(ByVal disposing As Boolean)
         Try
             If disposing AndAlso components IsNot Nothing Then
@@ -20,9 +20,8 @@ Partial Class frmReports
     'NOTE: The following procedure is required by the Windows Form Designer
     'It can be modified using the Windows Form Designer.  
     'Do not modify it using the code editor.
-    <System.Diagnostics.DebuggerStepThrough()> _
+    <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
-        Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(frmReports))
         Me.grpBoxReports = New System.Windows.Forms.GroupBox()
         Me.rdbSalesPerCategory = New System.Windows.Forms.RadioButton()
         Me.rdbSessions = New System.Windows.Forms.RadioButton()
@@ -35,7 +34,6 @@ Partial Class frmReports
         Me.rdbXReport = New System.Windows.Forms.RadioButton()
         Me.rdbSalesPerVAT = New System.Windows.Forms.RadioButton()
         Me.rdbSalesPerProduct = New System.Windows.Forms.RadioButton()
-        Me.rdbQuantity = New System.Windows.Forms.RadioButton()
         Me.dgvReports = New System.Windows.Forms.DataGridView()
         Me.dtpFrom = New System.Windows.Forms.DateTimePicker()
         Me.dtpTo = New System.Windows.Forms.DateTimePicker()
@@ -48,7 +46,6 @@ Partial Class frmReports
         Me.cmbUsers = New System.Windows.Forms.ComboBox()
         Me.lblTotalHoursOrAmount = New System.Windows.Forms.Label()
         Me.txtBoxTotalHoursOrPayments = New System.Windows.Forms.TextBox()
-        Me.rdbProfit = New System.Windows.Forms.RadioButton()
         Me.cmbNoBarcode = New System.Windows.Forms.ComboBox()
         Me.btnPrint = New System.Windows.Forms.Button()
         Me.btnSearch = New System.Windows.Forms.Button()
@@ -58,7 +55,6 @@ Partial Class frmReports
         Me.chkBoxSalesPerSupplier = New System.Windows.Forms.CheckBox()
         Me.lblTotalSalesAmount = New System.Windows.Forms.Label()
         Me.cmbCategories = New System.Windows.Forms.ComboBox()
-        Me.btnExportToExcel = New System.Windows.Forms.Button()
         Me.grpBoxReports.SuspendLayout()
         CType(Me.dgvReports, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
@@ -216,19 +212,6 @@ Partial Class frmReports
         Me.rdbSalesPerProduct.Text = "Πωλήσεις ανά Προϊόν"
         Me.rdbSalesPerProduct.UseVisualStyleBackColor = True
         '
-        'rdbQuantity
-        '
-        Me.rdbQuantity.AutoSize = True
-        Me.rdbQuantity.Font = New System.Drawing.Font("Segoe UI", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.rdbQuantity.Location = New System.Drawing.Point(418, 291)
-        Me.rdbQuantity.Name = "rdbQuantity"
-        Me.rdbQuantity.Size = New System.Drawing.Size(179, 25)
-        Me.rdbQuantity.TabIndex = 5
-        Me.rdbQuantity.TabStop = True
-        Me.rdbQuantity.Text = "Αναφορά Ποσότητας"
-        Me.rdbQuantity.UseVisualStyleBackColor = True
-        Me.rdbQuantity.Visible = False
-        '
         'dgvReports
         '
         Me.dgvReports.AllowUserToAddRows = False
@@ -351,18 +334,6 @@ Partial Class frmReports
         Me.txtBoxTotalHoursOrPayments.TabIndex = 42
         Me.txtBoxTotalHoursOrPayments.Visible = False
         '
-        'rdbProfit
-        '
-        Me.rdbProfit.AutoSize = True
-        Me.rdbProfit.Location = New System.Drawing.Point(418, 268)
-        Me.rdbProfit.Name = "rdbProfit"
-        Me.rdbProfit.Size = New System.Drawing.Size(102, 17)
-        Me.rdbProfit.TabIndex = 9
-        Me.rdbProfit.TabStop = True
-        Me.rdbProfit.Text = "Καθαρό Κέρδος"
-        Me.rdbProfit.UseVisualStyleBackColor = True
-        Me.rdbProfit.Visible = False
-        '
         'cmbNoBarcode
         '
         Me.cmbNoBarcode.DropDownHeight = 150
@@ -381,7 +352,7 @@ Partial Class frmReports
         Me.btnPrint.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
         Me.btnPrint.Font = New System.Drawing.Font("Segoe UI", 16.0!)
         Me.btnPrint.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.btnPrint.Image = Global.POS.My.Resources.Resources.printer
+        Me.btnPrint.Image = Global.POS.My.Resources.Resources.print
         Me.btnPrint.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
         Me.btnPrint.Location = New System.Drawing.Point(821, 177)
         Me.btnPrint.Name = "btnPrint"
@@ -395,7 +366,7 @@ Partial Class frmReports
         Me.btnSearch.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
         Me.btnSearch.Font = New System.Drawing.Font("Segoe UI", 16.0!)
         Me.btnSearch.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.btnSearch.Image = Global.POS.My.Resources.Resources.search
+        Me.btnSearch.Image = Global.POS.My.Resources.Resources.search1
         Me.btnSearch.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
         Me.btnSearch.Location = New System.Drawing.Point(819, 96)
         Me.btnSearch.Name = "btnSearch"
@@ -409,7 +380,7 @@ Partial Class frmReports
         Me.cmdExit.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
         Me.cmdExit.Font = New System.Drawing.Font("Segoe UI", 16.0!)
         Me.cmdExit.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.cmdExit.Image = Global.POS.My.Resources.Resources.Logout
+        Me.cmdExit.Image = Global.POS.My.Resources.Resources._exit
         Me.cmdExit.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
         Me.cmdExit.Location = New System.Drawing.Point(819, 15)
         Me.cmdExit.Name = "cmdExit"
@@ -474,36 +445,18 @@ Partial Class frmReports
         Me.cmbCategories.TabIndex = 47
         Me.cmbCategories.Visible = False
         '
-        'btnExportToExcel
-        '
-        Me.btnExportToExcel.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
-        Me.btnExportToExcel.Font = New System.Drawing.Font("Segoe UI", 16.0!)
-        Me.btnExportToExcel.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.btnExportToExcel.Image = CType(resources.GetObject("btnExportToExcel.Image"), System.Drawing.Image)
-        Me.btnExportToExcel.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
-        Me.btnExportToExcel.Location = New System.Drawing.Point(821, 258)
-        Me.btnExportToExcel.Name = "btnExportToExcel"
-        Me.btnExportToExcel.Size = New System.Drawing.Size(183, 75)
-        Me.btnExportToExcel.TabIndex = 48
-        Me.btnExportToExcel.Text = "       Excel"
-        Me.btnExportToExcel.UseVisualStyleBackColor = False
-        Me.btnExportToExcel.Visible = False
-        '
         'frmReports
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.Color.FromArgb(CType(CType(212, Byte), Integer), CType(CType(208, Byte), Integer), CType(CType(200, Byte), Integer))
         Me.ClientSize = New System.Drawing.Size(1004, 725)
-        Me.Controls.Add(Me.btnExportToExcel)
         Me.Controls.Add(Me.cmbCategories)
         Me.Controls.Add(Me.lblTotalSalesAmount)
         Me.Controls.Add(Me.chkBoxSalesPerSupplier)
         Me.Controls.Add(Me.lblAmountVAT)
         Me.Controls.Add(Me.cmbNoBarcode)
-        Me.Controls.Add(Me.rdbProfit)
         Me.Controls.Add(Me.txtBoxTotalHoursOrPayments)
-        Me.Controls.Add(Me.rdbQuantity)
         Me.Controls.Add(Me.lblTotalHoursOrAmount)
         Me.Controls.Add(Me.cmbUsers)
         Me.Controls.Add(Me.cmbSupplier)
@@ -536,7 +489,6 @@ Partial Class frmReports
     Friend WithEvents grpBoxReports As System.Windows.Forms.GroupBox
     Friend WithEvents rdbSalesPerVAT As System.Windows.Forms.RadioButton
     Friend WithEvents rdbSalesPerProduct As System.Windows.Forms.RadioButton
-    Friend WithEvents rdbQuantity As System.Windows.Forms.RadioButton
     Friend WithEvents rdbZReport As System.Windows.Forms.RadioButton
     Friend WithEvents rdbXReport As System.Windows.Forms.RadioButton
     Friend WithEvents dgvReports As System.Windows.Forms.DataGridView
@@ -558,7 +510,6 @@ Partial Class frmReports
     Friend WithEvents cmbUsers As System.Windows.Forms.ComboBox
     Friend WithEvents lblTotalHoursOrAmount As System.Windows.Forms.Label
     Friend WithEvents txtBoxTotalHoursOrPayments As System.Windows.Forms.TextBox
-    Friend WithEvents rdbProfit As System.Windows.Forms.RadioButton
     Friend WithEvents cmbNoBarcode As System.Windows.Forms.ComboBox
     Friend WithEvents rdbPayments As System.Windows.Forms.RadioButton
     Friend WithEvents lblAmountVAT As System.Windows.Forms.Label
@@ -568,5 +519,4 @@ Partial Class frmReports
     Friend WithEvents rdbSessions As System.Windows.Forms.RadioButton
     Friend WithEvents rdbSalesPerCategory As System.Windows.Forms.RadioButton
     Friend WithEvents cmbCategories As System.Windows.Forms.ComboBox
-    Friend WithEvents btnExportToExcel As System.Windows.Forms.Button
 End Class
