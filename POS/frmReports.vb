@@ -901,16 +901,16 @@ Public Class frmReports
                                     End Using
                                 End Using
 
-                                zuuid = GetZUuid(tmpFrom)
+                                Dim z_seq As Integer = GetZseq(tmpFrom)
 
-                                If zuuid.Equals("") Then
+                                If z_seq < 0 Then
                                     MessageBox.Show("Δεν έχετε εκτυπώσει όλα τα Z-Report των προηγούμενων ημερομηνιών", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
                                     Exit Sub
                                 End If
 
                                 Dim totalAmount As Double = totalVat0 + totalVat3 + totalVat5 + totalVat19
                                 dgvReports.Rows.Add(
-                                                    zuuid,
+                                                    z_seq,
                                                     tmpFrom.ToString("dd-MM-yyyy"),
                                                     tmpFrom.ToString("dd-MM-yyyy"),
                                                     totalReceipts,
@@ -928,7 +928,7 @@ Public Class frmReports
                                                  total_amount5=@TOTAL5,
                                                  total_amount19=@TOTAL19,
                                                  total_amount=@TOTAL
-                                             WHERE z_uuid=@ZUUID
+                                             WHERE z_seq=@ZSEQ
                                                AND kioskid=@KIOSKID"
 
                                 Using cmd3 As New SQLiteCommand(Sql, sqliteConn)
@@ -938,7 +938,7 @@ Public Class frmReports
                                     cmd3.Parameters.AddWithValue("@TOTAL5", totalVat5)
                                     cmd3.Parameters.AddWithValue("@TOTAL19", totalVat19)
                                     cmd3.Parameters.AddWithValue("@TOTAL", totalAmount)
-                                    cmd3.Parameters.AddWithValue("@ZUUID", zuuid)
+                                    cmd3.Parameters.AddWithValue("@ZSEQ", z_seq)
                                     cmd3.Parameters.AddWithValue("@KIOSKID", kioskId)
                                     cmd3.ExecuteNonQuery()
                                 End Using
@@ -2492,21 +2492,20 @@ Public Class frmReports
         End If
     End Sub
 
-    Private Function GetZUuid(ByVal tmpFrom As Date) As String
-        Dim WhoAmI As String = "frmReportsGetZUuid"
+    Private Function GetZseq(ByVal tmpFrom As Date) As Integer
+        Dim WhoAmI As String = "GetZseq"
         Dim sql As String = ""
-        Dim zuuid As String = ""
+        Dim zseq As Integer = -1
         Dim tmpDate As String = tmpFrom.Day & "-" & FindMonth(tmpFrom.Month.ToString()) & "-" & tmpFrom.Year
 
         Try
             If SqlLite Then
-
                 Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
                     sqliteConn.Open()
-                    sql = "SELECT IFNULL(z_uuid,'') z_uuid
-                          FROM z_report
-                          WHERE z_date=@ZDATE
-                          AND kioskid=@KIOSKID"
+                    sql = "SELECT z_seq
+                           FROM z_report
+                           WHERE z_date=@ZDATE
+                             AND kioskid=@KIOSKID"
 
                     Using cmd As New SQLiteCommand(sql, sqliteConn)
                         cmd.Parameters.AddWithValue("@ZDATE", tmpDate)
@@ -2514,44 +2513,49 @@ Public Class frmReports
 
                         Using dr As SQLiteDataReader = cmd.ExecuteReader()
                             If dr.Read() Then
-                                zuuid = CStr(dr("z_uuid"))
+                                zseq = Convert.ToInt32(dr("z_seq"))
                             Else
                                 If tmpFrom.Date = startDate.Date Then
+
+                                    Dim zUUID As String = Guid.NewGuid().ToString("N").ToUpper()
                                     sql = "INSERT INTO z_report
-                                       (z_date, z_uuid, kioskid)
+                                       (z_uuid, z_date, z_seq, kioskid, sync_status)
                                        VALUES
-                                       (@ZDATE,1,@KIOSKID)"
+                                       (@ZUUID, @ZDATE, 1, @KIOSKID, 1)"
 
                                     Using insertCmd As New SQLiteCommand(sql, sqliteConn)
+                                        insertCmd.Parameters.AddWithValue("@ZUUID", zUUID)
                                         insertCmd.Parameters.AddWithValue("@ZDATE", tmpDate)
                                         insertCmd.Parameters.AddWithValue("@KIOSKID", kioskId)
                                         insertCmd.ExecuteNonQuery()
                                     End Using
-                                    zuuid = Guid.NewGuid().ToString("N").ToUpper()
+                                    zseq = 1
                                 Else
+
                                     Dim tmpFromMinus1 As Date = tmpFrom.AddDays(-1)
                                     Dim tmpDateMinus1 As String = tmpFromMinus1.Day & "-" & FindMonth(tmpFromMinus1.Month.ToString()) & "-" & tmpFromMinus1.Year
 
-                                    sql = "SELECT z_uuid
-                                            FROM z_report
-                                            WHERE z_date=@ZDATE
-                                                AND kioskid=@KIOSKID"
+                                    sql = "SELECT z_seq
+                                           FROM z_report
+                                           WHERE z_date=@ZDATE
+                                           AND kioskid=@KIOSKID"
 
                                     Using prevCmd As New SQLiteCommand(sql, sqliteConn)
                                         prevCmd.Parameters.AddWithValue("@ZDATE", tmpDateMinus1)
                                         prevCmd.Parameters.AddWithValue("@KIOSKID", kioskId)
-
                                         Using prevDr As SQLiteDataReader = prevCmd.ExecuteReader()
                                             If prevDr.Read() Then
-                                                zuuid = Guid.NewGuid().ToString("N").ToUpper()
+                                                zseq = Convert.ToInt32(prevDr("z_seq")) + 1
+
                                                 sql = "INSERT INTO z_report
-                                                       (z_date,z_uuid,kioskid)
-                                                       VALUES
-                                                       (@ZDATE,@ZUUID,@KIOSKID)"
+                                                   (z_uuid, z_date, z_seq, kioskid, sync_status)
+                                                   VALUES
+                                                   (@ZUUID, @ZDATE, @ZSEQ, @KIOSKID, 1)"
 
                                                 Using insertCmd As New SQLiteCommand(sql, sqliteConn)
+                                                    insertCmd.Parameters.AddWithValue("@ZUUID", Guid.NewGuid().ToString("N").ToUpper())
                                                     insertCmd.Parameters.AddWithValue("@ZDATE", tmpDate)
-                                                    insertCmd.Parameters.AddWithValue("@ZUUID", zuuid)
+                                                    insertCmd.Parameters.AddWithValue("@ZSEQ", zseq)
                                                     insertCmd.Parameters.AddWithValue("@KIOSKID", kioskId)
                                                     insertCmd.ExecuteNonQuery()
                                                 End Using
@@ -2563,75 +2567,63 @@ Public Class frmReports
                         End Using
                     End Using
                 End Using
-            End If
-        Catch ex As Exception
-            CreateExceptionFile(WhoAmI + " " + ex.Message, sql)
-            MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        End Try
-        Return zuuid
-    End Function
+            Else
+                sql = "SELECT z_seq
+                        FROM z_report
+                        WHERE z_date=:ZDATE"
 
-    Private Function GetZseq(ByVal tmpFrom As Date) As Integer
-        Dim WhoAmI As String = "GetZseq"
-        Dim sql As String = ""
-        Dim zseq As Integer = -1
-        Dim tmpDate As String = tmpFrom.Day & "-" & FindMonth(tmpFrom.Month.ToString()) & "-" & tmpFrom.Year
-
-        Try
-            sql = "SELECT z_seq
-                      FROM z_report
-                      WHERE z_date=:ZDATE"
-
-            Using cmd As New OracleCommand(sql, conn)
-                cmd.Parameters.Add("ZDATE", OracleDbType.Varchar2).Value = tmpDate
-                Using dr As OracleDataReader = cmd.ExecuteReader()
-                    If dr.Read() Then
-                        zseq = CInt(dr("z_seq"))
-                    Else
-                        If tmpFrom.Date = startDate.Date Then
-                            sql = "INSERT INTO z_report
-                                       (z_date,z_seq)
-                                       VALUES
-                                       (:ZDATE,1)"
-
-                            Using insertCmd As New OracleCommand(sql, conn)
-                                insertCmd.Parameters.Add("ZDATE", OracleDbType.Varchar2).Value = tmpDate
-                                insertCmd.ExecuteNonQuery()
-                            End Using
-                            zseq = 1
+                Using cmd As New OracleCommand(sql, conn)
+                    cmd.Parameters.Add("ZDATE", OracleDbType.Varchar2).Value = tmpDate
+                    Using dr As OracleDataReader = cmd.ExecuteReader()
+                        If dr.Read() Then
+                            zseq = CInt(dr("z_seq"))
                         Else
-                            Dim tmpFromMinus1 As Date = tmpFrom.AddDays(-1)
-                            Dim tmpDateMinus1 As String = tmpFromMinus1.Day & "-" & FindMonth(tmpFromMinus1.Month.ToString()) & "-" & tmpFromMinus1.Year
+                            If tmpFrom.Date = startDate.Date Then
+                                sql = "INSERT INTO z_report
+                                   (z_date,z_seq)
+                                   VALUES
+                                   (:ZDATE,1)"
 
-                            sql = "SELECT z_seq
-                                       FROM z_report
-                                       WHERE z_date=:ZDATE"
+                                Using insertCmd As New OracleCommand(sql, conn)
+                                    insertCmd.Parameters.Add("ZDATE", OracleDbType.Varchar2).Value = tmpDate
+                                    insertCmd.ExecuteNonQuery()
+                                End Using
+                                zseq = 1
+                            Else
 
-                            Using prevCmd As New OracleCommand(sql, conn)
-                                prevCmd.Parameters.Add("ZDATE", OracleDbType.Varchar2).Value = tmpDateMinus1
+                                Dim tmpFromMinus1 As Date = tmpFrom.AddDays(-1)
+                                Dim tmpDateMinus1 As String = tmpFromMinus1.Day & "-" & FindMonth(tmpFromMinus1.Month.ToString()) & "-" & tmpFromMinus1.Year
 
-                                Using prevDr As OracleDataReader = prevCmd.ExecuteReader()
-                                    If prevDr.Read() Then
-                                        zseq = CInt(prevDr("z_seq")) + 1
-                                        sql = "INSERT INTO z_report
+                                sql = "SELECT z_seq
+                                   FROM z_report
+                                   WHERE z_date=:ZDATE"
+
+                                Using prevCmd As New OracleCommand(sql, conn)
+                                    prevCmd.Parameters.Add("ZDATE", OracleDbType.Varchar2).Value = tmpDateMinus1
+                                    Using prevDr As OracleDataReader = prevCmd.ExecuteReader()
+                                        If prevDr.Read() Then
+                                            zseq = CInt(prevDr("z_seq")) + 1
+
+                                            sql = "INSERT INTO z_report
                                                (z_date,z_seq)
                                                VALUES
                                                (:ZDATE,:ZSEQ)"
 
-                                        Using insertCmd As New OracleCommand(sql, conn)
-                                            insertCmd.Parameters.Add("ZDATE", OracleDbType.Varchar2).Value = tmpDate
-                                            insertCmd.Parameters.Add("ZSEQ", OracleDbType.Int32).Value = zseq
-                                            insertCmd.ExecuteNonQuery()
-                                        End Using
-                                    End If
+                                            Using insertCmd As New OracleCommand(sql, conn)
+                                                insertCmd.Parameters.Add("ZDATE", OracleDbType.Varchar2).Value = tmpDate
+                                                insertCmd.Parameters.Add("ZSEQ", OracleDbType.Int32).Value = zseq
+                                                insertCmd.ExecuteNonQuery()
+                                            End Using
+                                        End If
+                                    End Using
                                 End Using
-                            End Using
+                            End If
                         End If
-                    End If
+                    End Using
                 End Using
-            End Using
+            End If
         Catch ex As Exception
-            CreateExceptionFile(WhoAmI + " " + ex.Message, Sql)
+            CreateExceptionFile(WhoAmI & " " & ex.Message, sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
         Return zseq
