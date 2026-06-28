@@ -768,6 +768,256 @@ Public Class frmReports
         btnPrint.Visible = True
     End Sub
 
+    Private Sub ZReport()
+        Dim WhoAmI As String = "frmReports.ZReport"
+        Dim sql As String
+        ClearGridAndSetInvisible()
+
+        Dim tmpFrom As Date = dtpFrom.Value.AddHours(-dtpFrom.Value.Hour)
+        tmpFrom = tmpFrom.AddMinutes(-tmpFrom.Minute)
+        tmpFrom = tmpFrom.AddSeconds(-tmpFrom.Second)
+
+        Dim tmpTo As Date = dtpTo.Value.AddHours(-dtpTo.Value.Hour)
+        tmpTo = tmpTo.AddMinutes(-tmpTo.Minute)
+        tmpTo = tmpTo.AddSeconds(-tmpTo.Second)
+
+        Dim dateFrom As String = CStr(tmpFrom.Day) & "-" & FindMonth(CStr(tmpFrom.Month)) & "-" & CStr(tmpFrom.Year).Substring(2, 2)
+
+        While (1)
+            If tmpFrom > tmpTo Then
+                Exit Sub
+            End If
+
+            dgvReports.ColumnCount = 9
+
+            dgvReports.Columns(0).Name = "Z"
+            dgvReports.Columns(0).Width = 50
+
+            dgvReports.Columns(1).Name = FROM_DATE
+            dgvReports.Columns(1).Width = 250
+
+            dgvReports.Columns(2).Name = "Έως"
+            dgvReports.Columns(2).Width = 250
+
+            dgvReports.Columns(3).Name = "Αποδείξεις"
+            dgvReports.Columns(3).Width = 80
+
+            dgvReports.Columns(4).Name = "Ολικό Ποσό 0%"
+            dgvReports.Columns(4).Width = 90
+
+            dgvReports.Columns(5).Name = "Ολικό Ποσό 3%"
+            dgvReports.Columns(5).Width = 90
+
+            dgvReports.Columns(6).Name = "Ολικό Ποσό 5%"
+            dgvReports.Columns(6).Width = 90
+
+            dgvReports.Columns(7).Name = "Ολικό Ποσό 19%"
+            dgvReports.Columns(7).Width = 90
+
+            dgvReports.Columns(8).Name = "Συνολικό Ποσό"
+            dgvReports.Columns(8).Width = 100
+
+            Dim totalReceipts As Integer = 0
+            Dim totalVat0 As Double = 0
+            Dim totalVat5 As Double = 0
+            Dim totalVat19 As Double = 0
+            Dim totalAll As Double = 0
+            Dim totalVat3 As Double = 0
+            Dim zseq As Integer = -1
+            Dim zuuid As String
+            Dim zDate As String
+
+
+            If SqlLite Then
+                Dim tmpDate As String = tmpFrom.Day & "-" & FindMonth(tmpFrom.Month.ToString()) & "-" & tmpFrom.Year
+                sql = "SELECT                               
+                                z_uuid,
+                                z_date,
+                                IFNULL(total_receipts,0) total_receipts,
+                                IFNULL(total_amount0,0) total_amount0,
+                                IFNULL(total_amount5,0) total_amount5,
+                                IFNULL(total_amount19,0) total_amount19,
+                                IFNULL(total_amount,0) total_amount,
+                                IFNULL(total_amount3,0) total_amount3
+                           FROM z_report
+                           WHERE z_date=@ZDATE
+                             AND kioskid=@KIOSKID"
+
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
+
+                    Using cmd As New SQLiteCommand(Sql, sqliteConn)
+                        cmd.Parameters.AddWithValue("@ZDATE", tmpDate)
+                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+
+                        Using dr As SQLiteDataReader = cmd.ExecuteReader()
+                            If dr.Read() Then
+
+                                zuuid = CStr(dr("z_uuid"))
+                                zDate = dr("z_date").ToString()
+                                totalReceipts = CInt(dr("total_receipts"))
+
+                                totalVat0 = CDbl(dr("total_amount0"))
+                                totalVat3 = CDbl(dr("total_amount3"))
+                                totalVat5 = CDbl(dr("total_amount5"))
+                                totalVat19 = CDbl(dr("total_amount19"))
+                                totalAll = CDbl(dr("total_amount"))
+
+                                dgvReports.Rows.Add(
+                                                    zuuid,
+                                                    zDate,
+                                                    zDate,
+                                                    totalReceipts,
+                                                    totalVat0.ToString("N2"),
+                                                    totalVat3.ToString("N2"),
+                                                    totalVat5.ToString("N2"),
+                                                    totalVat19.ToString("N2"),
+                                                    totalAll.ToString("N2"))
+                            Else
+                                sql = "SELECT
+                                                    IFNULL(SUM(total_vat5),0) total_vat5,
+                                                    IFNULL(SUM(total_vat19),0) total_vat19,
+                                                    IFNULL(SUM(total_vat0),0) total_vat0,
+                                                    IFNULL(SUM(total_vat3),0) total_vat3,
+                                                    COUNT(*)
+                                               FROM receipts
+                                               WHERE created_on BETWEEN @FROM AND @TO
+                                                 AND kioskid=@KIOSKID"
+
+                                Using cmd2 As New SQLiteCommand(Sql, sqliteConn)
+                                    cmd2.Parameters.AddWithValue("@FROM", tmpFrom.Date)
+                                    cmd2.Parameters.AddWithValue("@TO", tmpFrom.Date.AddDays(1).AddSeconds(-1))
+                                    cmd2.Parameters.AddWithValue("@KIOSKID", kioskId)
+
+                                    Using drInner As SQLiteDataReader = cmd2.ExecuteReader()
+                                        If drInner.Read() Then
+                                            totalVat5 = CDbl(drInner(0)) * (divideFactor5 / 100)
+                                            totalVat19 = CDbl(drInner(1)) * (divideFactor19 / 100)
+                                            totalVat0 = CDbl(drInner(2)) * (divideFactor0 / 100)
+                                            totalVat3 = CDbl(drInner(3)) * (divideFactor3 / 100)
+
+                                            totalReceipts = CInt(drInner(4))
+                                        End If
+                                    End Using
+                                End Using
+
+                                zuuid = GetZUuid(tmpFrom)
+
+                                If zuuid.Equals("") Then
+                                    MessageBox.Show("Δεν έχετε εκτυπώσει όλα τα Z-Report των προηγούμενων ημερομηνιών", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                                    Exit Sub
+                                End If
+
+                                Dim totalAmount As Double = totalVat0 + totalVat3 + totalVat5 + totalVat19
+                                dgvReports.Rows.Add(
+                                                    zuuid,
+                                                    tmpFrom.ToString("dd-MM-yyyy"),
+                                                    tmpFrom.ToString("dd-MM-yyyy"),
+                                                    totalReceipts,
+                                                    totalVat0.ToString("N2"),
+                                                    totalVat3.ToString("N2"),
+                                                    totalVat5.ToString("N2"),
+                                                    totalVat19.ToString("N2"),
+                                                    totalAmount.ToString("N2"))
+
+                                sql =
+                                    "UPDATE z_report
+                                             SET total_receipts=@TOTAL_RECEIPTS,
+                                                 total_amount0=@TOTAL0,
+                                                 total_amount3=@TOTAL3,
+                                                 total_amount5=@TOTAL5,
+                                                 total_amount19=@TOTAL19,
+                                                 total_amount=@TOTAL
+                                             WHERE z_uuid=@ZUUID
+                                               AND kioskid=@KIOSKID"
+
+                                Using cmd3 As New SQLiteCommand(Sql, sqliteConn)
+                                    cmd3.Parameters.AddWithValue("@TOTAL_RECEIPTS", totalReceipts)
+                                    cmd3.Parameters.AddWithValue("@TOTAL0", totalVat0)
+                                    cmd3.Parameters.AddWithValue("@TOTAL3", totalVat3)
+                                    cmd3.Parameters.AddWithValue("@TOTAL5", totalVat5)
+                                    cmd3.Parameters.AddWithValue("@TOTAL19", totalVat19)
+                                    cmd3.Parameters.AddWithValue("@TOTAL", totalAmount)
+                                    cmd3.Parameters.AddWithValue("@ZUUID", zuuid)
+                                    cmd3.Parameters.AddWithValue("@KIOSKID", kioskId)
+                                    cmd3.ExecuteNonQuery()
+                                End Using
+                            End If
+                        End Using
+                    End Using
+                End Using
+            Else
+
+                Dim tmpDate As String = CStr(tmpFrom.Day) & "-" & FindMonth(CStr(tmpFrom.Month)) & "-" & CStr(tmpFrom.Year)
+                Sql = "select z_seq, z_date, total_receipts, total_amount0, total_amount5, total_amount19, total_amount, nvl(total_amount3,0) from z_report " &
+                      "where z_date='" & tmpDate & "'"
+                Using cmd As New OracleCommand(Sql, conn)
+                    Using dr = cmd.ExecuteReader()
+                        If dr.Read Then
+                            zseq = CInt(dr(0))
+                            zDate = dr(1)
+                            totalReceipts = CInt(dr(2))
+                            totalVat0 = CStr(CDbl(dr(3)).ToString("#,##0.00"))
+                            totalVat5 = CStr(CDbl(dr(4)).ToString("#,##0.00"))
+                            totalVat19 = CStr(CDbl(dr(5)).ToString("#,##0.00"))
+                            totalAll = CStr(CDbl(dr(6)).ToString("#,##0.00"))
+                            totalVat3 = CStr(CDbl(dr(7)).ToString("#,##0.00"))
+
+                            Dim row As String() = New String() {zseq, zDate, zDate, totalReceipts, totalVat0.ToString("N2"), totalVat3.ToString("N2"), totalVat5.ToString("N2"),
+                                    totalVat19.ToString("N2"), totalAll.ToString("N2")}
+                            dgvReports.Rows.Add(row)
+
+                        Else
+                            Sql = "select NVL(sum(total_vat5),0), NVL(sum(total_vat19),0), NVL(sum(total_vat0),0), NVL(sum(total_vat3),0), count(*) from receipts " &
+                              "where created_on BETWEEN " &
+                              "to_timestamp('" & dateFrom & " 00:00:00', 'DD-MON-YY HH24:MI:SS') AND " &
+                              "to_timestamp('" & dateFrom & " 23:59:59', 'DD-MON-YY HH24:MI:SS')"
+
+                            Using cmd2 As New OracleCommand(Sql, conn)
+                                Using drInner = cmd2.ExecuteReader()
+                                    If drInner.Read() Then
+                                        totalVat5 = CStr(CDbl(drInner(0)).ToString("#,##0.00")) * (divideFactor5 / 100)
+                                        totalVat19 = CStr(CDbl(drInner(1)).ToString("#,##0.00")) * (divideFactor19 / 100)
+                                        totalVat0 = CStr(CDbl(drInner(2)).ToString("#,##0.00")) * (divideFactor0 / 100)
+                                        totalVat3 = CStr(CDbl(drInner(3)).ToString("#,##0.00")) * (divideFactor3 / 100)
+                                        totalReceipts = CInt(drInner(4))
+                                    End If
+                                End Using
+                                zseq = GetZseq(tmpFrom)
+
+                                If zseq = -1 Then
+                                    MessageBox.Show("Δεν έχετε εκτυπώσει όλα τα Z-Report των προηγούμενων ημερομηνιών", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                                    Exit Sub
+                                End If
+
+                                Dim row As String() = New String() {zseq, tmpFrom.Day & "-" & tmpFrom.Month & "-" & tmpFrom.Year,
+                                                                tmpFrom.Day & "-" & tmpFrom.Month & "-" & tmpFrom.Year,
+                                                                totalReceipts, totalVat0.ToString("N2"), totalVat5.ToString("N2"),
+                                                                totalVat19.ToString("N2"), totalVat3.ToString("N2"), (totalVat0 + totalVat3 + totalVat5 + totalVat19).ToString("N2")}
+                                dgvReports.Rows.Add(row)
+
+                                Sql = "update z_report set total_receipts = " & totalReceipts & ", " &
+                                      "                    total_amount0 = " & totalVat0 & ", " &
+                                      "                    total_amount3 = " & totalVat3 & ", " &
+                                      "                    total_amount5 = " & totalVat5 & ", " &
+                                      "                    total_amount19 = " & totalVat19 & ", " &
+                                      "                    total_amount = " & (totalVat0 + totalVat3 + totalVat5 + totalVat19) & " " &
+                                      "where z_seq = " & zseq & ""
+                                Using cmd3 As New OracleCommand(Sql, conn)
+                                    cmd3.ExecuteNonQuery()
+                                End Using
+                            End Using
+                        End If
+                    End Using
+                End Using
+                btnPrint.Visible = True
+            End If
+            tmpFrom = tmpFrom.AddDays(1)
+            dateFrom = CStr(tmpFrom.Day) & "-" & FindMonth(CStr(tmpFrom.Month)) & "-" & CStr(tmpFrom.Year).Substring(2, 2)
+        End While
+
+    End Sub
+
     Private Sub BtnSearch_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnSearch.Click
         Dim WhoAmI As String = "frmReports.BtnSearch_Click"
         Dim sql As String = ""
@@ -783,9 +1033,6 @@ Public Class frmReports
                 XReport()
 
             ElseIf rdbZReport.Checked Then
-                'TODO
-                ClearGridAndSetInvisible()
-
                 If dtpTo.Value < dtpFrom.Value Then
                     MessageBox.Show("Η ημερομηνία Έως δεν μπορεί να είναι μικρότερη από την ημερομηνία Από", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
                     Exit Sub
@@ -800,252 +1047,7 @@ Public Class frmReports
                     MessageBox.Show("Η ημερομηνία Έως δεν μπορεί να είναι μικρότερη από την αρχική ημερομηνία", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
                     Exit Sub
                 End If
-
-                Dim tmpFrom As Date = dtpFrom.Value.AddHours(-dtpFrom.Value.Hour)
-                tmpFrom = tmpFrom.AddMinutes(-tmpFrom.Minute)
-                tmpFrom = tmpFrom.AddSeconds(-tmpFrom.Second)
-
-                Dim tmpTo As Date = dtpTo.Value.AddHours(-dtpTo.Value.Hour)
-                tmpTo = tmpTo.AddMinutes(-tmpTo.Minute)
-                tmpTo = tmpTo.AddSeconds(-tmpTo.Second)
-
-                Dim dateFrom As String = CStr(tmpFrom.Day) & "-" & FindMonth(CStr(tmpFrom.Month)) & "-" & CStr(tmpFrom.Year).Substring(2, 2)
-
-                While (1)
-                    If tmpFrom > tmpTo Then
-                        Exit Sub
-                    End If
-
-                    dgvReports.ColumnCount = 9
-
-                    dgvReports.Columns(0).Name = "Z"
-                    dgvReports.Columns(0).Width = 50
-
-                    dgvReports.Columns(1).Name = FROM_DATE
-                    dgvReports.Columns(1).Width = 250
-
-                    dgvReports.Columns(2).Name = "Έως"
-                    dgvReports.Columns(2).Width = 250
-
-                    dgvReports.Columns(3).Name = "Αποδείξεις"
-                    dgvReports.Columns(3).Width = 80
-
-                    dgvReports.Columns(4).Name = "Ολικό Ποσό 0%"
-                    dgvReports.Columns(4).Width = 90
-
-                    dgvReports.Columns(5).Name = "Ολικό Ποσό 3%"
-                    dgvReports.Columns(5).Width = 90
-
-                    dgvReports.Columns(6).Name = "Ολικό Ποσό 5%"
-                    dgvReports.Columns(6).Width = 90
-
-                    dgvReports.Columns(7).Name = "Ολικό Ποσό 19%"
-                    dgvReports.Columns(7).Width = 90
-
-                    dgvReports.Columns(8).Name = "Συνολικό Ποσό"
-                    dgvReports.Columns(8).Width = 100
-
-                    Dim totalReceipts As Integer = 0
-                    Dim totalVat0 As Double = 0
-                    Dim totalVat5 As Double = 0
-                    Dim totalVat19 As Double = 0
-                    Dim totalAll As Double = 0
-                    Dim totalVat3 As Double = 0
-                    Dim zseq As Integer = -1
-                    Dim zDate As String
-
-
-                    If SqlLite Then
-                        Dim tmpDate As String = tmpFrom.Day & "-" & FindMonth(tmpFrom.Month.ToString()) & "-" & tmpFrom.Year
-                        sql = "SELECT
-                                z_seq,
-                                z_date,
-                                total_receipts,
-                                total_amount0,
-                                total_amount5,
-                                total_amount19,
-                                total_amount,
-                                IFNULL(total_amount3,0)
-                           FROM z_report
-                           WHERE z_date=@ZDATE
-                             AND kioskid=@KIOSKID"
-
-                        Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
-                            sqliteConn.Open()
-
-                            Using cmd As New SQLiteCommand(sql, sqliteConn)
-                                cmd.Parameters.AddWithValue("@ZDATE", tmpDate)
-                                cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
-
-                                Using dr As SQLiteDataReader = cmd.ExecuteReader()
-                                    If dr.Read() Then
-
-                                        zseq = CInt(dr("z_seq"))
-                                        zDate = dr("z_date").ToString()
-                                        totalReceipts = CInt(dr("total_receipts"))
-
-                                        totalVat0 = CDbl(dr("total_amount0"))
-                                        totalVat3 = CDbl(dr("total_amount3"))
-                                        totalVat5 = CDbl(dr("total_amount5"))
-                                        totalVat19 = CDbl(dr("total_amount19"))
-                                        totalAll = CDbl(dr("total_amount"))
-
-                                        dgvReports.Rows.Add(
-                                                            zseq,
-                                                            zDate,
-                                                            zDate,
-                                                            totalReceipts,
-                                                            totalVat0.ToString("N2"),
-                                                            totalVat3.ToString("N2"),
-                                                            totalVat5.ToString("N2"),
-                                                            totalVat19.ToString("N2"),
-                                                            totalAll.ToString("N2"))
-                                    Else
-
-                                        sql = "SELECT
-                                                    IFNULL(SUM(total_vat5),0),
-                                                    IFNULL(SUM(total_vat19),0),
-                                                    IFNULL(SUM(total_vat0),0),
-                                                    IFNULL(SUM(total_vat3),0),
-                                                    COUNT(*)
-                                               FROM receipts
-                                               WHERE created_on BETWEEN @FROM AND @TO
-                                                 AND kioskid=@KIOSKID"
-
-                                        Using cmd2 As New SQLiteCommand(sql, sqliteConn)
-                                            cmd2.Parameters.AddWithValue("@FROM", tmpFrom.Date)
-                                            cmd2.Parameters.AddWithValue("@TO", tmpFrom.Date.AddDays(1).AddSeconds(-1))
-                                            cmd2.Parameters.AddWithValue("@KIOSKID", kioskId)
-
-                                            Using drInner As SQLiteDataReader = cmd2.ExecuteReader()
-                                                If drInner.Read() Then
-                                                    totalVat5 = CDbl(drInner(0)) * (divideFactor5 / 100)
-                                                    totalVat19 = CDbl(drInner(1)) * (divideFactor19 / 100)
-                                                    totalVat0 = CDbl(drInner(2)) * (divideFactor0 / 100)
-                                                    totalVat3 = CDbl(drInner(3)) * (divideFactor3 / 100)
-
-                                                    totalReceipts = CInt(drInner(4))
-                                                End If
-                                            End Using
-                                        End Using
-
-                                        'TODO ADJUST (UUID)
-                                        zseq = GetZseq(tmpFrom)
-
-                                        If zseq = -1 Then
-                                            MessageBox.Show("Δεν έχετε εκτυπώσει όλα τα Z-Report των προηγούμενων ημερομηνιών", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
-                                            Exit Sub
-
-                                        End If
-
-                                        Dim totalAmount As Double = totalVat0 + totalVat3 + totalVat5 + totalVat19
-                                        dgvReports.Rows.Add(
-                                                            zseq,
-                                                            tmpFrom.ToString("dd-MM-yyyy"),
-                                                            tmpFrom.ToString("dd-MM-yyyy"),
-                                                            totalReceipts,
-                                                            totalVat0.ToString("N2"),
-                                                            totalVat3.ToString("N2"),
-                                                            totalVat5.ToString("N2"),
-                                                            totalVat19.ToString("N2"),
-                                                            totalAmount.ToString("N2"))
-
-                                        'TODO USE UUID instead of ZSEQ
-                                        sql =
-                                            "UPDATE z_report
-                                             SET total_receipts=@TOTAL_RECEIPTS,
-                                                 total_amount0=@TOTAL0,
-                                                 total_amount3=@TOTAL3,
-                                                 total_amount5=@TOTAL5,
-                                                 total_amount19=@TOTAL19,
-                                                 total_amount=@TOTAL
-                                             WHERE z_seq=@ZSEQ
-                                               AND kioskid=@KIOSKID"
-
-                                        Using cmd3 As New SQLiteCommand(sql, sqliteConn)
-                                            cmd3.Parameters.AddWithValue("@TOTAL_RECEIPTS", totalReceipts)
-                                            cmd3.Parameters.AddWithValue("@TOTAL0", totalVat0)
-                                            cmd3.Parameters.AddWithValue("@TOTAL3", totalVat3)
-                                            cmd3.Parameters.AddWithValue("@TOTAL5", totalVat5)
-                                            cmd3.Parameters.AddWithValue("@TOTAL19", totalVat19)
-                                            cmd3.Parameters.AddWithValue("@TOTAL", totalAmount)
-                                            cmd3.Parameters.AddWithValue("@ZSEQ", zseq)
-                                            cmd3.Parameters.AddWithValue("@KIOSKID", kioskId)
-                                            cmd3.ExecuteNonQuery()
-                                        End Using
-                                    End If
-                                End Using
-                            End Using
-                        End Using
-                    Else
-
-                        Dim tmpDate As String = CStr(tmpFrom.Day) & "-" & FindMonth(CStr(tmpFrom.Month)) & "-" & CStr(tmpFrom.Year)
-                        sql = "select z_seq, z_date, total_receipts, total_amount0, total_amount5, total_amount19, total_amount, nvl(total_amount3,0) from z_report " &
-                              "where z_date='" & tmpDate & "'"
-                        Using cmd As New OracleCommand(sql, conn)
-                            Using dr = cmd.ExecuteReader()
-                                If dr.Read Then
-                                    zseq = CInt(dr(0))
-                                    zDate = dr(1)
-                                    totalReceipts = CInt(dr(2))
-                                    totalVat0 = CStr(CDbl(dr(3)).ToString("#,##0.00"))
-                                    totalVat5 = CStr(CDbl(dr(4)).ToString("#,##0.00"))
-                                    totalVat19 = CStr(CDbl(dr(5)).ToString("#,##0.00"))
-                                    totalAll = CStr(CDbl(dr(6)).ToString("#,##0.00"))
-                                    totalVat3 = CStr(CDbl(dr(7)).ToString("#,##0.00"))
-
-                                    Dim row As String() = New String() {zseq, zDate, zDate, totalReceipts, totalVat0.ToString("N2"), totalVat3.ToString("N2"), totalVat5.ToString("N2"),
-                                            totalVat19.ToString("N2"), totalAll.ToString("N2")}
-                                    dgvReports.Rows.Add(row)
-
-                                Else
-                                    sql = "select NVL(sum(total_vat5),0), NVL(sum(total_vat19),0), NVL(sum(total_vat0),0), NVL(sum(total_vat3),0), count(*) from receipts " &
-                                      "where created_on BETWEEN " &
-                                      "to_timestamp('" & dateFrom & " 00:00:00', 'DD-MON-YY HH24:MI:SS') AND " &
-                                      "to_timestamp('" & dateFrom & " 23:59:59', 'DD-MON-YY HH24:MI:SS')"
-
-                                    Using cmd2 As New OracleCommand(sql, conn)
-                                        Using drInner = cmd2.ExecuteReader()
-                                            If drInner.Read() Then
-                                                totalVat5 = CStr(CDbl(drInner(0)).ToString("#,##0.00")) * (divideFactor5 / 100)
-                                                totalVat19 = CStr(CDbl(drInner(1)).ToString("#,##0.00")) * (divideFactor19 / 100)
-                                                totalVat0 = CStr(CDbl(drInner(2)).ToString("#,##0.00")) * (divideFactor0 / 100)
-                                                totalVat3 = CStr(CDbl(drInner(3)).ToString("#,##0.00")) * (divideFactor3 / 100)
-                                                totalReceipts = CInt(drInner(4))
-                                            End If
-                                        End Using
-                                        zseq = GetZseq(tmpFrom)
-
-                                        If zseq = -1 Then
-                                            MessageBox.Show("Δεν έχετε εκτυπώσει όλα τα Z-Report των προηγούμενων ημερομηνιών", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
-                                            Exit Sub
-                                        End If
-
-                                        Dim row As String() = New String() {zseq, tmpFrom.Day & "-" & tmpFrom.Month & "-" & tmpFrom.Year,
-                                                                        tmpFrom.Day & "-" & tmpFrom.Month & "-" & tmpFrom.Year,
-                                                                        totalReceipts, totalVat0.ToString("N2"), totalVat5.ToString("N2"),
-                                                                        totalVat19.ToString("N2"), totalVat3.ToString("N2"), (totalVat0 + totalVat3 + totalVat5 + totalVat19).ToString("N2")}
-                                        dgvReports.Rows.Add(row)
-
-                                        sql = "update z_report set total_receipts = " & totalReceipts & ", " &
-                                              "                    total_amount0 = " & totalVat0 & ", " &
-                                              "                    total_amount3 = " & totalVat3 & ", " &
-                                              "                    total_amount5 = " & totalVat5 & ", " &
-                                              "                    total_amount19 = " & totalVat19 & ", " &
-                                              "                    total_amount = " & (totalVat0 + totalVat3 + totalVat5 + totalVat19) & " " &
-                                              "where z_seq = " & zseq & ""
-                                        Using cmd3 As New OracleCommand(sql, conn)
-                                            cmd3.ExecuteNonQuery()
-                                        End Using
-                                    End Using
-                                End If
-                            End Using
-                        End Using
-                        btnPrint.Visible = True
-                    End If
-                    tmpFrom = tmpFrom.AddDays(1)
-                    dateFrom = CStr(tmpFrom.Day) & "-" & FindMonth(CStr(tmpFrom.Month)) & "-" & CStr(tmpFrom.Year).Substring(2, 2)
-                End While
+                ZReport()
 
             ElseIf rdbUsers.Checked Then
                 ClearGridAndSetInvisible()
@@ -1059,13 +1061,58 @@ Public Class frmReports
                 GetPayments()
 
             ElseIf rdbQntHistory.Checked Then
-                'TODO
-                dgvReports.Columns.Clear()
-                dgvReports.Rows.Clear()
+                GetQuantityHistory()
 
-                If SqlLite Then
+            ElseIf rdbSessions.Checked Then
+                GetSessions()
 
-                    sql = "SELECT
+            End If
+        Catch ex As Exception
+            CreateExceptionFile(WhoAmI + ex.Message, " " & sql)
+            MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
+        Finally
+            FormatDataGrid()
+        End Try
+    End Sub
+    Private Sub GetQuantityHistory()
+        Dim sql As String
+        DgvReportCleanup()
+
+        dgvReports.ColumnCount = 10
+
+        dgvReports.Columns(0).Name = "Barcode"
+        dgvReports.Columns(0).Width = 100
+
+        dgvReports.Columns(1).Name = "Προϊόν"
+        dgvReports.Columns(1).Width = 130
+
+        dgvReports.Columns(2).Name = "Προηγούμενη Ποσότητα"
+        dgvReports.Columns(2).Width = 80
+
+        dgvReports.Columns(3).Name = "Νέα Ποσότητα"
+        dgvReports.Columns(3).Width = 80
+
+        dgvReports.Columns(4).Name = "Προηγ.Ποσ. Αποθήκης"
+        dgvReports.Columns(4).Width = 80
+
+        dgvReports.Columns(5).Name = "Νέα Ποσ. Αποθήκης"
+        dgvReports.Columns(5).Width = 100
+
+        dgvReports.Columns(6).Name = "Ημερομηνία Αλλαγής"
+        dgvReports.Columns(6).Width = 130
+
+        dgvReports.Columns(7).Name = "Χρήστης Αλλαγής"
+        dgvReports.Columns(7).Width = 80
+
+        dgvReports.Columns(8).Name = "Προηγ. Τιμή"
+        dgvReports.Columns(8).Width = 80
+
+        dgvReports.Columns(9).Name = "Νέα Τιμή"
+        dgvReports.Columns(9).Width = 100
+
+        If SqlLite Then
+
+            Sql = "SELECT
                             (SELECT barcode
                                FROM barcodes b
                               WHERE b.product_uuid = pa.product_uuid
@@ -1088,69 +1135,37 @@ Public Class frmReports
                          AND pa.kioskid = @KIOSKID
                        ORDER BY pa.modified_when DESC"
 
-                    dgvReports.ColumnCount = 10
+            Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                sqliteConn.Open()
 
-                    dgvReports.Columns(0).Name = "Barcode"
-                    dgvReports.Columns(0).Width = 100
+                Using cmd As New SQLiteCommand(sql, sqliteConn)
+                    cmd.Parameters.AddWithValue("@FROM", dtpFrom.Value.Date)
+                    cmd.Parameters.AddWithValue("@TO", dtpTo.Value.Date.AddDays(1).AddSeconds(-1))
+                    cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
 
-                    dgvReports.Columns(1).Name = "Προϊόν"
-                    dgvReports.Columns(1).Width = 130
+                    Using dr As SQLiteDataReader = cmd.ExecuteReader()
+                        While dr.Read()
 
-                    dgvReports.Columns(2).Name = "Προηγούμενη Ποσότητα"
-                    dgvReports.Columns(2).Width = 80
-
-                    dgvReports.Columns(3).Name = "Νέα Ποσότητα"
-                    dgvReports.Columns(3).Width = 80
-
-                    dgvReports.Columns(4).Name = "Προηγ.Ποσ. Αποθήκης"
-                    dgvReports.Columns(4).Width = 80
-
-                    dgvReports.Columns(5).Name = "Νέα Ποσ. Αποθήκης"
-                    dgvReports.Columns(5).Width = 100
-
-                    dgvReports.Columns(6).Name = "Ημερομηνία Αλλαγής"
-                    dgvReports.Columns(6).Width = 130
-
-                    dgvReports.Columns(7).Name = "Χρήστης Αλλαγής"
-                    dgvReports.Columns(7).Width = 80
-
-                    dgvReports.Columns(8).Name = "Προηγ. Τιμή"
-                    dgvReports.Columns(8).Width = 80
-
-                    dgvReports.Columns(9).Name = "Νέα Τιμή"
-                    dgvReports.Columns(9).Width = 100
-
-                    Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
-                        sqliteConn.Open()
-
-                        Using cmd As New SQLiteCommand(sql, sqliteConn)
-                            cmd.Parameters.AddWithValue("@FROM", dtpFrom.Value.Date)
-                            cmd.Parameters.AddWithValue("@TO", dtpTo.Value.Date.AddDays(1).AddSeconds(-1))
-                            cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
-
-                            Using dr As SQLiteDataReader = cmd.ExecuteReader()
-                                While dr.Read()
-
-                                    dgvReports.Rows.Add(
-                                                    dr("barcode").ToString(),
-                                                    dr("description").ToString(),
-                                                    dr("prev_quantity").ToString(),
-                                                    dr("new_quantity").ToString(),
-                                                    dr(4).ToString(),
-                                                    dr(5).ToString(),
-                                                    CDate(dr("modified_when")).ToString("dd/MM/yyyy HH:mm:ss"),
-                                                    dr("username").ToString(),
-                                                    dr("old_price").ToString(),
-                                                    dr("new_price").ToString())
-                                End While
-                            End Using
-                        End Using
+                            dgvReports.Rows.Add(
+                                            dr("barcode").ToString(),
+                                            dr("description").ToString(),
+                                            dr("prev_quantity").ToString(),
+                                            dr("new_quantity").ToString(),
+                                            dr(4).ToString(),
+                                            dr(5).ToString(),
+                                            CDate(dr("modified_when")).ToString("dd/MM/yyyy HH:mm:ss"),
+                                            dr("username").ToString(),
+                                            dr("old_price").ToString(),
+                                            dr("new_price").ToString())
+                        End While
                     End Using
-                Else
-                    Dim dateFrom As String = CStr(dtpFrom.Value.Day) & "-" & FindMonth(CStr(dtpFrom.Value.Month)) & "-" & CStr(dtpFrom.Value.Year).Substring(2, 2)
-                    Dim dateTo As String = CStr(dtpTo.Value.Day) & "-" & FindMonth(CStr(dtpTo.Value.Month)) & "-" & CStr(dtpTo.Value.Year).Substring(2, 2)
+                End Using
+            End Using
+        Else
+            Dim dateFrom As String = CStr(dtpFrom.Value.Day) & "-" & FindMonth(CStr(dtpFrom.Value.Month)) & "-" & CStr(dtpFrom.Value.Year).Substring(2, 2)
+            Dim dateTo As String = CStr(dtpTo.Value.Day) & "-" & FindMonth(CStr(dtpTo.Value.Month)) & "-" & CStr(dtpTo.Value.Year).Substring(2, 2)
 
-                    sql = "select (select barcode from BARCODES where product_serno = pa.PRODUCT_SERNO and rownum < 2) barcode,
+            Sql = "select (select barcode from BARCODES where product_serno = pa.PRODUCT_SERNO and rownum < 2) barcode,
                                   p.DESCRIPTION,
                                   pa.PREV_QUANTITY,
                                   pa.NEW_QUANTITY,
@@ -1168,39 +1183,29 @@ Public Class frmReports
                              AND to_timestamp('" & dateTo & " 23:59:59','DD-MON-YY HH24:MI:SS')
                            order by pa.MODIFIED_WHEN desc"
 
-                    Using cmd As New OracleCommand(sql, conn)
-                        Using dr As OracleDataReader = cmd.ExecuteReader()
-                            While dr.Read()
-                                Dim row As String() =
-                                                    {
-                                                        dr(0).ToString(),
-                                                        dr(1).ToString(),
-                                                        dr(2).ToString(),
-                                                        dr(3).ToString(),
-                                                        dr(4).ToString(),
-                                                        dr(5).ToString(),
-                                                        dr(6).ToString(),
-                                                        dr(7).ToString(),
-                                                        dr(8).ToString(),
-                                                        dr(9).ToString()
-                                                    }
-                                dgvReports.Rows.Add(row)
-                            End While
-                        End Using
-                    End Using
-                End If
-                btnPrint.Visible = True
+            Using cmd As New OracleCommand(Sql, conn)
+                Using dr As OracleDataReader = cmd.ExecuteReader()
+                    While dr.Read()
+                        Dim row As String() =
+                                            {
+                                                dr(0).ToString(),
+                                                dr(1).ToString(),
+                                                dr(2).ToString(),
+                                                dr(3).ToString(),
+                                                dr(4).ToString(),
+                                                dr(5).ToString(),
+                                                dr(6).ToString(),
+                                                dr(7).ToString(),
+                                                dr(8).ToString(),
+                                                dr(9).ToString()
+                                            }
+                        dgvReports.Rows.Add(row)
+                    End While
+                End Using
+            End Using
+        End If
+        btnPrint.Visible = True
 
-            ElseIf rdbSessions.Checked Then
-                GetSessions()
-
-            End If
-        Catch ex As Exception
-            CreateExceptionFile(WhoAmI + ex.Message, " " & sql)
-            MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
-            FormatDataGrid()
-        End Try
     End Sub
 
     Private Sub GetPayments()
@@ -1529,8 +1534,6 @@ Public Class frmReports
         btnPrint.Visible = True
     End Sub
 
-
-
     Private Sub txtBoxBarcode_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles txtBoxBarcode.TextChanged
         'TODO
         Dim found As Boolean = False
@@ -1737,7 +1740,7 @@ Public Class frmReports
             CreateExceptionFile(ex.Message, " " & sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
-        formatDataGrid()
+        FormatDataGrid()
         txtBoxBarcode.Focus()
     End Sub
 
@@ -2489,18 +2492,18 @@ Public Class frmReports
         End If
     End Sub
 
-    Private Function GetZseq(ByVal tmpFrom As Date) As Integer
-        Dim WhoAmI As String = "GetZseq"
+    Private Function GetZUuid(ByVal tmpFrom As Date) As String
+        Dim WhoAmI As String = "frmReportsGetZUuid"
         Dim sql As String = ""
-        Dim zseq As Integer = -1
+        Dim zuuid As String = ""
         Dim tmpDate As String = tmpFrom.Day & "-" & FindMonth(tmpFrom.Month.ToString()) & "-" & tmpFrom.Year
 
         Try
             If SqlLite Then
-                'TODO USE UUID INSTEAD
+
                 Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
                     sqliteConn.Open()
-                    sql = "SELECT z_seq
+                    sql = "SELECT IFNULL(z_uuid,'') z_uuid
                           FROM z_report
                           WHERE z_date=@ZDATE
                           AND kioskid=@KIOSKID"
@@ -2511,11 +2514,11 @@ Public Class frmReports
 
                         Using dr As SQLiteDataReader = cmd.ExecuteReader()
                             If dr.Read() Then
-                                zseq = CInt(dr("z_seq"))
+                                zuuid = CStr(dr("z_uuid"))
                             Else
                                 If tmpFrom.Date = startDate.Date Then
                                     sql = "INSERT INTO z_report
-                                       (z_date, z_seq, kioskid)
+                                       (z_date, z_uuid, kioskid)
                                        VALUES
                                        (@ZDATE,1,@KIOSKID)"
 
@@ -2524,12 +2527,12 @@ Public Class frmReports
                                         insertCmd.Parameters.AddWithValue("@KIOSKID", kioskId)
                                         insertCmd.ExecuteNonQuery()
                                     End Using
-                                    zseq = 1
+                                    zuuid = Guid.NewGuid().ToString("N").ToUpper()
                                 Else
                                     Dim tmpFromMinus1 As Date = tmpFrom.AddDays(-1)
                                     Dim tmpDateMinus1 As String = tmpFromMinus1.Day & "-" & FindMonth(tmpFromMinus1.Month.ToString()) & "-" & tmpFromMinus1.Year
 
-                                    sql = "SELECT z_seq
+                                    sql = "SELECT z_uuid
                                             FROM z_report
                                             WHERE z_date=@ZDATE
                                                 AND kioskid=@KIOSKID"
@@ -2540,15 +2543,15 @@ Public Class frmReports
 
                                         Using prevDr As SQLiteDataReader = prevCmd.ExecuteReader()
                                             If prevDr.Read() Then
-                                                zseq = CInt(prevDr("z_seq")) + 1
+                                                zuuid = Guid.NewGuid().ToString("N").ToUpper()
                                                 sql = "INSERT INTO z_report
-                                                       (z_date,z_seq,kioskid)
+                                                       (z_date,z_uuid,kioskid)
                                                        VALUES
-                                                       (@ZDATE,@ZSEQ,@KIOSKID)"
+                                                       (@ZDATE,@ZUUID,@KIOSKID)"
 
                                                 Using insertCmd As New SQLiteCommand(sql, sqliteConn)
                                                     insertCmd.Parameters.AddWithValue("@ZDATE", tmpDate)
-                                                    insertCmd.Parameters.AddWithValue("@ZSEQ", zseq)
+                                                    insertCmd.Parameters.AddWithValue("@ZUUID", zuuid)
                                                     insertCmd.Parameters.AddWithValue("@KIOSKID", kioskId)
                                                     insertCmd.ExecuteNonQuery()
                                                 End Using
@@ -2560,60 +2563,73 @@ Public Class frmReports
                         End Using
                     End Using
                 End Using
-            Else
-                sql = "SELECT z_seq
+            End If
+        Catch ex As Exception
+            CreateExceptionFile(WhoAmI + " " + ex.Message, sql)
+            MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
+        Return zuuid
+    End Function
+
+    Private Function GetZseq(ByVal tmpFrom As Date) As Integer
+        Dim WhoAmI As String = "GetZseq"
+        Dim sql As String = ""
+        Dim zseq As Integer = -1
+        Dim tmpDate As String = tmpFrom.Day & "-" & FindMonth(tmpFrom.Month.ToString()) & "-" & tmpFrom.Year
+
+        Try
+            sql = "SELECT z_seq
                       FROM z_report
                       WHERE z_date=:ZDATE"
 
-                Using cmd As New OracleCommand(sql, conn)
-                    cmd.Parameters.Add("ZDATE", OracleDbType.Varchar2).Value = tmpDate
-                    Using dr As OracleDataReader = cmd.ExecuteReader()
-                        If dr.Read() Then
-                            zseq = CInt(dr("z_seq"))
-                        Else
-                            If tmpFrom.Date = startDate.Date Then
-                                sql = "INSERT INTO z_report
+            Using cmd As New OracleCommand(sql, conn)
+                cmd.Parameters.Add("ZDATE", OracleDbType.Varchar2).Value = tmpDate
+                Using dr As OracleDataReader = cmd.ExecuteReader()
+                    If dr.Read() Then
+                        zseq = CInt(dr("z_seq"))
+                    Else
+                        If tmpFrom.Date = startDate.Date Then
+                            sql = "INSERT INTO z_report
                                        (z_date,z_seq)
                                        VALUES
                                        (:ZDATE,1)"
 
-                                Using insertCmd As New OracleCommand(sql, conn)
-                                    insertCmd.Parameters.Add("ZDATE", OracleDbType.Varchar2).Value = tmpDate
-                                    insertCmd.ExecuteNonQuery()
-                                End Using
-                                zseq = 1
-                            Else
-                                Dim tmpFromMinus1 As Date = tmpFrom.AddDays(-1)
-                                Dim tmpDateMinus1 As String = tmpFromMinus1.Day & "-" & FindMonth(tmpFromMinus1.Month.ToString()) & "-" & tmpFromMinus1.Year
+                            Using insertCmd As New OracleCommand(sql, conn)
+                                insertCmd.Parameters.Add("ZDATE", OracleDbType.Varchar2).Value = tmpDate
+                                insertCmd.ExecuteNonQuery()
+                            End Using
+                            zseq = 1
+                        Else
+                            Dim tmpFromMinus1 As Date = tmpFrom.AddDays(-1)
+                            Dim tmpDateMinus1 As String = tmpFromMinus1.Day & "-" & FindMonth(tmpFromMinus1.Month.ToString()) & "-" & tmpFromMinus1.Year
 
-                                sql = "SELECT z_seq
+                            sql = "SELECT z_seq
                                        FROM z_report
                                        WHERE z_date=:ZDATE"
 
-                                Using prevCmd As New OracleCommand(sql, conn)
-                                    prevCmd.Parameters.Add("ZDATE", OracleDbType.Varchar2).Value = tmpDateMinus1
+                            Using prevCmd As New OracleCommand(sql, conn)
+                                prevCmd.Parameters.Add("ZDATE", OracleDbType.Varchar2).Value = tmpDateMinus1
 
-                                    Using prevDr As OracleDataReader = prevCmd.ExecuteReader()
-                                        If prevDr.Read() Then
-                                            zseq = CInt(prevDr("z_seq")) + 1
-                                            sql = "INSERT INTO z_report
+                                Using prevDr As OracleDataReader = prevCmd.ExecuteReader()
+                                    If prevDr.Read() Then
+                                        zseq = CInt(prevDr("z_seq")) + 1
+                                        sql = "INSERT INTO z_report
                                                (z_date,z_seq)
                                                VALUES
                                                (:ZDATE,:ZSEQ)"
 
-                                            Using insertCmd As New OracleCommand(sql, conn)
-                                                insertCmd.Parameters.Add("ZDATE", OracleDbType.Varchar2).Value = tmpDate
-                                                insertCmd.Parameters.Add("ZSEQ", OracleDbType.Int32).Value = zseq
-                                                insertCmd.ExecuteNonQuery()
-                                            End Using
-                                        End If
-                                    End Using
+                                        Using insertCmd As New OracleCommand(sql, conn)
+                                            insertCmd.Parameters.Add("ZDATE", OracleDbType.Varchar2).Value = tmpDate
+                                            insertCmd.Parameters.Add("ZSEQ", OracleDbType.Int32).Value = zseq
+                                            insertCmd.ExecuteNonQuery()
+                                        End Using
+                                    End If
                                 End Using
-                            End If
+                            End Using
                         End If
-                    End Using
+                    End If
                 End Using
-            End If
+            End Using
         Catch ex As Exception
             CreateExceptionFile(WhoAmI + " " + ex.Message, Sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)

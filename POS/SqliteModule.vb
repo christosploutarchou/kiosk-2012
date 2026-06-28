@@ -539,6 +539,8 @@ Module SqliteModule
                             ID INTEGER PRIMARY KEY AUTOINCREMENT,
                             UUID TEXT,
                             PRODUCT_SERNO INTEGER,
+                            PRODUCT_UUID TEXT,
+                            KIOSKID TEXT,
                             PREV_QUANTITY INTEGER,
                             NEW_QUANTITY INTEGER,
                             MODIFIED_BY TEXT,
@@ -559,7 +561,7 @@ Module SqliteModule
                         INSERT INTO PRODUCTS_AUDIT
                         (
                             UUID,
-                            PRODUCT_SERNO,
+                            PRODUCT_UUID,
                             PREV_QUANTITY,
                             NEW_QUANTITY,
                             MODIFIED_BY,
@@ -567,12 +569,13 @@ Module SqliteModule
                             PREV_ST_QNT,
                             NEW_ST_QNT,
                             OLD_PRICE,
-                            NEW_PRICE
+                            NEW_PRICE,
+                            KIOSKID
                         )
                         VALUES
                         (
                             OLD.UUID,
-                            OLD.SERNO,
+                            OLD.PRODUCT_UUID,
 
                             OLD.AVAIL_QUANTITY,
                             NEW.AVAIL_QUANTITY,
@@ -584,7 +587,10 @@ Module SqliteModule
                             NEW.STOCK_QUANTITY,
 
                             OLD.SELL_AMT,
-                            NEW.SELL_AMT
+                            NEW.SELL_AMT,
+
+                            OLD_KIOSKID,
+                            OLD_KIOSKID
                         );
 
                         END;
