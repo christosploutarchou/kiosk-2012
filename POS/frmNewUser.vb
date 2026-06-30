@@ -1,4 +1,5 @@
-﻿Imports Oracle.DataAccess.Client
+﻿Imports System.Data.SQLite
+Imports Oracle.DataAccess.Client
 Public Class frmNewUser
     Dim mouseIndex As Integer = -1
     Private Sub FrmNewUser_Disposed(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Disposed
@@ -15,26 +16,45 @@ Public Class frmNewUser
     End Sub
 
     Private Sub FillUsersList()
-        'TODO
-        Dim cmd As New OracleCommand("", conn)
-        Dim dr As OracleDataReader
         Dim sql As String = ""
         Try
-            sql = "select username from users where deleted = 0"
-            cmd = New OracleCommand(sql, conn)
-            Dim counter As Integer = 0
-            cmd.CommandType = CommandType.Text
-            dr = cmd.ExecuteReader()
             lstBoxUsers.Items.Clear()
-            While dr.Read()
-                lstBoxUsers.Items.Add(dr("username"))
-            End While
-            dr.Close()
+            If SqlLite Then
+                sql = "SELECT username
+                   FROM users
+                   WHERE deleted = 0
+                     AND kioskid = @KIOSKID
+                   ORDER BY username"
+
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
+                    Using cmd As New SQLiteCommand(sql, sqliteConn)
+                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                        Using dr As SQLiteDataReader = cmd.ExecuteReader()
+                            While dr.Read()
+                                lstBoxUsers.Items.Add(dr("username").ToString())
+                            End While
+                        End Using
+                    End Using
+                End Using
+            Else
+                sql = "SELECT username
+                   FROM users
+                   WHERE deleted = 0
+                   ORDER BY username"
+
+                Using cmd As New OracleCommand(sql, conn)
+                    cmd.CommandType = CommandType.Text
+                    Using dr As OracleDataReader = cmd.ExecuteReader()
+                        While dr.Read()
+                            lstBoxUsers.Items.Add(dr("username").ToString())
+                        End While
+                    End Using
+                End Using
+            End If
         Catch ex As Exception
             CreateExceptionFile(ex.Message, sql)
             MessageBox.Show(ex.Message, "Application Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
-            cmd.Dispose()
         End Try
     End Sub
 
@@ -43,65 +63,87 @@ Public Class frmNewUser
     End Sub
 
     Private Sub LstBoxUsers_SelectedIndexChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles lstBoxUsers.SelectedIndexChanged
-        'TODO
-        If rdbNewUser.Checked Then
-            Exit Sub
-        Else
-            txtBoxUsername.ReadOnly = True
-            lnkLabelChangePass.Visible = True
-            btnSave.Visible = True
-            btnDelete.Visible = True
 
-            Dim cmd As New OracleCommand("", conn)
-            Dim dr As OracleDataReader
-            Dim sql As String = ""
-            Try
-                sql = "select fullname, phone, address, id_num, nvl(access_level,0), nvl(view_reports,0), nvl(edit_prod,0),  nvl(edit_prod_full,0) from users " &
-                      "where username = '" & lstBoxUsers.Text & "'"
-                cmd = New OracleCommand(sql, conn)
-                Dim counter As Integer = 0
-                cmd.CommandType = CommandType.Text
+        If rdbNewUser.Checked Then Exit Sub
 
-                dr = cmd.ExecuteReader()
+        txtBoxUsername.ReadOnly = True
+        lnkLabelChangePass.Visible = True
+        btnSave.Visible = True
+        btnDelete.Visible = True
+        Dim sql As String = ""
 
-                If dr.Read() Then
-                    txtBoxFullName.Text = dr.GetValue(0)
-                    txtBoxPhone.Text = dr.GetValue(1)
-                    txtBoxAddress.Text = dr.GetValue(2)
-                    txtBoxIdentity.Text = dr.GetValue(3)
-                    txtBoxUsername.Text = lstBoxUsers.Text
-                    If CInt(dr.GetValue(4)) = 1 Then
-                        chkBoxAdmin.Checked = True
-                    Else
-                        chkBoxAdmin.Checked = False
-                    End If
+        Try
+            If SqlLite Then
+                sql = "SELECT
+                        fullname,
+                        phone,
+                        address,
+                        id_num,
+                        IFNULL(access_level,0),
+                        IFNULL(view_reports,0),
+                        IFNULL(edit_prod,0),
+                        IFNULL(edit_prod_full,0)
+                   FROM users
+                   WHERE username=@USERNAME
+                     AND kioskid=@KIOSKID"
 
-                    If CInt(dr.GetValue(5)) = 1 Then
-                        chkBoxReports.Checked = True
-                    Else
-                        chkBoxReports.Checked = False
-                    End If
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
+                    Using cmd As New SQLiteCommand(sql, sqliteConn)
+                        cmd.Parameters.AddWithValue("@USERNAME", lstBoxUsers.Text)
+                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                        Using dr As SQLiteDataReader = cmd.ExecuteReader()
+                            If dr.Read() Then
+                                txtBoxFullName.Text = dr("fullname").ToString()
+                                txtBoxPhone.Text = dr("phone").ToString()
+                                txtBoxAddress.Text = dr("address").ToString()
+                                txtBoxIdentity.Text = dr("id_num").ToString()
+                                txtBoxUsername.Text = lstBoxUsers.Text
 
-                    If CInt(dr.GetValue(6)) = 1 Then
-                        chkBoxEditProd.Checked = True
-                    Else
-                        chkBoxEditProd.Checked = False
-                    End If
+                                chkBoxAdmin.Checked = Convert.ToInt32(dr("access_level")) = 1
+                                chkBoxReports.Checked = Convert.ToInt32(dr("view_reports")) = 1
+                                chkBoxEditProd.Checked = Convert.ToInt32(dr("edit_prod")) = 1
+                                chkBoxEditProdFull.Checked = Convert.ToInt32(dr("edit_prod_full")) = 1
+                            End If
+                        End Using
+                    End Using
+                End Using
+            Else
+                sql = "SELECT
+                        fullname,
+                        phone,
+                        address,
+                        id_num,
+                        NVL(access_level,0),
+                        NVL(view_reports,0),
+                        NVL(edit_prod,0),
+                        NVL(edit_prod_full,0)
+                   FROM users
+                   WHERE username = :USERNAME"
 
-                    If CInt(dr.GetValue(7)) = 1 Then
-                        chkBoxEditProdFull.Checked = True
-                    Else
-                        chkBoxEditProdFull.Checked = False
-                    End If
-                End If
-                dr.Close()
-            Catch ex As Exception
-                CreateExceptionFile(ex.Message, " " & sql)
-                MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-            Finally
-                cmd.Dispose()
-            End Try
-        End If
+                Using cmd As New OracleCommand(sql, conn)
+                    cmd.Parameters.Add("USERNAME", OracleDbType.Varchar2).Value = lstBoxUsers.Text
+                    Using dr As OracleDataReader = cmd.ExecuteReader()
+                        If dr.Read() Then
+                            txtBoxFullName.Text = dr.GetValue(0).ToString()
+                            txtBoxPhone.Text = dr.GetValue(1).ToString()
+                            txtBoxAddress.Text = dr.GetValue(2).ToString()
+                            txtBoxIdentity.Text = dr.GetValue(3).ToString()
+                            txtBoxUsername.Text = lstBoxUsers.Text
+
+                            chkBoxAdmin.Checked = CInt(dr.GetValue(4)) = 1
+                            chkBoxReports.Checked = CInt(dr.GetValue(5)) = 1
+                            chkBoxEditProd.Checked = CInt(dr.GetValue(6)) = 1
+                            chkBoxEditProdFull.Checked = CInt(dr.GetValue(7)) = 1
+
+                        End If
+                    End Using
+                End Using
+            End If
+        Catch ex As Exception
+            CreateExceptionFile(ex.Message, sql)
+            MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
     End Sub
 
     Private Sub ListBox1_MouseMove(ByVal sender As Object, ByVal e As MouseEventArgs) Handles lstBoxUsers.MouseMove
@@ -127,29 +169,51 @@ Public Class frmNewUser
     End Sub
 
     Private Sub BtnDelete_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnDelete.Click
-        'TODO
-        If MessageBox.Show("Διαγραφή χρήστη;", "Διαγραγή", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question) = Windows.Forms.DialogResult.Yes Then
-            Dim cmd As New OracleCommand("", conn)
-            Dim sql As String = ""
-            Dim newUserName = lstBoxUsers.Text + "DEL"
-            Try
-                sql = "update users set username = '" & newUserName & "', deleted=1, deleted_by = '" & whois & "' " &
-                      "where username = '" & lstBoxUsers.Text & "'"
-                cmd = New OracleCommand(sql, conn)
-                cmd.CommandType = CommandType.Text
-                cmd.ExecuteNonQuery()
-                cmd.Dispose()
-                FillUsersList()
-                resetFields()
-            Catch ex As Exception
-                CreateExceptionFile(ex.Message, sql)
-                MessageBox.Show(ex.Message, "Application Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
-            Finally
-                cmd.Dispose()
-            End Try
-        Else
+        If MessageBox.Show("Διαγραφή χρήστη;", "Διαγραφή", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question) <> DialogResult.Yes Then
             Exit Sub
         End If
+
+        Dim sql As String = ""
+        Dim newUserName As String = lstBoxUsers.Text & "DEL"
+        Try
+            If SqlLite Then
+                sql = "UPDATE users
+                   SET username=@USERNAME,
+                       deleted=1,
+                       deleted_by=@DELETED_BY
+                   WHERE username=@OLD_USERNAME
+                     AND kioskid=@KIOSKID"
+
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
+                    Using cmd As New SQLiteCommand(sql, sqliteConn)
+                        cmd.Parameters.AddWithValue("@USERNAME", newUserName)
+                        cmd.Parameters.AddWithValue("@DELETED_BY", whois)
+                        cmd.Parameters.AddWithValue("@OLD_USERNAME", lstBoxUsers.Text)
+                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                        cmd.ExecuteNonQuery()
+                    End Using
+                End Using
+            Else
+                sql = "UPDATE users
+                   SET username=:USERNAME,
+                       deleted=1,
+                       deleted_by=:DELETED_BY
+                   WHERE username=:OLD_USERNAME"
+
+                Using cmd As New OracleCommand(sql, conn)
+                    cmd.Parameters.Add("USERNAME", OracleDbType.Varchar2).Value = newUserName
+                    cmd.Parameters.Add("DELETED_BY", OracleDbType.Varchar2).Value = whois
+                    cmd.Parameters.Add("OLD_USERNAME", OracleDbType.Varchar2).Value = lstBoxUsers.Text
+                    cmd.ExecuteNonQuery()
+                End Using
+            End If
+            FillUsersList()
+            ResetFields()
+        Catch ex As Exception
+            CreateExceptionFile(ex.Message, sql)
+            MessageBox.Show(ex.Message, "Application Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
     End Sub
 
     Private Sub ResetFields()
@@ -167,8 +231,43 @@ Public Class frmNewUser
         chkBoxEditProd.Checked = False
     End Sub
 
+    Private Function UserNameExists(ByVal username As String) As Boolean
+        Dim sql As String = ""
+        Try
+            If SqlLite Then
+                sql = "SELECT COUNT(*)
+                   FROM users
+                   WHERE UPPER(username)=@USERNAME
+                     AND deleted=0
+                     AND kioskid=@KIOSKID"
+
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
+                    Using cmd As New SQLiteCommand(sql, sqliteConn)
+                        cmd.Parameters.AddWithValue("@USERNAME", username.ToUpper())
+                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                        Return Convert.ToInt32(cmd.ExecuteScalar()) > 0
+                    End Using
+                End Using
+            Else
+                sql = "SELECT COUNT(*)
+                   FROM users
+                   WHERE UPPER(username)=:USERNAME
+                     AND deleted=0"
+
+                Using cmd As New OracleCommand(sql, conn)
+                    cmd.Parameters.Add("USERNAME", OracleDbType.Varchar2).Value = username.ToUpper()
+                    Return Convert.ToInt32(cmd.ExecuteScalar()) > 0
+                End Using
+            End If
+        Catch ex As Exception
+            CreateExceptionFile(ex.Message, sql)
+            MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Return False
+        End Try
+    End Function
+
     Private Sub BtnSave_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnSave.Click
-        'TODO
         Dim accessLevel As Integer
         Dim canViewReports As Integer
         Dim canEditProducts As Integer
@@ -198,10 +297,6 @@ Public Class frmNewUser
             canEditProductsFull = 0
         End If
 
-        Dim sql As String = ""
-        Dim cmd As New OracleCommand(sql, conn)
-        Dim dr As OracleDataReader
-
         Try
             If rdbNewUser.Checked Then
                 If txtBoxFullName.Text = String.Empty Or txtBoxPhone.Text = String.Empty Or txtBoxAddress.Text = String.Empty Or txtBoxIdentity.Text = String.Empty Or txtBoxUsername.Text = String.Empty Then
@@ -214,56 +309,21 @@ Public Class frmNewUser
                     Exit Sub
                 End If
 
-                sql = "select count(*) from users where upper(username) = '" & txtBoxUsername.Text.ToUpper & "' and deleted = 0 "
-                cmd = New OracleCommand(sql, conn)
-                cmd.CommandType = CommandType.Text
-                dr = cmd.ExecuteReader()
-                If dr.Read Then
-                    If CInt(dr(0)) > 0 Then
-                        MessageBox.Show("Το username που επιλέξατε είναι ήδη καταχωρημένο", "Πληροφορία", MessageBoxButtons.OK, MessageBoxIcon.Error)
-                        Exit Sub
-                    End If
+                If (UserNameExists(txtBoxUsername.Text.ToUpper)) Then
+                    MessageBox.Show("Το username που επιλέξατε είναι ήδη καταχωρημένο", "Πληροφορία", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                    Exit Sub
                 End If
-                dr.Close()
 
-                sql = "insert into users (UUID, username, PHONE, PASS, ID_NUM, FULLNAME, DELETED, CREATED_BY, ADDRESS, ACCESS_LEVEL, VIEW_REPORTS, EDIT_PROD, EDIT_PROD_FULL) " &
-                      "values (sys_guid(), '" & txtBoxUsername.Text.Replace("\'", "\`") & "'," &
-                      "                    '" & txtBoxPhone.Text.Replace("\'", "\`") & "'," &
-                      "                    '" & getEncryptedValue(txtBoxPassword.Text.Replace("\'", "\`")) & "'," &
-                      "                    '" & txtBoxIdentity.Text.Replace("\'", "\`") & "', " &
-                      "                    '" & txtBoxFullName.Text.Replace("\'", "\`") & "', " &
-                      "                    0, " &
-                      "                    '" & whois & "', " &
-                      "                    '" & txtBoxAddress.Text.Replace("\'", "\`") & "', " &
-                      "                     " & accessLevel & ", " &
-                      "                     " & canViewReports & ", " &
-                      "                     " & canEditProducts & ", " &
-                      "                     " & canEditProductsFull & ") "
+                InsertIntoUsers(accessLevel)
             Else
                 If lblNewPassword.Visible And txtBoxPassword.Text = String.Empty Then
                     MessageBox.Show("Νέος Κωδικός: Υποχρεωτικό Πεδίο", "Πληροφορία", MessageBoxButtons.OK, MessageBoxIcon.Error)
                     Exit Sub
                 End If
 
-                sql = "update users set fullname = '" & txtBoxFullName.Text.Replace("\'", "\`") & "'," &
-                      "                 phone = '" & txtBoxPhone.Text.Replace("\'", "\`") & "'," &
-                      "                 id_num = '" & txtBoxIdentity.Text.Replace("\'", "\`") & "'," &
-                      "                 address = '" & txtBoxAddress.Text.Replace("\'", "\`") & "', " &
-                      "                 access_level = " & accessLevel & ",  " &
-                      "                 view_reports = " & canViewReports & ",  " &
-                      "                 edit_prod = " & canEditProducts & ",  " &
-                      "                 edit_prod_full = " & canEditProductsFull & "  "
-
-                If lblNewPassword.Visible Then
-                    sql += ",pass = '" & getEncryptedValue(txtBoxPassword.Text.Replace("\'", "\`")) & "' "
-                End If
-
-                sql += " where username = '" & lstBoxUsers.Text & "'"
+                UpdateExistingUser(accessLevel)
 
             End If
-            cmd = New OracleCommand(sql, conn)
-            cmd.CommandType = CommandType.Text
-            Using cmd                cmd.ExecuteNonQuery()            End Using
             FillUsersList()
             rdbNewUser.Checked = True
             ResetFields()
@@ -273,8 +333,198 @@ Public Class frmNewUser
         Catch ex As Exception
             CreateExceptionFile(ex.Message, sql)
             MessageBox.Show(ex.Message, "Application Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
-            cmd.Dispose()
+        End Try
+    End Sub
+
+    Private Sub UpdateExistingUser(ByVal accessLevel As Integer)
+        Dim WhoAmI As String = "frmNewUser.UpdateExistingUser"
+        Dim sql As String = ""
+
+        Try
+            If SqlLite Then
+
+                sql =
+                "UPDATE users
+             SET fullname=@FULLNAME,
+                 phone=@PHONE,
+                 id_num=@ID_NUM,
+                 address=@ADDRESS,
+                 access_level=@ACCESS_LEVEL,
+                 view_reports=@VIEW_REPORTS,
+                 edit_prod=@EDIT_PROD,
+                 edit_prod_full=@EDIT_PROD_FULL"
+
+                If lblNewPassword.Visible Then
+                    sql &= ", pass=@PASS"
+                End If
+
+                sql &= "
+             WHERE username=@USERNAME
+               AND kioskid=@KIOSKID"
+
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
+                    Using cmd As New SQLiteCommand(sql, sqliteConn)
+                        cmd.Parameters.AddWithValue("@FULLNAME", txtBoxFullName.Text)
+                        cmd.Parameters.AddWithValue("@PHONE", txtBoxPhone.Text)
+                        cmd.Parameters.AddWithValue("@ID_NUM", txtBoxIdentity.Text)
+                        cmd.Parameters.AddWithValue("@ADDRESS", txtBoxAddress.Text)
+                        cmd.Parameters.AddWithValue("@ACCESS_LEVEL", accessLevel)
+                        cmd.Parameters.AddWithValue("@VIEW_REPORTS", canViewReports)
+                        cmd.Parameters.AddWithValue("@EDIT_PROD", canEditProducts)
+                        cmd.Parameters.AddWithValue("@EDIT_PROD_FULL", canEditProductsFull)
+
+                        If lblNewPassword.Visible Then
+                            cmd.Parameters.AddWithValue("@PASS", getEncryptedValue(txtBoxPassword.Text))
+                        End If
+
+                        cmd.Parameters.AddWithValue("@USERNAME", lstBoxUsers.Text)
+                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                        cmd.ExecuteNonQuery()
+                    End Using
+                End Using
+            Else
+                sql =
+                "UPDATE users
+             SET fullname=:FULLNAME,
+                 phone=:PHONE,
+                 id_num=:ID_NUM,
+                 address=:ADDRESS,
+                 access_level=:ACCESS_LEVEL,
+                 view_reports=:VIEW_REPORTS,
+                 edit_prod=:EDIT_PROD,
+                 edit_prod_full=:EDIT_PROD_FULL"
+
+                If lblNewPassword.Visible Then
+                    sql &= ", pass=:PASS"
+                End If
+
+                sql &= "
+             WHERE username=:USERNAME"
+
+                Using cmd As New OracleCommand(sql, conn)
+                    cmd.BindByName = True
+                    cmd.Parameters.Add("FULLNAME", OracleDbType.Varchar2).Value = txtBoxFullName.Text
+                    cmd.Parameters.Add("PHONE", OracleDbType.Varchar2).Value = txtBoxPhone.Text
+                    cmd.Parameters.Add("ID_NUM", OracleDbType.Varchar2).Value = txtBoxIdentity.Text
+                    cmd.Parameters.Add("ADDRESS", OracleDbType.Varchar2).Value = txtBoxAddress.Text
+                    cmd.Parameters.Add("ACCESS_LEVEL", OracleDbType.Int32).Value = accessLevel
+                    cmd.Parameters.Add("VIEW_REPORTS", OracleDbType.Int32).Value = canViewReports
+                    cmd.Parameters.Add("EDIT_PROD", OracleDbType.Int32).Value = canEditProducts
+                    cmd.Parameters.Add("EDIT_PROD_FULL", OracleDbType.Int32).Value = canEditProductsFull
+
+                    If lblNewPassword.Visible Then
+                        cmd.Parameters.Add("PASS", OracleDbType.Varchar2).Value = getEncryptedValue(txtBoxPassword.Text)
+                    End If
+
+                    cmd.Parameters.Add("USERNAME", OracleDbType.Varchar2).Value = lstBoxUsers.Text
+                    cmd.ExecuteNonQuery()
+                End Using
+            End If
+        Catch ex As Exception
+            CreateExceptionFile(WhoAmI + " " + ex.Message, sql)
+        End Try
+    End Sub
+
+    Private Sub InsertIntoUsers(ByVal accessLevel As Integer)
+        Dim WhoAmI = "frmNewUsers.InsertIntoUsers"
+        Dim sql As String = ""
+        Try
+            If SqlLite Then
+
+                sql =
+                "INSERT INTO users
+            (
+                uuid,
+                username,
+                phone,
+                pass,
+                id_num,
+                fullname,
+                deleted,
+                created_by,
+                address,
+                access_level,
+                view_reports,
+                edit_prod,
+                edit_prod_full,
+                kioskid
+            )
+            VALUES
+            (
+                @UUID,
+                @USERNAME,
+                @PHONE,
+                @PASS,
+                @ID_NUM,
+                @FULLNAME,
+                0,
+                @CREATED_BY,
+                @ADDRESS,
+                @ACCESS_LEVEL,
+                @VIEW_REPORTS,
+                @EDIT_PROD,
+                @EDIT_PROD_FULL,
+                @KIOSKID
+            )"
+
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
+                    Using cmd As New SQLiteCommand(sql, sqliteConn)
+                        cmd.Parameters.AddWithValue("@UUID", Guid.NewGuid().ToString("N").ToUpper())
+                        cmd.Parameters.AddWithValue("@USERNAME", txtBoxUsername.Text)
+                        cmd.Parameters.AddWithValue("@PHONE", txtBoxPhone.Text)
+                        cmd.Parameters.AddWithValue("@PASS", getEncryptedValue(txtBoxPassword.Text))
+                        cmd.Parameters.AddWithValue("@ID_NUM", txtBoxIdentity.Text)
+                        cmd.Parameters.AddWithValue("@FULLNAME", txtBoxFullName.Text)
+                        cmd.Parameters.AddWithValue("@CREATED_BY", whois)
+                        cmd.Parameters.AddWithValue("@ADDRESS", txtBoxAddress.Text)
+                        cmd.Parameters.AddWithValue("@ACCESS_LEVEL", accessLevel)
+                        cmd.Parameters.AddWithValue("@VIEW_REPORTS", canViewReports)
+                        cmd.Parameters.AddWithValue("@EDIT_PROD", canEditProducts)
+                        cmd.Parameters.AddWithValue("@EDIT_PROD_FULL", canEditProductsFull)
+                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                        cmd.ExecuteNonQuery()
+                    End Using
+                End Using
+            Else
+                sql =
+                        "INSERT INTO users
+                    (UUID, username, PHONE, PASS, ID_NUM, FULLNAME,
+                        DELETED, CREATED_BY, ADDRESS,
+                        ACCESS_LEVEL, VIEW_REPORTS, EDIT_PROD, EDIT_PROD_FULL)
+                        VALUES
+                    (sys_guid(),
+                        :USERNAME,
+                        :PHONE,
+                        :PASS,
+                        :ID_NUM,
+                        :FULLNAME,
+                        0,
+                        :CREATED_BY,
+                        :ADDRESS,
+                        :ACCESS_LEVEL,
+                        :VIEW_REPORTS,
+                        :EDIT_PROD,
+                        :EDIT_PROD_FULL)"
+
+                Using cmd As New OracleCommand(sql, conn)
+                    cmd.Parameters.Add("USERNAME", OracleDbType.Varchar2).Value = txtBoxUsername.Text
+                    cmd.Parameters.Add("PHONE", OracleDbType.Varchar2).Value = txtBoxPhone.Text
+                    cmd.Parameters.Add("PASS", OracleDbType.Varchar2).Value = getEncryptedValue(txtBoxPassword.Text)
+                    cmd.Parameters.Add("ID_NUM", OracleDbType.Varchar2).Value = txtBoxIdentity.Text
+                    cmd.Parameters.Add("FULLNAME", OracleDbType.Varchar2).Value = txtBoxFullName.Text
+                    cmd.Parameters.Add("CREATED_BY", OracleDbType.Varchar2).Value = whois
+                    cmd.Parameters.Add("ADDRESS", OracleDbType.Varchar2).Value = txtBoxAddress.Text
+                    cmd.Parameters.Add("ACCESS_LEVEL", OracleDbType.Int32).Value = accessLevel
+                    cmd.Parameters.Add("VIEW_REPORTS", OracleDbType.Int32).Value = canViewReports
+                    cmd.Parameters.Add("EDIT_PROD", OracleDbType.Int32).Value = canEditProducts
+                    cmd.Parameters.Add("EDIT_PROD_FULL", OracleDbType.Int32).Value = canEditProductsFull
+                    cmd.ExecuteNonQuery()
+                End Using
+            End If
+        Catch ex As Exception
+            CreateExceptionFile(WhoAmI + " " + ex.Message, Sql)
         End Try
     End Sub
 
@@ -349,7 +599,5 @@ Public Class frmNewUser
     Private Sub TxtBoxFullName_MouseLeave(ByVal sender As Object, ByVal e As System.EventArgs) Handles txtBoxFullName.MouseLeave
         txtBoxFullName.BackColor = Color.LemonChiffon
     End Sub
-
-
 
 End Class

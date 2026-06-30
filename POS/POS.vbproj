@@ -295,12 +295,6 @@
     <Compile Include="Models.vb" />
     <Compile Include="module.vb" />
     <Compile Include="ExceptionsAndMessages\exceptionsAndMessages.vb" />
-    <Compile Include="frmKRONOSadmin.Designer.vb">
-      <DependentUpon>frmKRONOSadmin.vb</DependentUpon>
-    </Compile>
-    <Compile Include="frmKRONOSadmin.vb">
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Include="frmSelectKronos.Designer.vb">
       <DependentUpon>frmSelectKronos.vb</DependentUpon>
     </Compile>
@@ -386,7 +380,6 @@
     </Compile>
     <Compile Include="params\paramsAndConstants.vb" />
     <Compile Include="Queries\mainQueries.vb" />
-    <Compile Include="Queries\kronosAdminQueries.vb" />
     <Compile Include="Queries\moduleQueries.vb" />
     <Compile Include="Queries\loginQueries.vb" />
     <Compile Include="SqliteModule.vb" />
@@ -466,10 +459,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="frmDual.resx">
       <DependentUpon>frmDual.vb</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="frmKRONOSadmin.resx">
-      <DependentUpon>frmKRONOSadmin.vb</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="frmCategories.resx">

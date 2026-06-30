@@ -3,9 +3,8 @@ Imports System.Data
 Imports System.Data.OleDb
 Imports System.Data.SqlClient
 Imports System.Data.SQLite
-'Imports Microsoft.Office.Interop.Excel
 Imports Oracle.DataAccess.Client
-Imports Oracle.DataAccess.Types
+'Imports Oracle.DataAccess.Types
 
 Public Class frmLogin
     Private Sub FrmLogin_Disposed(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Disposed

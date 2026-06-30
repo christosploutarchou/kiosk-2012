@@ -591,7 +591,6 @@ Public Class frmInvoices
 
             If Not tmpSave Then
                 If MessageBox.Show("Έκδοση πληρωμής;", "Έκδοση Πληρωμής", MessageBoxButtons.YesNo, MessageBoxIcon.Question) = DialogResult.Yes Then
-                    'TODO
                     GenerateAndPrintPayment(supplierUUIDs.Item(cmbSuppliers.SelectedIndex), txtInvNumber.Text)
                 End If
             End If

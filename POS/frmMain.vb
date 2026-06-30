@@ -3,7 +3,6 @@ Imports System.Reflection
 Imports Oracle.DataAccess.Client
 
 Public Class frmMain
-
     Private Sub BtnExit_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnExit.Click
         If MessageBox.Show("Εξοδος;", "Εξοδος", MessageBoxButtons.YesNo, MessageBoxIcon.Question) = Windows.Forms.DialogResult.Yes Then
             'TODO
@@ -96,7 +95,7 @@ Public Class frmMain
         Next
     End Sub
 
-    Private Sub contextmenu_click(ByVal sender As System.Object, ByVal e As ToolStripItemClickedEventArgs)
+    Private Sub Contextmenu_click(ByVal sender As System.Object, ByVal e As ToolStripItemClickedEventArgs)
         Dim clickCell As DataGridViewCell = dgvMessages.SelectedCells(0)
         Select Case e.ClickedItem.Text
             Case "Copy"
@@ -104,7 +103,7 @@ Public Class frmMain
         End Select
     End Sub
 
-    Private Sub contextmenuMessages_click(ByVal sender As System.Object, ByVal e As ToolStripItemClickedEventArgs)
+    Private Sub ContextmenuMessages_click(ByVal sender As System.Object, ByVal e As ToolStripItemClickedEventArgs)
         Dim clickCell As DataGridViewCell = dgvExpiry.SelectedCells(0)
         Select Case e.ClickedItem.Text
             Case "Copy"
@@ -112,7 +111,7 @@ Public Class frmMain
         End Select
     End Sub
 
-    Private Sub dgvMessages_CellMouseDown(ByVal sender As Object, ByVal e As System.Windows.Forms.DataGridViewCellMouseEventArgs) Handles dgvMessages.CellMouseDown
+    Private Sub DgvMessages_CellMouseDown(ByVal sender As Object, ByVal e As System.Windows.Forms.DataGridViewCellMouseEventArgs) Handles dgvMessages.CellMouseDown
         If e.RowIndex <> -1 And e.ColumnIndex <> -1 Then
             If e.Button = MouseButtons.Right Then
                 Dim clickCell As DataGridViewCell = sender.Rows(e.RowIndex).Cells(e.ColumnIndex)
@@ -121,7 +120,7 @@ Public Class frmMain
         End If
     End Sub
 
-    Private Sub dgvExpiry_CellMouseDown(ByVal sender As Object, ByVal e As System.Windows.Forms.DataGridViewCellMouseEventArgs) Handles dgvExpiry.CellMouseDown
+    Private Sub DgvExpiry_CellMouseDown(ByVal sender As Object, ByVal e As System.Windows.Forms.DataGridViewCellMouseEventArgs) Handles dgvExpiry.CellMouseDown
         If e.RowIndex <> -1 And e.ColumnIndex <> -1 Then
             If e.Button = MouseButtons.Right Then
                 Dim clickCell As DataGridViewCell = sender.Rows(e.RowIndex).Cells(e.ColumnIndex)
@@ -148,8 +147,8 @@ Public Class frmMain
         frmSuppliers.Show()
     End Sub
 
-    Private Sub btnProducts_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnProducts.Click
-        If Not isLoggedIn(username) Then
+    Private Sub BtnProducts_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnProducts.Click
+        If Not IsLoggedIn(username) Then
             MessageBox.Show("Ο χρήστης δεν ειναι συνδεμένος", "Σφάλμα", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Exit Sub
         End If
@@ -583,7 +582,7 @@ Public Class frmMain
     End Sub
 
     Private Sub PrintDocument1_PrintPage(ByVal sender As System.Object, ByVal e As System.Drawing.Printing.PrintPageEventArgs) Handles PrintDocument1.PrintPage
-        'TODO - REFACTOR
+        Dim WhoAmI As String = "frmMain.PrintDocument1_PrintPage"
         Dim headerFont As Font = New Drawing.Font(REPORT_FONT, 15, FontStyle.Bold)
         Dim reportFont As Font = New Drawing.Font(REPORT_FONT, 9)
         Dim reportFontSmall As Font = New Drawing.Font(REPORT_FONT, 9)
@@ -598,83 +597,165 @@ Public Class frmMain
         e.Graphics.DrawString(SINGE_DASHED_LINE, reportFont, Brushes.Black, 0, 130)
         e.Graphics.DrawString("Χρήστης: " & getUser(whois), reportFont, Brushes.Black, 0, 160)
 
-        Dim cmd As New OracleCommand("", conn)
-        Dim dr As OracleDataReader
         Dim sql As String = ""
         Try
+            If SqlLite Then
+                sql = "Select FROM_DATE, TO_DATE, total_receipts, total5percent, total19percent, payments, 
+                       initial_amt, final_amt, description, total0percent, amount_laxeia, initialAmtLaxeia, amountVisa, IFNULL(finalAmtLaxeia, 0), total3percent
+                       From x_report
+                       Where user_id =@USER_ID
+                          And kioskid=@KIOSKID
+                        ORDER BY datetime(created_on) DESC
+                        LIMIT 1"
 
-            sql = "select from_date, to_date, total_receipts, total5percent, total19percent, payments, " &
-                  "initial_amt, final_amt, description, total0percent, amount_laxeia, initialAmtLaxeia, amountVisa, NVL(finalAmtLaxeia,0), total3percent " &
-                  "from x_report " &
-                  "where user_id = '" & whois & "' and created_on = (select max(created_on) from x_report)"
+                Using sqliteConn As New SQLiteConnection("Data Source=kiosk.db")
+                    sqliteConn.Open()
+                    Using cmd As New SQLiteCommand(sql, sqliteConn)
+                        cmd.Parameters.AddWithValue("@USER_ID", whois)
+                        cmd.Parameters.AddWithValue("@KIOSKID", kioskId)
+                        Using dr As SQLiteDataReader = cmd.ExecuteReader()
+                            Dim xMargin As Integer = 180
+                            If dr.Read() Then
 
-            cmd = New OracleCommand(sql, conn)
-            dr = cmd.ExecuteReader()
+                                e.Graphics.DrawString("Από: " & CStr(dr(0)), reportFont, Brushes.Black, 0, xMargin)
+                                xMargin += 20
+                                e.Graphics.DrawString("Έως: " & CStr(dr(1)), reportFont, Brushes.Black, 0, xMargin)
 
-            Dim xMargin As Integer = 180
-            If dr.Read Then
-                e.Graphics.DrawString("Από: " & CStr(dr(0)), reportFont, Brushes.Black, 0, xMargin)
-                xMargin += 20
-                e.Graphics.DrawString("Έως: " & CStr(dr(1)), reportFont, Brushes.Black, 0, xMargin)
+                                If isAdmin Then
+                                    xMargin += 20
+                                    e.Graphics.DrawString("Αρ. Αποδείξεων: " & CStr(dr(2)), reportFont, Brushes.Black, 0, xMargin)
+                                End If
 
-                If isAdmin Then
-                    xMargin += 20
-                    e.Graphics.DrawString("Αρ. Αποδείξεων: " & CStr(dr(2)), reportFont, Brushes.Black, 0, xMargin)
-                End If
+                                Dim totalVat5 As Double = CDbl(dr(3))
+                                Dim totalVat19 As Double = CDbl(dr(4))
+                                Dim payments As Double = CDbl(dr(5))
+                                Dim initial As Double = CDbl(dr(6))
+                                Dim final As Double = CDbl(dr(7))
+                                Dim totalVat0 As Double = CDbl(dr(9))
+                                Dim amountLaxeia As Double = CDbl(dr(10))
+                                Dim initialAmountLaxeia As Double = CDbl(dr(11))
+                                Dim amountVisa As Double = CDbl(dr(12))
+                                Dim finalAmtLaxeia As Double = CDbl(dr(13))
+                                Dim totalVat3 As Double = CDbl(dr(14))
 
-                Dim totalVat5 As Double = CDbl(dr(3))
-                Dim totalVat19 As Double = CDbl(dr(4))
-                Dim payments As Double = CDbl(dr(5))
-                Dim initial As Double = CDbl(dr(6))
-                Dim final As Double = CDbl(dr(7))
-                Dim totalVat0 As Double = CDbl(dr(9))
-                Dim amountLaxeia As Double = CDbl(dr(10))
-                Dim initialAmountLaxeia As Double = CDbl(dr(11))
-                Dim amountVisa As Double = CDbl(dr(12))
-                Dim finalAmtLaxeia As Double = CDbl(dr(13))
-                Dim totalVat3 As Double = CDbl(dr(14))
+                                Dim totalReceivedAmt As Double = totalVat0 + totalVat3 + totalVat5 + totalVat19
+                                Dim totalAmountToDeliver = (totalReceivedAmt + initial) - payments - amountVisa
 
-                Dim totalReceivedAmt As Double = totalVat0 + totalVat3 + totalVat5 + totalVat19
-                Dim totalAmountToDeliver = (totalReceivedAmt + initial) - payments - amountVisa
+                                If isAdmin Then
+                                    xMargin += 20
+                                    e.Graphics.DrawString("Φ.Π.Α. 0%: " & totalVat0.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
+                                    xMargin += 20
+                                    e.Graphics.DrawString("Φ.Π.Α. 3%: " & totalVat3.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
+                                    xMargin += 20
+                                    e.Graphics.DrawString("Φ.Π.Α. 5%: " & totalVat5.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
+                                    xMargin += 20
+                                    e.Graphics.DrawString("Φ.Π.Α. 19%: " & totalVat19.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
+                                    xMargin += 20
+                                    e.Graphics.DrawString("Πληρωμές: " & payments.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
+                                End If
 
-                If isAdmin Then
-                    xMargin += 20
-                    e.Graphics.DrawString("Φ.Π.Α. 0%: " & totalVat0.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
-                    xMargin += 20
-                    e.Graphics.DrawString("Φ.Π.Α. 3%: " & totalVat3.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
-                    xMargin += 20
-                    e.Graphics.DrawString("Φ.Π.Α. 5%: " & totalVat5.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
-                    xMargin += 20
-                    e.Graphics.DrawString("Φ.Π.Α. 19%: " & totalVat19.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
-                    xMargin += 20
-                    e.Graphics.DrawString("Πληρωμές: " & payments.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
-                End If
+                                xMargin += 20
+                                e.Graphics.DrawString("Αρχικό Ποσό: " & initial.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
 
-                xMargin += 20
-                e.Graphics.DrawString("Αρχικό Ποσό: " & initial.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
+                                If isAdmin Then
+                                    xMargin += 20
+                                    e.Graphics.DrawString("Ποσό Είσπραξης: " & totalReceivedAmt.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
+                                    xMargin += 20
+                                    e.Graphics.DrawString("Ποσό VISA: " & amountVisa.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
+                                    xMargin += 20
+                                    e.Graphics.DrawString("Τελικό Ποσό Ταμείου για Παράδοση: " & totalAmountToDeliver.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
+                                End If
 
-                If isAdmin Then
-                    xMargin += 20
-                    e.Graphics.DrawString("Ποσό Είσπραξης: " & totalReceivedAmt.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
-                    xMargin += 20
-                    e.Graphics.DrawString("Ποσό VISA: " & amountVisa.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
-                    xMargin += 20
-                    e.Graphics.DrawString("Τελικό Ποσό Ταμείου για Παράδοση: " & totalAmountToDeliver.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
-                End If
+                                xMargin += 20
+                                e.Graphics.DrawString("Ποσο λαχείων για Παράδοση: " & (finalAmtLaxeia).ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
 
-                xMargin += 20
-                e.Graphics.DrawString("Ποσο λαχείων για Παράδοση: " & (finalAmtLaxeia).ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
+                                If Not dr.IsDBNull(8) Then
+                                    e.Graphics.DrawString(dr(8), reportFont, Brushes.Black, 0, xMargin)
+                                End If
+                            End If
+                        End Using
+                    End Using
+                End Using
+            Else
+                sql = "select from_date, to_date, total_receipts, total5percent, total19percent, payments,
+                  initial_amt, final_amt, description, total0percent,
+                  amount_laxeia, initialAmtLaxeia, amountVisa,
+                  NVL(finalAmtLaxeia,0), total3percent
+                   from x_report
+                   where user_id = '" & whois & "'
+                     and created_on = (select max(created_on) from x_report)"
 
-                If Not dr.IsDBNull(8) Then
-                    e.Graphics.DrawString(dr(8), reportFont, Brushes.Black, 0, xMargin)
-                End If
+                Using cmd As New OracleCommand(sql, conn)
+
+                    Using dr As OracleDataReader = cmd.ExecuteReader()
+
+                        If dr.Read() Then
+
+                            Dim xMargin As Integer = 180
+                            If dr.Read Then
+                                e.Graphics.DrawString("Από: " & CStr(dr(0)), reportFont, Brushes.Black, 0, xMargin)
+                                xMargin += 20
+                                e.Graphics.DrawString("Έως: " & CStr(dr(1)), reportFont, Brushes.Black, 0, xMargin)
+
+                                If isAdmin Then
+                                    xMargin += 20
+                                    e.Graphics.DrawString("Αρ. Αποδείξεων: " & CStr(dr(2)), reportFont, Brushes.Black, 0, xMargin)
+                                End If
+
+                                Dim totalVat5 As Double = CDbl(dr(3))
+                                Dim totalVat19 As Double = CDbl(dr(4))
+                                Dim payments As Double = CDbl(dr(5))
+                                Dim initial As Double = CDbl(dr(6))
+                                Dim final As Double = CDbl(dr(7))
+                                Dim totalVat0 As Double = CDbl(dr(9))
+                                Dim amountLaxeia As Double = CDbl(dr(10))
+                                Dim initialAmountLaxeia As Double = CDbl(dr(11))
+                                Dim amountVisa As Double = CDbl(dr(12))
+                                Dim finalAmtLaxeia As Double = CDbl(dr(13))
+                                Dim totalVat3 As Double = CDbl(dr(14))
+
+                                Dim totalReceivedAmt As Double = totalVat0 + totalVat3 + totalVat5 + totalVat19
+                                Dim totalAmountToDeliver = (totalReceivedAmt + initial) - payments - amountVisa
+
+                                If isAdmin Then
+                                    xMargin += 20
+                                    e.Graphics.DrawString("Φ.Π.Α. 0%: " & totalVat0.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
+                                    xMargin += 20
+                                    e.Graphics.DrawString("Φ.Π.Α. 3%: " & totalVat3.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
+                                    xMargin += 20
+                                    e.Graphics.DrawString("Φ.Π.Α. 5%: " & totalVat5.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
+                                    xMargin += 20
+                                    e.Graphics.DrawString("Φ.Π.Α. 19%: " & totalVat19.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
+                                    xMargin += 20
+                                    e.Graphics.DrawString("Πληρωμές: " & payments.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
+                                End If
+
+                                xMargin += 20
+                                e.Graphics.DrawString("Αρχικό Ποσό: " & initial.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
+
+                                If isAdmin Then
+                                    xMargin += 20
+                                    e.Graphics.DrawString("Ποσό Είσπραξης: " & totalReceivedAmt.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
+                                    xMargin += 20
+                                    e.Graphics.DrawString("Ποσό VISA: " & amountVisa.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
+                                    xMargin += 20
+                                    e.Graphics.DrawString("Τελικό Ποσό Ταμείου για Παράδοση: " & totalAmountToDeliver.ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
+                                End If
+
+                                xMargin += 20
+                                e.Graphics.DrawString("Ποσο λαχείων για Παράδοση: " & (finalAmtLaxeia).ToString("N2"), reportFont, Brushes.Black, 0, xMargin)
+
+                                If Not dr.IsDBNull(8) Then
+                                    e.Graphics.DrawString(dr(8), reportFont, Brushes.Black, 0, xMargin)
+                                End If
+                            End If
+                        End If
+                    End Using
+                End Using
             End If
-            dr.Close()
         Catch ex As Exception
-            CreateExceptionFile(ex.Message, " " & sql)
+            CreateExceptionFile(WhoAmI + " " + ex.Message, " " & sql)
             MessageBox.Show(ex.Message, APPLICATION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
-            cmd.Dispose()
         End Try
     End Sub
 
