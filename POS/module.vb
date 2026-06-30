@@ -28,6 +28,7 @@ Module connectionModule
 
     'Product serno for boxes
     Public tmpGlobalProductSerno As Integer
+    Public tmpGlobalProductUUID As String
 
     'Product Selected on dynamic form to be added in the DGV
     Public dynamicProductSerno As Integer = -1
